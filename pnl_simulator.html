@@ -119,7 +119,7 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </style>
 </head>
 <body>
-<div class="topbar"><span class="logo">P&L Simulator</span><nav><a href="index.html">← ダッシュボード</a><a href="archive.html">アーカイブ</a></nav></div>
+<div class="topbar"><span class="logo">P&L Simulator</span><nav><a href="index.html">← ダッシュボード</a><a href="weekly_trend.html">週次推移</a><a href="archive.html">アーカイブ</a></nav></div>
 <div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/5/11（月） / ATM 62,500 / VI 31.75 / SQまで24日</div></div>
 <div class="kpi-strip">
   <div class="kpi"><div class="label">ATM</div><div class="value">62,500</div></div>
@@ -150,7 +150,7 @@ tr.atm-row{background:rgba(251,191,36,.08)}
   <div id="pnl-table-wrap"></div>
 </div>
 </div>
-<div class="footer"><a href="index.html">ダッシュボード</a> <a href="archive.html">アーカイブ</a></div>
+<div class="footer"><a href="index.html">ダッシュボード</a> <a href="weekly_trend.html">週次推移</a> <a href="archive.html">アーカイブ</a></div>
 <script>
 var ATM=62500,VI=31.75,T=0.096,DAYS=24;
 var PRESETS=[{"name": "Iron Condor", "legs": [{"type": "put", "side": "short", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 1543.2}, {"type": "put", "side": "long", "strike": 58500, "qty": 1, "multiplier": 1000, "premium": 889.8}, {"type": "call", "side": "short", "strike": 64500, "qty": 1, "multiplier": 1000, "premium": 1617.6}, {"type": "call", "side": "long", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 1016.8}]}, {"name": "Put Credit Spread", "legs": [{"type": "put", "side": "short", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 1543.2}, {"type": "put", "side": "long", "strike": 58500, "qty": 1, "multiplier": 1000, "premium": 889.8}]}, {"name": "Call Credit Spread", "legs": [{"type": "call", "side": "short", "strike": 64500, "qty": 1, "multiplier": 1000, "premium": 1617.6}, {"type": "call", "side": "long", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 1016.8}]}, {"name": "Short Strangle + 先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 1543.2}, {"type": "call", "side": "short", "strike": 64500, "qty": 1, "multiplier": 1000, "premium": 1617.6}, {"type": "futures", "side": "short", "entry": 62500, "qty": 0, "multiplier": 100}]}, {"name": "P売り + mini先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 1543.2}, {"type": "futures", "side": "short", "entry": 61000, "qty": 3, "multiplier": 100}]}, {"name": "ミニ週次θハーベスト", "legs": [{"type": "put", "side": "short", "strike": 61000, "qty": 10, "multiplier": 100, "premium": 709.8}, {"type": "call", "side": "short", "strike": 64000, "qty": 10, "multiplier": 100, "premium": 739.0}]}];
