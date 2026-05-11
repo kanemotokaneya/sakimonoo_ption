@@ -1212,6 +1212,10 @@ def build_strike_matrix(wb_op, fut_data, atm, half_range=2500, max_strikes=11, p
     Auto-detects strike intervals from actual data (125/250/500 yen).
     Selects up to max_strikes nearest ATM that have participant data.
     If prev_s09 is provided, computes week-over-week deltas.
+
+    NEW: If the provided ATM is far from the file's actual strike distribution
+    (common after SQ rollover or stale daily market data), auto-correct ATM
+    using the median of the file's strikes instead of returning empty.
     """
     if not wb_op or not atm:
         return {}
@@ -1220,6 +1224,37 @@ def build_strike_matrix(wb_op, fut_data, atm, half_range=2500, max_strikes=11, p
     atm_round = round500(atm)
     range_low = atm_round - half_range
     range_high = atm_round + half_range
+
+    # Pre-scan: collect all distinct strikes in the file (regardless of range).
+    # This lets us auto-correct ATM if it's stale or wrong.
+    all_strikes_in_file = set()
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=False):
+        b_val = row[1].value if len(row) > 1 else None
+        if b_val is not None:
+            try:
+                sc = int(float(str(b_val).replace(',', '')))
+                if 20000 < sc < 80000:
+                    all_strikes_in_file.add(sc)
+            except (ValueError, TypeError):
+                pass
+
+    # If provided ATM produces 0 strikes-in-range, but the file has strikes
+    # elsewhere, auto-correct ATM to the file's median strike. This handles:
+    #   - Post-SQ limgetsu rollover (strikes shift to a new area)
+    #   - Stale daily market_data (ATM is from old day)
+    #   - Manual ATM override that drifted from reality
+    strikes_in_range = [s for s in all_strikes_in_file if range_low <= s <= range_high]
+    atm_provided = atm_round  # remember for logging
+    if not strikes_in_range and all_strikes_in_file:
+        file_strikes_sorted = sorted(all_strikes_in_file)
+        median_strike = file_strikes_sorted[len(file_strikes_sorted) // 2]
+        atm_round = round500(median_strike)
+        range_low = atm_round - half_range
+        range_high = atm_round + half_range
+        print('[build_strike_matrix] ATM auto-corrected: provided=%d → using=%d (from file strikes: %s)'
+              % (atm_provided, atm_round,
+                 file_strikes_sorted if len(file_strikes_sorted) <= 8 else
+                 (file_strikes_sorted[:4] + ['...'] + file_strikes_sorted[-2:])))
 
     # {participant: {strike: {put_sell, put_buy, call_sell, call_buy}}}
     raw = defaultdict(lambda: defaultdict(lambda: {
