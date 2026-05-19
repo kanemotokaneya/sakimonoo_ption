@@ -100,6 +100,28 @@ def main():
     else:
         print('[SKIP] scripts/extract_weekly_trend.py not found')
 
+    # Step 2.2: OI timeseries (multi-day OI for futures + options aggregate + key strikes)
+    # Reads all *open_interest.xlsx files in datadir, writes oi_timeseries.json
+    # for the 建玉推移 card in dashboard. Non-fatal.
+    print('\n=== Step 2.2: Building OI timeseries ===')
+    oi_ts_script = os.path.join(scripts_dir, 'extract_oi_timeseries.py')
+    if os.path.exists(oi_ts_script):
+        oi_ts_json = os.path.join(datadir, 'oi_timeseries.json')
+        result = subprocess.run(
+            [sys.executable, oi_ts_script,
+             '--data-dir', datadir,
+             '--out', oi_ts_json,
+             '--max-days', '20',
+             '--top-strikes', '6'],
+            capture_output=True, text=True
+        )
+        print(result.stdout)
+        if result.returncode != 0:
+            print('[WARN] extract_oi_timeseries.py failed (non-fatal):', file=sys.stderr)
+            print(result.stderr, file=sys.stderr)
+    else:
+        print('[SKIP] scripts/extract_oi_timeseries.py not found')
+
     # Step 2.5: Generate ⑧ assessment (if API key available)
     gemini_key = os.environ.get('GEMINI_API_KEY', '')
     if gemini_key:

@@ -404,11 +404,279 @@ DASHBOARD_JS = r"""
           if(detail) detail.innerHTML=fn();
           card.dataset.built='1';
         }
+        var initFn=window['init_'+card.dataset.card];
+        if(initFn){try{initFn(card);}catch(e){console.error(e);}}
       }
       card.classList.add('open');
       setTimeout(function(){card.scrollIntoView({behavior:'smooth',block:'start'});},100);
     }
   }
+})();
+"""
+
+# ============================================================
+# 建玉推移カード用 — Canvasチャート描画ヘルパー (静的JS)
+# ============================================================
+OI_CHART_CSS = r"""
+.oi-tabs{display:flex;gap:0;margin:8px 0;border-bottom:1px solid var(--border)}
+.oi-tab{flex:1;padding:8px 4px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer}
+.oi-tab.oi-tab-active{color:var(--accent);border-bottom-color:var(--accent)}
+.oi-chart-wrap{padding:8px 0}
+.oi-canvas{width:100%;height:240px;display:block}
+.oi-meta{font-size:10px;color:var(--sub);font-family:'DM Mono',monospace;padding:0 4px 4px;opacity:.7}
+.oi-legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:10px;color:var(--sub);padding:4px 0}
+.oi-legend-item{display:flex;align-items:center;gap:4px;cursor:pointer}
+.oi-legend-item .oi-swatch{width:10px;height:2px;border-radius:2px}
+.oi-legend-item.oi-hidden{opacity:.35;text-decoration:line-through}
+.oi-empty{padding:24px 12px;text-align:center;color:var(--sub);font-size:12px;border:1px dashed var(--border);border-radius:8px}
+"""
+
+OI_CHART_JS = r"""
+(function(){
+  if (typeof window.OI_TS_DATA === 'undefined') window.OI_TS_DATA = null;
+  window._oi_state = { activeTab: 'futures', hidden: {} };
+
+  function fmtK(n) {
+    if (n === null || n === undefined || n === 0) return '0';
+    var abs = Math.abs(n);
+    if (abs >= 1000000) return (n/1000000).toFixed(1) + 'M';
+    if (abs >= 1000) return Math.round(n/1000) + 'K';
+    return Math.round(n).toString();
+  }
+  function fmtSigned(n) {
+    if (n === 0) return '0';
+    return (n > 0 ? '+' : '') + fmtK(n);
+  }
+  function fmtDateLabel(yyyymmdd) {
+    if (!yyyymmdd || yyyymmdd.length !== 8) return yyyymmdd || '';
+    return yyyymmdd.substring(4, 6) + '/' + yyyymmdd.substring(6, 8);
+  }
+
+  function drawChart(canvas, series, dates) {
+    var dpr = window.devicePixelRatio || 1;
+    var cssW = canvas.clientWidth || 320;
+    var cssH = 240;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.height = cssH + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    var pad = { l: 46, r: 12, t: 12, b: 32 };
+    var plotW = cssW - pad.l - pad.r;
+    var plotH = cssH - pad.t - pad.b;
+
+    var visible = [];
+    for (var s = 0; s < series.length; s++) {
+      if (!window._oi_state.hidden[series[s].label]) visible.push(series[s]);
+    }
+    if (!visible.length || !dates.length) {
+      ctx.fillStyle = '#5a6276';
+      ctx.font = "11px 'Noto Sans JP', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.fillText('表示する系列がありません', cssW/2, cssH/2);
+      return;
+    }
+
+    var allVals = [];
+    for (var i = 0; i < visible.length; i++) {
+      for (var j = 0; j < visible[i].data.length; j++) {
+        if (typeof visible[i].data[j] === 'number') allVals.push(visible[i].data[j]);
+      }
+    }
+    if (!allVals.length) return;
+    var yMin = Math.min.apply(null, allVals);
+    var yMax = Math.max.apply(null, allVals);
+    if (yMin === yMax) { yMin -= 100; yMax += 100; }
+    var yRange = yMax - yMin;
+    yMin -= yRange * 0.05;
+    yMax += yRange * 0.05;
+
+    var nPts = dates.length;
+    function xAt(i) { return pad.l + (nPts === 1 ? plotW/2 : (plotW * i / (nPts - 1))); }
+    function yAt(v) { return pad.t + plotH * (1 - (v - yMin) / (yMax - yMin)); }
+
+    ctx.strokeStyle = '#232733';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#8b92a6';
+    ctx.font = "10px 'DM Mono', monospace";
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (var g = 0; g <= 4; g++) {
+      var gy = pad.t + plotH * g / 4;
+      var gv = yMax - (yMax - yMin) * g / 4;
+      ctx.beginPath();
+      ctx.moveTo(pad.l, gy);
+      ctx.lineTo(pad.l + plotW, gy);
+      ctx.stroke();
+      ctx.fillText(fmtK(gv), pad.l - 6, gy);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    var labelStep = Math.max(1, Math.ceil(nPts / 6));
+    for (var k = 0; k < nPts; k++) {
+      if (k % labelStep !== 0 && k !== nPts - 1) continue;
+      ctx.fillText(fmtDateLabel(dates[k]), xAt(k), pad.t + plotH + 6);
+    }
+
+    for (var p = 0; p < visible.length; p++) {
+      var ser = visible[p];
+      ctx.strokeStyle = ser.color;
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      var started = false;
+      for (var q = 0; q < ser.data.length; q++) {
+        var v = ser.data[q];
+        if (typeof v !== 'number') continue;
+        var px = xAt(q), py = yAt(v);
+        if (!started) { ctx.moveTo(px, py); started = true; }
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      if (ser.data.length) {
+        var lastV = ser.data[ser.data.length - 1];
+        if (typeof lastV === 'number') {
+          ctx.fillStyle = ser.color;
+          ctx.beginPath();
+          ctx.arc(xAt(ser.data.length - 1), yAt(lastV), 3, 0, Math.PI*2);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  var FUTURES_COLORS = { n225_large: '#f59e0b', n225_mini: '#3b82f6', topix: '#ec4899' };
+  var FUTURES_LABELS = { n225_large: '225ラージ', n225_mini: '225mini', topix: 'TOPIX' };
+  var OP_PUT_COLORS = ['#f87171', '#fb923c'];
+  var OP_CALL_COLORS = ['#4ade80', '#22d3ee'];
+  var P_STRIKE_COLORS = ['#f87171','#fb7185','#f43f5e','#e11d48','#dc2626','#b91c1c','#fb923c','#ea580c'];
+  var C_STRIKE_COLORS = ['#4ade80','#22d3ee','#10b981','#06b6d4','#14b8a6','#84cc16','#0ea5e9','#3b82f6'];
+
+  function getSeriesFor(tab) {
+    var D = window.OI_TS_DATA;
+    if (!D || D.error) return [];
+    var out = [];
+    if (tab === 'futures') {
+      var keys = ['n225_large', 'n225_mini', 'topix'];
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var fm = (D.futures && D.futures[k]) || {};
+        if (fm.total) out.push({ label: FUTURES_LABELS[k], color: FUTURES_COLORS[k], data: fm.total });
+      }
+      return out;
+    }
+    if (tab === 'options_agg') {
+      var agg = (D.options && D.options.aggregate) || {};
+      var keys2 = Object.keys(agg).sort();
+      for (var j = 0; j < keys2.length; j++) {
+        var ek = keys2[j];
+        var grp = agg[ek];
+        var lab = grp.label || ek;
+        out.push({ label: lab + ' P', color: OP_PUT_COLORS[j % 2], data: grp.put_total });
+        out.push({ label: lab + ' C', color: OP_CALL_COLORS[j % 2], data: grp.call_total });
+      }
+      return out;
+    }
+    if (tab === 'top_puts') {
+      var puts = (D.options && D.options.top_puts) || [];
+      for (var m = 0; m < puts.length; m++) {
+        out.push({ label: puts[m].short_label || puts[m].label, color: P_STRIKE_COLORS[m % P_STRIKE_COLORS.length], data: puts[m].oi_history });
+      }
+      return out;
+    }
+    if (tab === 'top_calls') {
+      var calls = (D.options && D.options.top_calls) || [];
+      for (var n = 0; n < calls.length; n++) {
+        out.push({ label: calls[n].short_label || calls[n].label, color: C_STRIKE_COLORS[n % C_STRIKE_COLORS.length], data: calls[n].oi_history });
+      }
+      return out;
+    }
+    return [];
+  }
+
+  function renderTab(card) {
+    var D = window.OI_TS_DATA;
+    if (!D || D.error || !D.dates || !D.dates.length) {
+      var canvas = card.querySelector('.oi-canvas');
+      if (canvas) {
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+      }
+      return;
+    }
+    var canvas2 = card.querySelector('.oi-canvas');
+    if (!canvas2) return;
+    var series = getSeriesFor(window._oi_state.activeTab);
+    drawChart(canvas2, series, D.dates);
+
+    var leg = card.querySelector('.oi-legend');
+    if (leg) {
+      var lh = '';
+      for (var i = 0; i < series.length; i++) {
+        var s = series[i];
+        var hidden = window._oi_state.hidden[s.label] ? ' oi-hidden' : '';
+        lh += '<span class="oi-legend-item' + hidden + '" data-oi-label="' + s.label + '">';
+        lh += '<span class="oi-swatch" style="background:' + s.color + '"></span>';
+        lh += s.label;
+        if (s.data && s.data.length) {
+          var lastV = s.data[s.data.length - 1];
+          lh += ' <span style="opacity:.6">(' + fmtK(lastV) + ')</span>';
+        }
+        lh += '</span>';
+      }
+      leg.innerHTML = lh;
+    }
+
+    var meta = card.querySelector('.oi-meta');
+    if (meta) {
+      if (D.dates.length >= 2) {
+        meta.innerHTML = fmtDateLabel(D.dates[0]) + ' 〜 ' + fmtDateLabel(D.dates[D.dates.length - 1]) + ' (' + D.dates.length + '営業日)';
+      } else {
+        meta.innerHTML = '蓄積中 (' + D.dates.length + '日)';
+      }
+    }
+  }
+
+  function setActiveTab(card, tab) {
+    window._oi_state.activeTab = tab;
+    window._oi_state.hidden = {};
+    var btns = card.querySelectorAll('.oi-tab');
+    for (var i = 0; i < btns.length; i++) {
+      if (btns[i].getAttribute('data-oi-tab') === tab) btns[i].classList.add('oi-tab-active');
+      else btns[i].classList.remove('oi-tab-active');
+    }
+    renderTab(card);
+  }
+
+  window.init_oi_timeseries = function(card) {
+    var tabs = card.querySelector('.oi-tabs');
+    if (tabs) {
+      tabs.addEventListener('click', function(ev) {
+        var t = ev.target;
+        if (t && t.classList && t.classList.contains('oi-tab')) {
+          var tab = t.getAttribute('data-oi-tab');
+          if (tab) setActiveTab(card, tab);
+        }
+      });
+    }
+    var leg = card.querySelector('.oi-legend');
+    if (leg) {
+      leg.addEventListener('click', function(ev) {
+        var t = ev.target;
+        while (t && !t.classList.contains('oi-legend-item')) t = t.parentElement;
+        if (!t) return;
+        var label = t.getAttribute('data-oi-label');
+        if (!label) return;
+        window._oi_state.hidden[label] = !window._oi_state.hidden[label];
+        renderTab(card);
+      });
+    }
+    setTimeout(function() { renderTab(card); }, 0);
+    window.addEventListener('resize', function() { renderTab(card); });
+  };
 })();
 """
 
@@ -424,7 +692,92 @@ DASHBOARD_JS = r"""
 # _strike_matrix_js (new), and _detail_participants_js (modified)
 # differ from the original.
 
-def build_dashboard_html(data):
+# ============================================================
+# 建玉推移カード (OI timeseries) — 補助関数
+# ============================================================
+
+def _load_oi_timeseries(data_dir='data'):
+    """Try to load data/oi_timeseries.json. Returns dict or None."""
+    fp = os.path.join(data_dir, 'oi_timeseries.json')
+    if not os.path.exists(fp):
+        return None
+    try:
+        with open(fp, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print('[render.py] WARN: failed to load %s: %s' % (fp, e))
+        return None
+
+
+def _preview_oi_timeseries(oi_ts):
+    if not oi_ts or oi_ts.get('error'):
+        return '<span class="mm-label">データなし</span>'
+    n = oi_ts.get('n_dates', 0)
+    if n < 1:
+        return '<span class="mm-label">蓄積中</span>'
+
+    h = '<div class="mini-metrics">'
+    # Period
+    h += '<div class="mini-metric"><div class="mm-label">期間</div><div class="mm-value">%d日</div></div>' % n
+
+    # Futures 5-day delta for nk225_large
+    fut_large = (oi_ts.get('futures', {}).get('nk225_large') or {}).get('total', [])
+    if len(fut_large) >= 6:
+        delta = fut_large[-1] - fut_large[-6]
+        cls = 'positive' if delta > 0 else 'negative' if delta < 0 else ''
+        h += '<div class="mini-metric"><div class="mm-label">先物大5日</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
+    elif len(fut_large) >= 2:
+        delta = fut_large[-1] - fut_large[0]
+        cls = 'positive' if delta > 0 else 'negative' if delta < 0 else ''
+        h += '<div class="mini-metric"><div class="mm-label">先物大期間</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
+
+    # PCR for nearest expiry (smallest key) with non-zero data
+    agg = (oi_ts.get('options') or {}).get('aggregate', {}) or {}
+    if agg:
+        keys = sorted(agg.keys())
+        for ek in keys:
+            grp = agg[ek]
+            p = (grp.get('put_total') or [0])[-1]
+            c = (grp.get('call_total') or [0])[-1]
+            if c > 0:
+                pcr = p / c
+                short_lab = ek[2:] + '月' if len(ek) == 4 else ek
+                h += '<div class="mini-metric"><div class="mm-label">%sPCR</div><div class="mm-value">%.2f</div></div>' % (short_lab, pcr)
+                break
+
+    # Top P / Top C strike (current OI label)
+    top_p = (oi_ts.get('options') or {}).get('top_puts', []) or []
+    top_c = (oi_ts.get('options') or {}).get('top_calls', []) or []
+    if top_p:
+        h += '<div class="mini-metric"><div class="mm-label">Top P</div><div class="mm-value">%s</div></div>' % esc(top_p[0].get('short_label', ''))
+    if top_c:
+        h += '<div class="mini-metric"><div class="mm-label">Top C</div><div class="mm-value">%s</div></div>' % esc(top_c[0].get('short_label', ''))
+
+    h += '</div>'
+    return h
+
+
+def _detail_oi_timeseries_js(oi_ts):
+    """Return the body of b_oi_timeseries() — the HTML scaffold only.
+    The chart is drawn by init_oi_timeseries() (defined in OI_CHART_JS).
+    """
+    if not oi_ts or oi_ts.get('error'):
+        return "var h='';h+='<div class=\"oi-empty\">建玉推移データなし — pipeline が `data/oi_timeseries.json` を未生成、または `*open_interest.xlsx` の蓄積が不足</div>';return h;"
+    js = "var h='';"
+    js += "h+='<div class=\"oi-tabs\">';"
+    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"futures\" type=\"button\">先物合計</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"options_agg\" type=\"button\">OP集計</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_puts\" type=\"button\">Pストライク</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_calls\" type=\"button\">Cストライク</button>';"
+    js += "h+='</div>';"
+    js += "h+='<div class=\"oi-chart-wrap\"><canvas class=\"oi-canvas\"></canvas></div>';"
+    js += "h+='<div class=\"oi-meta\"></div>';"
+    js += "h+='<div class=\"oi-legend\"></div>';"
+    js += "return h;"
+    return js
+
+
+def build_dashboard_html(data, oi_ts=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -445,7 +798,7 @@ def build_dashboard_html(data):
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n</style>\n' % DASHBOARD_CSS
+    h += '<style>\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS)
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -495,6 +848,7 @@ def build_dashboard_html(data):
         ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data)),
         ('gemini', '🤖', 'AI予想', _preview_gemini(data), _detail_gemini_js(data)),
         ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09)),
+        ('oi_timeseries', '📈', '建玉推移', _preview_oi_timeseries(oi_ts), _detail_oi_timeseries_js(oi_ts)),
         ('strategy', '🎲', '戦略マップ', _preview_strategy(s11), _detail_strategy_js(s11, atm)),
     ]
     for card_id, icon, title, preview_html, detail_js in cards:
@@ -505,6 +859,8 @@ def build_dashboard_html(data):
     h += '<div class="footer">\n  <a href="pnl_simulator.html">P&Lシミュレーター</a>\n  <a href="weekly_trend.html">週次推移</a>\n  <a href="archive.html">アーカイブ一覧</a>\n  <span>Generated by JPX Analysis Pipeline</span>\n</div>\n'
 
     h += '<script>\n'
+    h += 'window.OI_TS_DATA = ' + json.dumps(oi_ts or {}, ensure_ascii=False) + ';\n'
+    h += OI_CHART_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -1359,6 +1715,18 @@ def update_archive(archive_path, data):
 def run(args):
     with open(args.data, 'r', encoding='utf-8') as f:
         data = json.load(f)
+    # Load oi_timeseries.json (optional — produced by scripts/extract_oi_timeseries.py)
+    data_dir = os.path.dirname(args.data) or '.'
+    oi_ts = _load_oi_timeseries(data_dir)
+    if oi_ts:
+        print('[render.py] Loaded oi_timeseries: %d days, %d expiries, %d top puts, %d top calls' % (
+            oi_ts.get('n_dates', 0),
+            len(oi_ts.get('options', {}).get('aggregate', {})),
+            len(oi_ts.get('options', {}).get('top_puts', [])),
+            len(oi_ts.get('options', {}).get('top_calls', [])),
+        ))
+    else:
+        print('[render.py] oi_timeseries.json not found — 建玉推移 card will show empty state')
     outdir = args.outdir
     os.makedirs(outdir, exist_ok=True)
     date_str = data['metadata'].get('date', 'unknown')
@@ -1367,7 +1735,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data)
+    html = build_dashboard_html(data, oi_ts=oi_ts)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
