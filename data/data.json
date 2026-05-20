@@ -14,13 +14,13 @@
       "fut_participants": "20260515_indexfut_oi_by_tp.xlsx",
       "stock_vol": "stock_val_1_260402.xls"
     },
-    "atm": 60500,
+    "atm": 59500,
     "ohlc": {},
-    "nikkei_close": 60550.59,
+    "nikkei_close": 59713.31,
     "vi": null
   },
   "s01": {
-    "nikkei_close": 60550.59,
+    "nikkei_close": 59713.31,
     "vi": null
   },
   "s02": {
@@ -446,9 +446,25 @@
     }
   ],
   "s06": {
-    "atm": 60500,
-    "atm_round": 60500,
+    "atm": 59500,
+    "atm_round": 59500,
     "distribution": [
+      {
+        "strike": 54500,
+        "put_oi": 484,
+        "put_change": 1,
+        "call_oi": 941,
+        "call_change": 0,
+        "is_atm": false
+      },
+      {
+        "strike": 55000,
+        "put_oi": 6190,
+        "put_change": 135,
+        "call_oi": 2973,
+        "call_change": 0,
+        "is_atm": false
+      },
       {
         "strike": 55500,
         "put_oi": 787,
@@ -519,7 +535,7 @@
         "put_change": 522,
         "call_oi": 882,
         "call_change": 1,
-        "is_atm": false
+        "is_atm": true
       },
       {
         "strike": 60000,
@@ -535,7 +551,7 @@
         "put_change": 235,
         "call_oi": 1327,
         "call_change": 5,
-        "is_atm": true
+        "is_atm": false
       },
       {
         "strike": 61000,
@@ -600,30 +616,30 @@
         "call_oi": 574,
         "call_change": 7,
         "is_atm": false
-      },
-      {
-        "strike": 65000,
-        "put_oi": 5,
-        "put_change": 0,
-        "call_oi": 6398,
-        "call_change": 2,
-        "is_atm": false
-      },
-      {
-        "strike": 65500,
-        "put_oi": 0,
-        "put_change": 0,
-        "call_oi": 1790,
-        "call_change": 14,
-        "is_atm": false
       }
     ],
     "by_expiry": [
       {
         "expiry": "2606",
         "label": "2026年06月限",
-        "total_oi": 67013,
+        "total_oi": 69298,
         "distribution": [
+          {
+            "strike": 54500,
+            "put_oi": 417,
+            "put_change": 1,
+            "call_oi": 941,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 55000,
+            "put_oi": 4310,
+            "put_change": -9,
+            "call_oi": 2952,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 55500,
             "put_oi": 573,
@@ -694,7 +710,7 @@
             "put_change": 267,
             "call_oi": 561,
             "call_change": 1,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 60000,
@@ -710,7 +726,7 @@
             "put_change": 235,
             "call_oi": 205,
             "call_change": 5,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 61000,
@@ -775,30 +791,30 @@
             "call_oi": 460,
             "call_change": 1,
             "is_atm": false
-          },
-          {
-            "strike": 65000,
-            "put_oi": 5,
-            "put_change": 0,
-            "call_oi": 5341,
-            "call_change": -1,
-            "is_atm": false
-          },
-          {
-            "strike": 65500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 989,
-            "call_change": -7,
-            "is_atm": false
           }
         ]
       },
       {
         "expiry": "2607",
         "label": "2026年07月限",
-        "total_oi": 18681,
+        "total_oi": 18927,
         "distribution": [
+          {
+            "strike": 54500,
+            "put_oi": 67,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 55000,
+            "put_oi": 1430,
+            "put_change": 144,
+            "call_oi": 21,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 55500,
             "put_oi": 214,
@@ -869,7 +885,7 @@
             "put_change": 255,
             "call_oi": 301,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 60000,
@@ -885,7 +901,7 @@
             "put_change": 0,
             "call_oi": 1002,
             "call_change": 0,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 61000,
@@ -950,30 +966,30 @@
             "call_oi": 104,
             "call_change": 1,
             "is_atm": false
-          },
-          {
-            "strike": 65000,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 491,
-            "call_change": 3,
-            "is_atm": false
-          },
-          {
-            "strike": 65500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 781,
-            "call_change": 1,
-            "is_atm": false
           }
         ]
       },
       {
         "expiry": "2608",
         "label": "2026年08月限",
-        "total_oi": 6728,
+        "total_oi": 6592,
         "distribution": [
+          {
+            "strike": 54500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 55000,
+            "put_oi": 450,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 55500,
             "put_oi": 0,
@@ -1044,7 +1060,7 @@
             "put_change": 0,
             "call_oi": 20,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 60000,
@@ -1060,7 +1076,7 @@
             "put_change": 0,
             "call_oi": 120,
             "call_change": 0,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 61000,
@@ -1124,22 +1140,6 @@
             "put_change": 0,
             "call_oi": 10,
             "call_change": 5,
-            "is_atm": false
-          },
-          {
-            "strike": 65000,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 566,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 65500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 20,
-            "call_change": 20,
             "is_atm": false
           }
         ]
@@ -2249,8 +2249,8 @@
     "source": "live",
     "data_date": "20260519",
     "strike_matrix": {
-      "atm": 60500,
-      "atm_round": 60500,
+      "atm": 59500,
+      "atm_round": 59500,
       "strikes": [
         61250,
         61375,
@@ -3852,10 +3852,10 @@
     "pcr_oi": 1.94,
     "pcr_signal": "強い弱気（逆張り買いシグナル）",
     "max_pain": 59000,
-    "max_pain_total": 43800000,
-    "max_pain_diff": -1500,
-    "basis": -51,
-    "basis_pct": -0.08,
+    "max_pain_total": 59896500,
+    "max_pain_diff": -500,
+    "basis": -213,
+    "basis_pct": -0.36,
     "basis_signal": "バックワーデーション（先物ディスカウント）",
     "walls_reinforced": [
       {
@@ -3888,52 +3888,52 @@
   },
   "technicals": {
     "pivot": {
-      "date": "2026-05-18",
-      "high": 61478.55,
-      "low": 60376.98,
-      "close": 60815.95,
-      "pp": 60890,
-      "r1": 61403.02,
-      "r2": 61991.57,
-      "r3": 62504.59,
-      "s1": 60301.45,
-      "s2": 59788.43,
-      "s3": 59199.88
+      "date": "2026-05-19",
+      "high": 61456.31,
+      "low": 60256.33,
+      "close": 60550.59,
+      "pp": 60754,
+      "r1": 61251.67,
+      "r2": 61953.979999999996,
+      "r3": 62451.649999999994,
+      "s1": 60051.69,
+      "s2": 59554.020000000004,
+      "s3": 58851.71000000001
     },
     "fibonacci": {
       "trend": "downtrend",
       "high": 63799,
-      "low": 58428,
+      "low": 58476,
       "period": 20,
       "levels": {
-        "0%": 58428,
-        "23.6%": 59696,
-        "38.2%": 60480,
-        "50%": 61114,
-        "61.8%": 61748,
-        "78.6%": 62650,
+        "0%": 58476,
+        "23.6%": 59732,
+        "38.2%": 60509,
+        "50%": 61138,
+        "61.8%": 61766,
+        "78.6%": 62660,
         "100%": 63799
       },
       "label": "戻り売り水準（下降トレンド中の反発）"
     },
     "bollinger": {
       "period": 20,
-      "mean": 60664,
-      "std": 1534,
-      "upper3": 65265,
-      "upper2": 63731,
-      "upper1": 62198,
-      "lower1": 59130,
-      "lower2": 57596,
-      "lower3": 56062,
-      "current_sigma": -0.07,
-      "bandwidth": 10.11
+      "mean": 60672,
+      "std": 1528,
+      "upper3": 65256,
+      "upper2": 63728,
+      "upper1": 62200,
+      "lower1": 59145,
+      "lower2": 57617,
+      "lower3": 56089,
+      "current_sigma": -0.64,
+      "bandwidth": 10.07
     },
     "rsi": {
       "period": 14,
-      "value": 56.9,
+      "value": 49.9,
       "signal": "ニュートラル"
     }
   },
-  "s08_assessment": "日経225先物・オプションを売買する個人トレーダーの皆様へ、2026年5月19日時点の市場データに基づいた実践的なトレード判断材料をお届けします。\n\n■ 先物の方向性\n現在の先物市場は「様子見」が適切と判断します。ラージとmini合計で約-9000枚の売り越し、特にHSBCがN225で-29914枚と大幅な売り越しを見せており、短期的な下落圧力が示唆されます。しかし、PCR（取引高）が2.08と強い弱気を示しており、これは市場が悲観に傾きすぎているサインであり、逆張り買いのシグナルとも解釈できます。一部のHF代理（BNPパリバ）や欧州系（ソシエテG）がリバーサル（強気転換）の動きを見せている点も、一方向への動きを阻害する要因となるでしょう。\n\n■ 押し目買い・戻り売りの水準\n押し目買いのゾーンとしては、まず59,000円付近がMax Painであり、一時的な下落時の買い場として意識されるでしょう。さらに下は56,000円のP壁が6,840枚と厚く、強力なサポートとして機能する可能性が高いです。上値は63,000円のコール建玉増加が重しとなり、65,000円のC壁（6,398枚）が強力なレジスタンスとして機能するでしょう。現在のところ、P壁は厚く、C壁も堅固に見えるため、このレンジ内での推移が想定されます。\n\n■ オプション売りの安全圏\nプット売りを検討する場合、P 56,000以下は建玉壁6,840枚が厚く、Max Pain 59,000円も考慮すると、比較的安全な売りゾーンと言えます。特にP 53,000以下はさらに安全性が高まります。コール売りに関しては、C 65,000以上は建玉壁6,398枚が厚く、安全な売りゾーンです。P 60,000やC 63,000は建玉が急増しており、短期的なレンジブレイクで踏まれるリスクがあるため、これらの行使価格帯での売りは避けるべきです。\n\n■ リスクシナリオ\n現在の弱気心理がさらに加速し、特にHSBCのような大口がN225先物でさらに売り増す場合、パニック売りを誘発する可能性があります。その際、現在のP壁である56,000円が崩れると、下落が加速する恐れがあります。もし60,000円を明確に割り込み、P 60,000の建玉がさらに積み上がるようなら、mini先物でデルタヘッジを"
+  "s08_assessment": "■ 先物の方向性（ロング or ショート）\n現在の市場は「様子見」が適切ですが、やや「ロング寄り」のスタンスも考慮できます。PCRが2.08と非常に高い水準にあり、これは市場が強い弱気を示しているため、逆張り買いのシグナルと解釈できます。海外勢のポジションはHSBCがN225先物を-29914枚と大きく売り越している一方で、BNPパリバやソシエテG証券が強気転換しており、国内"
 }

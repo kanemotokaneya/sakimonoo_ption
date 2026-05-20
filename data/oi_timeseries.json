@@ -257,7 +257,7 @@
     "top_puts": [
       {
         "label": "2026年06月限 P50000",
-        "short_label": "P50000 (06月限)",
+        "short_label": "P50000",
         "expiry": "2606",
         "strike": 50000,
         "type": "P",
@@ -268,7 +268,7 @@
       },
       {
         "label": "2026年06月限 P30000",
-        "short_label": "P30000 (06月限)",
+        "short_label": "P30000",
         "expiry": "2606",
         "strike": 30000,
         "type": "P",
@@ -278,19 +278,8 @@
         ]
       },
       {
-        "label": "2026年07月限 P25000",
-        "short_label": "P25000 (07月限)",
-        "expiry": "2607",
-        "strike": 25000,
-        "type": "P",
-        "current_oi": 5989.0,
-        "oi_history": [
-          5989.0
-        ]
-      },
-      {
         "label": "2026年06月限 P56000",
-        "short_label": "P56000 (06月限)",
+        "short_label": "P56000",
         "expiry": "2606",
         "strike": 56000,
         "type": "P",
@@ -301,7 +290,7 @@
       },
       {
         "label": "2026年06月限 P40000",
-        "short_label": "P40000 (06月限)",
+        "short_label": "P40000",
         "expiry": "2606",
         "strike": 40000,
         "type": "P",
@@ -312,7 +301,7 @@
       },
       {
         "label": "2026年06月限 P45000",
-        "short_label": "P45000 (06月限)",
+        "short_label": "P45000",
         "expiry": "2606",
         "strike": 45000,
         "type": "P",
@@ -320,12 +309,23 @@
         "oi_history": [
           5445.0
         ]
+      },
+      {
+        "label": "2026年06月限 P34000",
+        "short_label": "P34000",
+        "expiry": "2606",
+        "strike": 34000,
+        "type": "P",
+        "current_oi": 5108.0,
+        "oi_history": [
+          5108.0
+        ]
       }
     ],
     "top_calls": [
       {
         "label": "2026年06月限 C65000",
-        "short_label": "C65000 (06月限)",
+        "short_label": "C65000",
         "expiry": "2606",
         "strike": 65000,
         "type": "C",
@@ -336,7 +336,7 @@
       },
       {
         "label": "2026年06月限 C68000",
-        "short_label": "C68000 (06月限)",
+        "short_label": "C68000",
         "expiry": "2606",
         "strike": 68000,
         "type": "C",
@@ -347,7 +347,7 @@
       },
       {
         "label": "2026年06月限 C60000",
-        "short_label": "C60000 (06月限)",
+        "short_label": "C60000",
         "expiry": "2606",
         "strike": 60000,
         "type": "C",
@@ -358,7 +358,7 @@
       },
       {
         "label": "2026年06月限 C62000",
-        "short_label": "C62000 (06月限)",
+        "short_label": "C62000",
         "expiry": "2606",
         "strike": 62000,
         "type": "C",
@@ -369,7 +369,7 @@
       },
       {
         "label": "2026年06月限 C61000",
-        "short_label": "C61000 (06月限)",
+        "short_label": "C61000",
         "expiry": "2606",
         "strike": 61000,
         "type": "C",
@@ -380,7 +380,7 @@
       },
       {
         "label": "2026年06月限 C55000",
-        "short_label": "C55000 (06月限)",
+        "short_label": "C55000",
         "expiry": "2606",
         "strike": 55000,
         "type": "C",
@@ -389,7 +389,8 @@
           2952.0
         ]
       }
-    ]
+    ],
+    "top_expiry": "2606"
   },
   "generated_at": "20260519"
 }
