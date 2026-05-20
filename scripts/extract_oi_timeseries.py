@@ -159,13 +159,15 @@ def extract_options_oi(wb_oi):
 
 # --- Main aggregation ------------------------------------------------------
 
-def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8):
+def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_only=True):
     """Build the multi-day OI timeseries dict.
 
     Args:
       data_dir: directory containing `*open_interest.xlsx` daily files.
       max_days: keep at most this many most-recent business days.
       top_strikes: number of top-OI strikes to track individually (PER expiry).
+      nearest_expiry_only: if True, limit top_puts/top_calls to the nearest
+        major expiry only (e.g. 06月限 only, no 07月限 mixing). Default True.
 
     Returns dict ready to be serialized as oi_timeseries.json.
     """
@@ -252,16 +254,35 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8):
     # Puts and Calls have very different OI distributions: deep OTM puts get
     # huge hedge flows while calls cluster near ATM. Mixing them in one
     # ranking causes calls to be crowded out. Track them separately.
+    #
+    # If nearest_expiry_only=True (default), only consider the nearest major
+    # expiry (smallest YYMM value seen) to avoid mixing 06月限 with 07月限.
     top_puts = []
     top_calls = []
     latest_date = dates[-1] if dates else None
     if latest_date:
         latest_opt = day_data.get(latest_date, {}).get('options', {}).get('per_strike', {})
 
-        # Score all P / C strikes across ALL expiries
+        # Determine which expiries to consider
+        if nearest_expiry_only and latest_opt:
+            # Pick the expiry with the largest total OI (= the "near major" expiry).
+            # Using total OI is more robust than just smallest YYMM because the
+            # absolutely-nearest may be a fading weekly with little OI.
+            expiry_scores = []
+            for ek, strikes in latest_opt.items():
+                total = 0
+                for s, v in strikes.items():
+                    total += v.get('put_oi', 0) + v.get('call_oi', 0)
+                expiry_scores.append((total, ek))
+            expiry_scores.sort(reverse=True)
+            target_expiries = [expiry_scores[0][1]] if expiry_scores else []
+        else:
+            target_expiries = list(latest_opt.keys())
+
+        # Score all P / C strikes across target_expiries
         put_scored, call_scored = [], []
-        for expiry in latest_opt:
-            for strike, vals in latest_opt[expiry].items():
+        for expiry in target_expiries:
+            for strike, vals in latest_opt.get(expiry, {}).items():
                 p, c = vals.get('put_oi', 0), vals.get('call_oi', 0)
                 if p >= 500:
                     put_scored.append((p, expiry, strike))
@@ -282,7 +303,7 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8):
                 label_exp = '20%s年%s月限' % (expiry[:2], expiry[2:]) if len(expiry) == 4 else expiry
                 target_list.append({
                     'label':       '%s %s%d' % (label_exp, typ, strike),
-                    'short_label': '%s%d (%s月限)' % (typ, strike, expiry[2:]),
+                    'short_label': '%s%d' % (typ, strike),  # no limgetsu suffix when all-same-expiry
                     'expiry':      expiry,
                     'strike':      strike,
                     'type':        typ,
@@ -301,6 +322,7 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8):
             'aggregate':  options_aggregate,
             'top_puts':   top_puts,
             'top_calls':  top_calls,
+            'top_expiry': target_expiries[0] if (latest_date and target_expiries) else None,
         },
         'generated_at': dates[-1] if dates else '',
     }
@@ -317,10 +339,13 @@ def main():
     ap.add_argument('--max-days',   type=int, default=20)
     ap.add_argument('--top-strikes', type=int, default=8,
                     help='number of top strikes per expiry to track individually')
+    ap.add_argument('--all-expiries', action='store_true',
+                    help='include strikes from ALL expiries (default: only the nearest major expiry by OI)')
     args = ap.parse_args()
 
     result = extract_oi_timeseries(args.data_dir, max_days=args.max_days,
-                                   top_strikes=args.top_strikes)
+                                   top_strikes=args.top_strikes,
+                                   nearest_expiry_only=not args.all_expiries)
 
     os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:
@@ -333,8 +358,10 @@ def main():
     n_puts  = len(result['options']['top_puts'])
     n_calls = len(result['options']['top_calls'])
     n_expiries = len(result['options']['aggregate'])
-    print('[oi_timeseries] wrote %s | %d days | %d futures markets | %d expiries | %d top puts | %d top calls'
-          % (args.out, result['n_dates'], 3, n_expiries, n_puts, n_calls))
+    top_exp = result['options'].get('top_expiry')
+    scope = ('expiry=%s' % top_exp) if top_exp else 'all-expiries'
+    print('[oi_timeseries] wrote %s | %d days | %d futures markets | %d expiries | %d top puts / %d top calls (%s)'
+          % (args.out, result['n_dates'], 3, n_expiries, n_puts, n_calls, scope))
     return 0
 
 

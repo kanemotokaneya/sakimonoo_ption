@@ -657,6 +657,9 @@ OI_CHART_JS = r"""
       tabs.addEventListener('click', function(ev) {
         var t = ev.target;
         if (t && t.classList && t.classList.contains('oi-tab')) {
+          // Prevent the click from bubbling to the grid handler which would
+          // close the card.
+          ev.stopPropagation();
           var tab = t.getAttribute('data-oi-tab');
           if (tab) setActiveTab(card, tab);
         }
@@ -668,6 +671,7 @@ OI_CHART_JS = r"""
         var t = ev.target;
         while (t && !t.classList.contains('oi-legend-item')) t = t.parentElement;
         if (!t) return;
+        ev.stopPropagation();
         var label = t.getAttribute('data-oi-label');
         if (!label) return;
         window._oi_state.hidden[label] = !window._oi_state.hidden[label];
@@ -720,6 +724,12 @@ def _preview_oi_timeseries(oi_ts):
     # Period
     h += '<div class="mini-metric"><div class="mm-label">期間</div><div class="mm-value">%d日</div></div>' % n
 
+    # Target expiry (nearest major by OI)
+    top_exp = (oi_ts.get('options') or {}).get('top_expiry')
+    if top_exp and len(top_exp) == 4:
+        exp_label = top_exp[2:] + '月限'
+        h += '<div class="mini-metric"><div class="mm-label">対象限月</div><div class="mm-value">%s</div></div>' % exp_label
+
     # Futures 5-day delta for nk225_large
     fut_large = (oi_ts.get('futures', {}).get('nk225_large') or {}).get('total', [])
     if len(fut_large) >= 6:
@@ -731,21 +741,18 @@ def _preview_oi_timeseries(oi_ts):
         cls = 'positive' if delta > 0 else 'negative' if delta < 0 else ''
         h += '<div class="mini-metric"><div class="mm-label">先物大期間</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
 
-    # PCR for nearest expiry (smallest key) with non-zero data
+    # PCR for the top expiry
     agg = (oi_ts.get('options') or {}).get('aggregate', {}) or {}
-    if agg:
-        keys = sorted(agg.keys())
-        for ek in keys:
-            grp = agg[ek]
-            p = (grp.get('put_total') or [0])[-1]
-            c = (grp.get('call_total') or [0])[-1]
-            if c > 0:
-                pcr = p / c
-                short_lab = ek[2:] + '月' if len(ek) == 4 else ek
-                h += '<div class="mini-metric"><div class="mm-label">%sPCR</div><div class="mm-value">%.2f</div></div>' % (short_lab, pcr)
-                break
+    if top_exp and top_exp in agg:
+        grp = agg[top_exp]
+        p = (grp.get('put_total') or [0])[-1]
+        c = (grp.get('call_total') or [0])[-1]
+        if c > 0:
+            pcr = p / c
+            short_lab = top_exp[2:] + '月' if len(top_exp) == 4 else top_exp
+            h += '<div class="mini-metric"><div class="mm-label">%sPCR</div><div class="mm-value">%.2f</div></div>' % (short_lab, pcr)
 
-    # Top P / Top C strike (current OI label)
+    # Top P / Top C strike (no expiry suffix since all share top_exp)
     top_p = (oi_ts.get('options') or {}).get('top_puts', []) or []
     top_c = (oi_ts.get('options') or {}).get('top_calls', []) or []
     if top_p:
@@ -840,6 +847,7 @@ def build_dashboard_html(data, oi_ts=None):
     h += '<div class="grid">\n'
     cards = [
         ('futures', '📈', '先物建玉増減', _preview_futures(s02), _detail_futures_js(s02)),
+        ('oi_timeseries', '📈', '建玉推移', _preview_oi_timeseries(oi_ts), _detail_oi_timeseries_js(oi_ts)),
         ('opval', '💰', 'オプション取引代金', _preview_opval(s03), _detail_opval_js(s03)),
         ('oichg', '📊', 'オプション建玉増減', _preview_oichg(s04), _detail_oichg_js(s04)),
         ('important', '⚡', '重要建玉変化', _preview_important(s05), _detail_important_js(s05)),
@@ -848,7 +856,6 @@ def build_dashboard_html(data, oi_ts=None):
         ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data)),
         ('gemini', '🤖', 'AI予想', _preview_gemini(data), _detail_gemini_js(data)),
         ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09)),
-        ('oi_timeseries', '📈', '建玉推移', _preview_oi_timeseries(oi_ts), _detail_oi_timeseries_js(oi_ts)),
         ('strategy', '🎲', '戦略マップ', _preview_strategy(s11), _detail_strategy_js(s11, atm)),
     ]
     for card_id, icon, title, preview_html, detail_js in cards:
