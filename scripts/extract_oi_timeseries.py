@@ -149,18 +149,26 @@ def extract_options_oi(wb_oi):
                 aggregate[expiry]['call_total'] += oi
                 per_strike[expiry][strike]['call_oi'] += oi
 
-    # Convert defaultdicts → plain dicts for JSON
+    # Convert defaultdicts → plain dicts for JSON.
+    # IMPORTANT: strike keys are stringified so they survive JSON round-trips
+    # (JSON object keys are always strings; this keeps lookups consistent
+    # whether the snapshot was freshly extracted or loaded from disk).
     return {
         'aggregate': {k: dict(v) for k, v in aggregate.items()},
-        'per_strike': {ek: {sk: dict(sv) for sk, sv in inner.items()}
+        'per_strike': {ek: {str(sk): dict(sv) for sk, sv in inner.items()}
                        for ek, inner in per_strike.items()},
     }
 
 
 # --- Main aggregation ------------------------------------------------------
 
-def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_only=True):
-    """Build the multi-day OI timeseries dict.
+def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_only=True,
+                          out_path=None):
+    """Build the multi-day OI timeseries dict — INCREMENTAL/ACCUMULATING.
+
+    The history is persisted inside the output JSON itself (under '_snapshots'),
+    so it grows by one data point per pipeline run and survives even when old
+    `*open_interest.xlsx` files are deleted/overwritten in data/.
 
     Args:
       data_dir: directory containing `*open_interest.xlsx` daily files.
@@ -168,39 +176,60 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
       top_strikes: number of top-OI strikes to track individually (PER expiry).
       nearest_expiry_only: if True, limit top_puts/top_calls to the nearest
         major expiry only (e.g. 06月限 only, no 07月限 mixing). Default True.
+      out_path: path to the existing oi_timeseries.json (to load prior history).
 
     Returns dict ready to be serialized as oi_timeseries.json.
     """
+    # --- 1. Load prior accumulated snapshots from the existing JSON ----------
+    #   day_data[date_str] = {'futures': {...}, 'options': {...}}
+    day_data = {}
+    if out_path and os.path.exists(out_path):
+        try:
+            with open(out_path, 'r', encoding='utf-8') as f:
+                prev = json.load(f)
+            prev_snaps = prev.get('_snapshots', {})
+            if isinstance(prev_snaps, dict):
+                day_data.update(prev_snaps)
+                print('[oi_timeseries] loaded %d prior snapshots from %s' % (len(prev_snaps), out_path))
+        except Exception as e:
+            print('[oi_timeseries] WARN: could not load prior history: %s' % e)
+
+    # --- 2. Extract snapshots from any Excel files present, merge in ---------
     pattern = os.path.join(data_dir, '*open_interest.xlsx')
-    candidates = []
+    file_candidates = []
     for fp in glob.glob(pattern):
         m = re.search(r'(\d{8})', os.path.basename(fp))
         if m:
-            candidates.append((m.group(1), fp))
+            file_candidates.append((m.group(1), fp))
+    file_candidates.sort(key=lambda x: x[0])
 
-    if not candidates:
-        return {'error': 'No *open_interest.xlsx files found in %s' % data_dir}
-
-    candidates.sort(key=lambda x: x[0])  # ascending date
-    candidates = candidates[-max_days:]
-    dates = [d for d, _ in candidates]
-    print('[oi_timeseries] using %d daily files: %s' % (len(dates), dates))
-
-    # day_data[date] = {'futures': {...}, 'options': {...}}
-    day_data = {}
-    for date_str, fp in candidates:
+    new_dates = []
+    for date_str, fp in file_candidates:
         try:
             wb = openpyxl.load_workbook(fp, data_only=True)
-        except Exception as e:
-            print('[oi_timeseries] WARN: failed to open %s: %s' % (fp, e))
-            continue
-        try:
             fut = extract_futures_oi(wb)
             opt = extract_options_oi(wb)
-            day_data[date_str] = {'futures': fut, 'options': opt}
+            day_data[date_str] = {'futures': fut, 'options': opt}  # overwrite/add
+            new_dates.append(date_str)
         except Exception as e:
             print('[oi_timeseries] WARN: parse failed on %s: %s' % (fp, e))
             continue
+
+    if not day_data:
+        return {'error': 'No snapshots: neither prior history nor *open_interest.xlsx in %s' % data_dir}
+
+    if new_dates:
+        print('[oi_timeseries] merged %d Excel file(s): %s' % (len(new_dates), new_dates))
+
+    # --- 3. Trim to the most-recent max_days dates ---------------------------
+    all_dates_sorted = sorted(day_data.keys())
+    if len(all_dates_sorted) > max_days:
+        keep = set(all_dates_sorted[-max_days:])
+        day_data = {d: v for d, v in day_data.items() if d in keep}
+        all_dates_sorted = sorted(day_data.keys())
+    dates = all_dates_sorted
+    print('[oi_timeseries] total accumulated days: %d (%s 〜 %s)' % (
+        len(dates), dates[0] if dates else '-', dates[-1] if dates else '-'))
 
     # --- Build futures timeseries ------------------------------------------
     futures_out = {}
@@ -300,12 +329,13 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
                     s_data = dd.get(strike, {}) if isinstance(dd, dict) else {}
                     key = 'put_oi' if typ == 'P' else 'call_oi'
                     history.append(s_data.get(key, 0))
+                strike_int = int(strike)
                 label_exp = '20%s年%s月限' % (expiry[:2], expiry[2:]) if len(expiry) == 4 else expiry
                 target_list.append({
-                    'label':       '%s %s%d' % (label_exp, typ, strike),
-                    'short_label': '%s%d' % (typ, strike),  # no limgetsu suffix when all-same-expiry
+                    'label':       '%s %s%d' % (label_exp, typ, strike_int),
+                    'short_label': '%s%d' % (typ, strike_int),  # no limgetsu suffix when all-same-expiry
                     'expiry':      expiry,
-                    'strike':      strike,
+                    'strike':      strike_int,
                     'type':        typ,
                     'current_oi':  history[-1] if history else 0,
                     'oi_history':  history,
@@ -325,6 +355,9 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
             'top_expiry': target_expiries[0] if (latest_date and target_expiries) else None,
         },
         'generated_at': dates[-1] if dates else '',
+        # Persist raw per-day snapshots so history accumulates across runs even
+        # when old *open_interest.xlsx files are removed from data/.
+        '_snapshots': day_data,
     }
     return output
 
@@ -345,7 +378,8 @@ def main():
 
     result = extract_oi_timeseries(args.data_dir, max_days=args.max_days,
                                    top_strikes=args.top_strikes,
-                                   nearest_expiry_only=not args.all_expiries)
+                                   nearest_expiry_only=not args.all_expiries,
+                                   out_path=args.out)
 
     os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:
