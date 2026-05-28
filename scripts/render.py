@@ -718,6 +718,169 @@ OI_CHART_JS = r"""
 """
 
 # ============================================================
+# 週次手口推移カード (weekly participant futures OI trend)
+# ============================================================
+WEEKLY_TREND_CSS = r"""
+.wt-tabs{display:flex;gap:0;margin:8px 0;border-bottom:1px solid var(--border)}
+.wt-tab{flex:1;padding:8px 4px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer}
+.wt-tab.wt-tab-active{color:var(--accent);border-bottom-color:var(--accent)}
+.wt-title{font-size:10px;color:var(--sub);margin:6px 2px;opacity:.8}
+.wt-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px;-webkit-overflow-scrolling:touch}
+.wt-table{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;font-family:'Noto Sans JP',sans-serif}
+.wt-table thead th{position:sticky;top:0;background:#1d2230;color:var(--sub);font-weight:500;text-align:right;padding:8px 10px;border-bottom:1px solid #2d3344;white-space:nowrap;font-size:11px}
+.wt-table thead th:first-child{text-align:left}
+.wt-table thead th .wt-sub{display:block;font-size:9px;color:#5a6276;font-weight:400;margin-top:2px}
+.wt-table tbody tr.wt-cat td{background:#1d2230;color:#e9ecf1;font-weight:600;font-size:11px;padding:6px 10px;border-top:1px solid #2d3344;border-bottom:1px solid #2d3344}
+.wt-table tbody tr.wt-cat td .wt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.wt-table tbody td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',ui-monospace,monospace;font-size:12px;white-space:nowrap}
+.wt-table tbody td.wt-broker{text-align:left;font-family:'Noto Sans JP',sans-serif;color:#e9ecf1;white-space:nowrap;position:sticky;left:0;background:var(--panel);z-index:1;border-right:1px solid var(--border)}
+.wt-table tbody td.wt-oi{font-weight:600;background:#1d2230;border-left:1px solid #2d3344}
+.wt-table tbody td.wt-dim{color:#5a6276}
+.wt-cell-pos{background:rgba(34,197,94,.18);color:#4ade80}
+.wt-cell-pos-strong{background:rgba(34,197,94,.55);color:#fff;font-weight:600}
+.wt-cell-neg{background:rgba(239,68,68,.18);color:#f87171}
+.wt-cell-neg-strong{background:rgba(239,68,68,.55);color:#fff;font-weight:600}
+.wt-dot-macro{background:#f59e0b}.wt-dot-longterm{background:#3b82f6}.wt-dot-cta{background:#ec4899}
+.wt-dot-arb{background:#14b8a6}.wt-dot-domins{background:#10b981}.wt-dot-domret{background:#84cc16}.wt-dot-other{background:#6b7280}
+"""
+
+WEEKLY_TREND_JS = r"""
+(function(){
+  if (typeof window.WT_DATA === 'undefined') window.WT_DATA = null;
+  var CAT_DOTS = {
+    'グローバルマクロ':'macro','長期投資志向':'longterm','トレンドフォロー（CTA）':'cta',
+    'アービトラージ（裁定取引）':'arb','国内機関投資家':'domins',
+    '国内個人投資家（ネットトレーダー）':'domret','-':'other'
+  };
+  var CAT_LABELS = {
+    'グローバルマクロ':'グローバルマクロ','長期投資志向':'長期投資志向',
+    'トレンドフォロー（CTA）':'トレンドフォロー（CTA）','アービトラージ（裁定取引）':'アービトラージ（裁定取引）',
+    '国内機関投資家':'国内機関投資家','国内個人投資家（ネットトレーダー）':'国内個人投資家','-':'ー（分類外）'
+  };
+  var CAT_ORDER = ['グローバルマクロ','長期投資志向','トレンドフォロー（CTA）','アービトラージ（裁定取引）','国内機関投資家','国内個人投資家（ネットトレーダー）','-'];
+  var SECTION_LABELS = { 'n225_large':'日経225先物', 'n225_mini':'日経225mini', 'topix':'TOPIX先物' };
+
+  function fmt(n, signed) {
+    if (n === null || n === undefined) return '';
+    if (n === 0) return '0';
+    var abs = Math.abs(n);
+    var sign = n < 0 ? '-' : (signed ? '+' : '');
+    var s;
+    if (abs >= 10000) s = (abs / 10000).toFixed(abs >= 100000 ? 0 : 1) + '万';
+    else s = Math.round(abs).toString();
+    return sign + s;
+  }
+  function fmtDate(s) {
+    if (!s || s.length !== 8) return s || '';
+    return s.substring(4,6) + '/' + s.substring(6,8);
+  }
+  function cellClass(v, maxAbs) {
+    if (v === null || v === undefined || v === 0) return 'wt-dim';
+    var ratio = Math.min(1, Math.abs(v) / Math.max(maxAbs, 1));
+    var strong = ratio >= 0.5;
+    if (v > 0) return strong ? 'wt-cell-pos-strong' : 'wt-cell-pos';
+    return strong ? 'wt-cell-neg-strong' : 'wt-cell-neg';
+  }
+
+  function getState(card) {
+    if (!card._wtState) {
+      var first = card.querySelector('.wt-tab');
+      var def = first ? first.getAttribute('data-wt-tab') : 'n225_large';
+      card._wtState = { tab: def };
+    }
+    return card._wtState;
+  }
+
+  function renderTable(card) {
+    var st = getState(card);
+    var content = card.querySelector('.wt-content');
+    if (!content) return;
+    var D = window.WT_DATA;
+    if (!D || D.error || !D.sections) {
+      content.innerHTML = '<div class="oi-empty">週次データなし — data/weekly_trend.json 未生成、または週次ファイル未配置</div>';
+      return;
+    }
+    var rows = D.sections[st.tab] || [];
+    var weeks = D.weeks || [];
+    var lim = (D.limgetsu || {})[st.tab] || '';
+
+    var maxAbs = 1;
+    for (var i = 0; i < rows.length; i++) {
+      var w = rows[i].wow || [];
+      for (var j = 0; j < w.length; j++) {
+        if (w[j] !== null && Math.abs(w[j]) > maxAbs) maxAbs = Math.abs(w[j]);
+      }
+    }
+    var byCat = {};
+    for (var k = 0; k < rows.length; k++) {
+      var c = rows[k].category || '-';
+      if (!byCat[c]) byCat[c] = [];
+      byCat[c].push(rows[k]);
+    }
+    var h = '';
+    h += '<div class="wt-title"><b>' + (SECTION_LABELS[st.tab] || '') + '</b> · ' + lim + ' · 前週比増減・売り越しはマイナス</div>';
+    h += '<div class="wt-scroll"><table class="wt-table"><thead><tr>';
+    h += '<th>証券会社</th>';
+    for (var wk = 0; wk < weeks.length; wk++) {
+      h += '<th>' + fmtDate(weeks[wk]) + '<span class="wt-sub">' + (wk === 0 ? '基準' : '前週比') + '</span></th>';
+    }
+    if (weeks.length > 0) {
+      h += '<th>' + fmtDate(weeks[weeks.length - 1]) + '<span class="wt-sub">建玉残高</span></th>';
+    }
+    h += '</tr></thead><tbody>';
+    var colspan = 2 + weeks.length;
+    for (var ci = 0; ci < CAT_ORDER.length; ci++) {
+      var cat = CAT_ORDER[ci];
+      var catRows = byCat[cat];
+      if (!catRows || !catRows.length) continue;
+      var dotClass = CAT_DOTS[cat] || 'other';
+      h += '<tr class="wt-cat"><td colspan="' + colspan + '"><span class="wt-dot wt-dot-' + dotClass + '"></span>' + CAT_LABELS[cat] + ' (' + catRows.length + ')</td></tr>';
+      for (var ri = 0; ri < catRows.length; ri++) {
+        var row = catRows[ri];
+        h += '<tr><td class="wt-broker">' + row.broker + '</td>';
+        var wow = row.wow || [];
+        for (var wi = 0; wi < wow.length; wi++) {
+          var v = wow[wi];
+          if (v === null || v === undefined) h += '<td class="wt-dim">—</td>';
+          else h += '<td class="' + cellClass(v, maxAbs) + '">' + fmt(v, true) + '</td>';
+        }
+        h += '<td class="wt-oi">' + fmt(row.oi_current) + '</td></tr>';
+      }
+    }
+    h += '</tbody></table></div>';
+    content.innerHTML = h;
+  }
+
+  function setTab(card, tab) {
+    getState(card).tab = tab;
+    var btns = card.querySelectorAll('.wt-tab');
+    for (var i = 0; i < btns.length; i++) {
+      if (btns[i].getAttribute('data-wt-tab') === tab) btns[i].classList.add('wt-tab-active');
+      else btns[i].classList.remove('wt-tab-active');
+    }
+    renderTable(card);
+  }
+
+  window.init_weekly_trend = function(card) {
+    getState(card);
+    var tabs = card.querySelector('.wt-tabs');
+    if (tabs) {
+      tabs.addEventListener('click', function(ev) {
+        var t = ev.target;
+        if (t && t.classList && t.classList.contains('wt-tab')) {
+          ev.stopPropagation();
+          var tab = t.getAttribute('data-wt-tab');
+          if (tab) setTab(card, tab);
+        }
+      });
+    }
+    setTimeout(function() { renderTable(card); }, 0);
+  };
+})();
+"""
+
+
+# ============================================================
 # build_dashboard_html and preview/detail functions are below.
 # For brevity, the unchanged functions (build_dashboard_html,
 # all _preview_* functions, and most _detail_* functions) are
@@ -858,7 +1021,62 @@ def _detail_op_oi_timeseries_js(oi_ts):
     return js
 
 
-def build_dashboard_html(data, oi_ts=None):
+def _load_weekly_trend(data_dir='data'):
+    """Load data/weekly_trend.json (produced by extract_weekly_trend.py)."""
+    fp = os.path.join(data_dir, 'weekly_trend.json')
+    if not os.path.exists(fp):
+        return None
+    try:
+        with open(fp, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print('[render.py] WARN: failed to load %s: %s' % (fp, e))
+        return None
+
+
+def _preview_weekly_trend(wt):
+    if not wt or wt.get('error'):
+        return '<span class="mm-label">データなし</span>'
+    weeks = wt.get('weeks', []) or []
+    if not weeks:
+        return '<span class="mm-label">蓄積中</span>'
+    h = '<div class="mini-metrics">'
+    h += '<div class="mini-metric"><div class="mm-label">最終データ</div><div class="mm-value">%s</div></div>' % (
+        ('%s/%s' % (weeks[-1][4:6], weeks[-1][6:8])) if len(weeks[-1]) == 8 else weeks[-1])
+    h += '<div class="mini-metric"><div class="mm-label">週数</div><div class="mm-value">%d</div></div>' % len(weeks)
+    # Biggest WoW mover (latest week) in n225_large
+    rows = (wt.get('sections', {}) or {}).get('n225_large', []) or []
+    best = None
+    for r in rows:
+        wow = r.get('wow') or []
+        last = wow[-1] if wow else None
+        if last is not None and (best is None or abs(last) > abs(best[1])):
+            best = (r.get('broker', ''), last)
+    if best:
+        cls = 'positive' if best[1] > 0 else 'negative' if best[1] < 0 else ''
+        h += '<div class="mini-metric"><div class="mm-label">最大変化(ラージ)</div><div class="mm-value %s">%s %s</div></div>' % (
+            cls, esc(best[0][:8]), fnum(best[1], plus=True))
+    h += '</div>'
+    return h
+
+
+def _detail_weekly_trend_js(wt):
+    """OP/futures weekly participant trend card — tabs by market.
+    Rendered by init_weekly_trend() (WEEKLY_TREND_JS)."""
+    if not wt or wt.get('error'):
+        return "var h='';h+='<div class=\"oi-empty\">週次手口データなし — `*_indexfut_oi_by_tp.xlsx` を data/ に蓄積し、pipeline で weekly_trend.json を生成してください</div>';return h;"
+    js = "var h='';"
+    js += "h+='<div class=\"wt-tabs\">';"
+    js += "h+='<button class=\"wt-tab wt-tab-active\" data-wt-tab=\"n225_large\" type=\"button\">日経225先物</button>';"
+    js += "h+='<button class=\"wt-tab\" data-wt-tab=\"n225_mini\" type=\"button\">日経225mini</button>';"
+    js += "h+='<button class=\"wt-tab\" data-wt-tab=\"topix\" type=\"button\">TOPIX先物</button>';"
+    js += "h+='</div>';"
+    js += "h+='<div class=\"wt-content\"></div>';"
+    js += "return h;"
+    return js
+
+
+def build_dashboard_html(data, oi_ts=None, wt=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -879,7 +1097,7 @@ def build_dashboard_html(data, oi_ts=None):
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS)
+    h += '<style>\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS)
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -958,6 +1176,7 @@ def build_dashboard_html(data, oi_ts=None):
         ]),
         ('参加者・手口', [
             ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
+            ('weekly_trend', '📅', '週次手口推移', _preview_weekly_trend(wt), _detail_weekly_trend_js(wt), WB),
             ('jnet', '🏛', '大口手口（J-NET）', _preview_jnet(s07), _detail_jnet_js(s07), DB),
         ]),
         ('総合', [
@@ -989,7 +1208,9 @@ def build_dashboard_html(data, oi_ts=None):
     if oi_ts:
         oi_ts_display = {k: v for k, v in oi_ts.items() if k != '_snapshots'}
     h += 'window.OI_TS_DATA = ' + json.dumps(oi_ts_display or {}, ensure_ascii=False) + ';\n'
+    h += 'window.WT_DATA = ' + json.dumps(wt or {}, ensure_ascii=False) + ';\n'
     h += OI_CHART_JS
+    h += WEEKLY_TREND_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -1855,6 +2076,9 @@ def run(args):
     # Load oi_timeseries.json (optional — produced by scripts/extract_oi_timeseries.py)
     data_dir = os.path.dirname(args.data) or '.'
     oi_ts = _load_oi_timeseries(data_dir)
+    wt = _load_weekly_trend(data_dir)
+    if wt and not wt.get('error'):
+        print('[render.py] Loaded weekly_trend: %d weeks' % len(wt.get('weeks', [])))
     if oi_ts:
         print('[render.py] Loaded oi_timeseries: %d days, %d expiries, %d top puts, %d top calls' % (
             oi_ts.get('n_dates', 0),
@@ -1872,7 +2096,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
