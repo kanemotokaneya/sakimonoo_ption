@@ -458,7 +458,8 @@ OI_CHART_JS = r"""
     return yyyymmdd.substring(4, 6) + '/' + yyyymmdd.substring(6, 8);
   }
 
-  function drawChart(canvas, series, dates) {
+  function drawChart(canvas, series, dates, hidden) {
+    hidden = hidden || {};
     var dpr = window.devicePixelRatio || 1;
     var cssW = canvas.clientWidth || 320;
     var cssH = 240;
@@ -476,7 +477,7 @@ OI_CHART_JS = r"""
 
     var visible = [];
     for (var s = 0; s < series.length; s++) {
-      if (!window._oi_state.hidden[series[s].label]) visible.push(series[s]);
+      if (!hidden[series[s].label]) visible.push(series[s]);
     }
     if (!visible.length || !dates.length) {
       ctx.fillStyle = '#5a6276';
@@ -612,7 +613,18 @@ OI_CHART_JS = r"""
     return [];
   }
 
+  function getState(card) {
+    if (!card._oiState) {
+      // Default active tab = the first .oi-tab in this card
+      var first = card.querySelector('.oi-tab');
+      var def = first ? first.getAttribute('data-oi-tab') : 'futures';
+      card._oiState = { activeTab: def, hidden: {} };
+    }
+    return card._oiState;
+  }
+
   function renderTab(card) {
+    var st = getState(card);
     var D = window.OI_TS_DATA;
     if (!D || D.error || !D.dates || !D.dates.length) {
       var canvas = card.querySelector('.oi-canvas');
@@ -624,15 +636,15 @@ OI_CHART_JS = r"""
     }
     var canvas2 = card.querySelector('.oi-canvas');
     if (!canvas2) return;
-    var series = getSeriesFor(window._oi_state.activeTab);
-    drawChart(canvas2, series, D.dates);
+    var series = getSeriesFor(st.activeTab);
+    drawChart(canvas2, series, D.dates, st.hidden);
 
     var leg = card.querySelector('.oi-legend');
     if (leg) {
       var lh = '';
       for (var i = 0; i < series.length; i++) {
         var s = series[i];
-        var hidden = window._oi_state.hidden[s.label] ? ' oi-hidden' : '';
+        var hidden = st.hidden[s.label] ? ' oi-hidden' : '';
         lh += '<span class="oi-legend-item' + hidden + '" data-oi-label="' + s.label + '">';
         lh += '<span class="oi-swatch" style="background:' + s.color + '"></span>';
         lh += s.label;
@@ -656,8 +668,9 @@ OI_CHART_JS = r"""
   }
 
   function setActiveTab(card, tab) {
-    window._oi_state.activeTab = tab;
-    window._oi_state.hidden = {};
+    var st = getState(card);
+    st.activeTab = tab;
+    st.hidden = {};
     var btns = card.querySelectorAll('.oi-tab');
     for (var i = 0; i < btns.length; i++) {
       if (btns[i].getAttribute('data-oi-tab') === tab) btns[i].classList.add('oi-tab-active');
@@ -666,15 +679,14 @@ OI_CHART_JS = r"""
     renderTab(card);
   }
 
-  window.init_oi_timeseries = function(card) {
+  function initChartCard(card) {
+    getState(card);  // initialise per-card state
     var tabs = card.querySelector('.oi-tabs');
     if (tabs) {
       tabs.addEventListener('click', function(ev) {
         var t = ev.target;
         if (t && t.classList && t.classList.contains('oi-tab')) {
-          // Prevent the click from bubbling to the grid handler which would
-          // close the card.
-          ev.stopPropagation();
+          ev.stopPropagation();  // don't bubble to grid (would close card)
           var tab = t.getAttribute('data-oi-tab');
           if (tab) setActiveTab(card, tab);
         }
@@ -689,13 +701,19 @@ OI_CHART_JS = r"""
         ev.stopPropagation();
         var label = t.getAttribute('data-oi-label');
         if (!label) return;
-        window._oi_state.hidden[label] = !window._oi_state.hidden[label];
+        var st = getState(card);
+        st.hidden[label] = !st.hidden[label];
         renderTab(card);
       });
     }
     setTimeout(function() { renderTab(card); }, 0);
     window.addEventListener('resize', function() { renderTab(card); });
-  };
+  }
+
+  // Both the futures 建玉推移 card and the option OP建玉推移 card use the same
+  // generic chart logic; register the init hook under both card ids.
+  window.init_oi_timeseries = initChartCard;
+  window.init_op_oi_timeseries = initChartCard;
 })();
 """
 
@@ -729,6 +747,7 @@ def _load_oi_timeseries(data_dir='data'):
 
 
 def _preview_oi_timeseries(oi_ts):
+    """Futures 建玉推移 card preview — period, latest Nikkei, futures OI deltas."""
     if not oi_ts or oi_ts.get('error'):
         return '<span class="mm-label">データなし</span>'
     n = oi_ts.get('n_dates', 0)
@@ -736,38 +755,61 @@ def _preview_oi_timeseries(oi_ts):
         return '<span class="mm-label">蓄積中</span>'
 
     h = '<div class="mini-metrics">'
-    # Period
     h += '<div class="mini-metric"><div class="mm-label">期間</div><div class="mm-value">%d日</div></div>' % n
 
-    # Target expiry (nearest major by OI)
-    top_exp = (oi_ts.get('options') or {}).get('top_expiry')
-    if top_exp and len(top_exp) == 4:
-        exp_label = top_exp[2:] + '月限'
-        h += '<div class="mini-metric"><div class="mm-label">対象限月</div><div class="mm-value">%s</div></div>' % exp_label
+    # Latest Nikkei (price line)
+    nk = oi_ts.get('nikkei')
+    if nk and isinstance(nk, list):
+        last_nk = next((v for v in reversed(nk) if v is not None), None)
+        if last_nk is not None:
+            h += '<div class="mini-metric"><div class="mm-label">日経</div><div class="mm-value">%s</div></div>' % fnum(last_nk)
 
     # Futures 5-day delta for nk225_large
     fut_large = (oi_ts.get('futures', {}).get('nk225_large') or {}).get('total', [])
     if len(fut_large) >= 6:
         delta = fut_large[-1] - fut_large[-6]
         cls = 'positive' if delta > 0 else 'negative' if delta < 0 else ''
-        h += '<div class="mini-metric"><div class="mm-label">先物大5日</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
+        h += '<div class="mini-metric"><div class="mm-label">ラージ5日</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
     elif len(fut_large) >= 2:
         delta = fut_large[-1] - fut_large[0]
         cls = 'positive' if delta > 0 else 'negative' if delta < 0 else ''
-        h += '<div class="mini-metric"><div class="mm-label">先物大期間</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
+        h += '<div class="mini-metric"><div class="mm-label">ラージ期間</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
 
-    # PCR for the top expiry
+    # TOPIX period delta
+    topix = (oi_ts.get('futures', {}).get('topix') or {}).get('total', [])
+    if len(topix) >= 2:
+        delta = topix[-1] - topix[0]
+        cls = 'positive' if delta > 0 else 'negative' if delta < 0 else ''
+        h += '<div class="mini-metric"><div class="mm-label">TOPIX期間</div><div class="mm-value %s">%s</div></div>' % (cls, fnum(delta, plus=True))
+
+    h += '</div>'
+    return h
+
+
+def _preview_op_oi_timeseries(oi_ts):
+    """Option OP建玉推移 card preview — target expiry, PCR, Top P / Top C."""
+    if not oi_ts or oi_ts.get('error'):
+        return '<span class="mm-label">データなし</span>'
+    n = oi_ts.get('n_dates', 0)
+    if n < 1:
+        return '<span class="mm-label">蓄積中</span>'
+
+    h = '<div class="mini-metrics">'
+    h += '<div class="mini-metric"><div class="mm-label">期間</div><div class="mm-value">%d日</div></div>' % n
+
+    top_exp = (oi_ts.get('options') or {}).get('top_expiry')
+    if top_exp and len(top_exp) == 4:
+        h += '<div class="mini-metric"><div class="mm-label">対象限月</div><div class="mm-value">%s月限</div></div>' % top_exp[2:]
+
     agg = (oi_ts.get('options') or {}).get('aggregate', {}) or {}
     if top_exp and top_exp in agg:
         grp = agg[top_exp]
         p = (grp.get('put_total') or [0])[-1]
         c = (grp.get('call_total') or [0])[-1]
         if c > 0:
-            pcr = p / c
             short_lab = top_exp[2:] + '月' if len(top_exp) == 4 else top_exp
-            h += '<div class="mini-metric"><div class="mm-label">%sPCR</div><div class="mm-value">%.2f</div></div>' % (short_lab, pcr)
+            h += '<div class="mini-metric"><div class="mm-label">%sPCR</div><div class="mm-value">%.2f</div></div>' % (short_lab, p / c)
 
-    # Top P / Top C strike (no expiry suffix since all share top_exp)
     top_p = (oi_ts.get('options') or {}).get('top_puts', []) or []
     top_c = (oi_ts.get('options') or {}).get('top_calls', []) or []
     if top_p:
@@ -780,16 +822,32 @@ def _preview_oi_timeseries(oi_ts):
 
 
 def _detail_oi_timeseries_js(oi_ts):
-    """Return the body of b_oi_timeseries() — the HTML scaffold only.
-    The chart is drawn by init_oi_timeseries() (defined in OI_CHART_JS).
+    """Futures 建玉推移 card — tabs: 日経先物 (default) + 先物OI.
+    Chart drawn by init_oi_timeseries() (OI_CHART_JS).
     """
     if not oi_ts or oi_ts.get('error'):
         return "var h='';h+='<div class=\"oi-empty\">建玉推移データなし — pipeline が `data/oi_timeseries.json` を未生成、または `*open_interest.xlsx` の蓄積が不足</div>';return h;"
     js = "var h='';"
     js += "h+='<div class=\"oi-tabs\">';"
-    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"futures\" type=\"button\">先物建玉</button>';"
-    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"nikkei\" type=\"button\">日経先物</button>';"
-    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"options_agg\" type=\"button\">OP集計</button>';"
+    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"nikkei\" type=\"button\">日経先物</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"futures\" type=\"button\">先物OI</button>';"
+    js += "h+='</div>';"
+    js += "h+='<div class=\"oi-chart-wrap\"><canvas class=\"oi-canvas\"></canvas></div>';"
+    js += "h+='<div class=\"oi-meta\"></div>';"
+    js += "h+='<div class=\"oi-legend\"></div>';"
+    js += "return h;"
+    return js
+
+
+def _detail_op_oi_timeseries_js(oi_ts):
+    """Option OP建玉推移 card — tabs: OP集計 (default) + Pストライク + Cストライク.
+    Chart drawn by init_op_oi_timeseries() (same generic logic, OI_CHART_JS).
+    """
+    if not oi_ts or oi_ts.get('error'):
+        return "var h='';h+='<div class=\"oi-empty\">OP建玉推移データなし — `*open_interest.xlsx` の蓄積が不足</div>';return h;"
+    js = "var h='';"
+    js += "h+='<div class=\"oi-tabs\">';"
+    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"options_agg\" type=\"button\">OP集計</button>';"
     js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_puts\" type=\"button\">Pストライク</button>';"
     js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_calls\" type=\"button\">Cストライク</button>';"
     js += "h+='</div>';"
@@ -893,6 +951,7 @@ def build_dashboard_html(data, oi_ts=None):
         ('オプション', [
             ('opval', '💰', 'OP取引代金', _preview_opval(s03), _detail_opval_js(s03), DB),
             ('oichg', '📊', 'OP建玉増減', _preview_oichg(s04), _detail_oichg_js(s04), DB),
+            ('op_oi_timeseries', '📉', 'OP建玉推移', _preview_op_oi_timeseries(oi_ts), _detail_op_oi_timeseries_js(oi_ts), DB),
             ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
             ('strategy', '🎲', 'OP戦略マップ', _preview_strategy(s11), _detail_strategy_js(s11, atm), DB),
