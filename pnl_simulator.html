@@ -44,7 +44,13 @@ a{color:var(--accent);text-decoration:none}
 .card-hdr{display:flex;align-items:center;gap:8px}
 .card-hdr .icon{font-size:18px}
 .card-hdr .title{font-family:Outfit;font-weight:600;font-size:14px;color:#fff}
-.card-hdr .arrow{margin-left:auto;color:var(--sub);font-size:12px;transition:transform .25s}
+.card-hdr .arrow{margin-left:8px;color:var(--sub);font-size:12px;transition:transform .25s}
+.card-hdr .date-badge{margin-left:auto;font-size:9px;font-family:'DM Mono',monospace;color:var(--sub);background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px;white-space:nowrap}
+.card-hdr .date-badge.weekly{color:#fbbf24;background:rgba(251,191,36,.12)}
+.section-hdr{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:16px 2px 2px}
+.section-hdr .section-title{font-family:Outfit;font-weight:700;font-size:11px;letter-spacing:.1em;color:var(--accent)}
+.section-hdr .section-line{flex:1;height:1px;background:var(--border)}
+.section-hdr:first-child{margin-top:4px}
 .card.open .card-hdr .arrow{transform:rotate(90deg);color:var(--accent)}
 .card-preview{margin-top:10px}
 .card-detail{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;animation:fadeUp .3s ease-out}
@@ -120,15 +126,21 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </head>
 <body>
 <div class="topbar"><span class="logo">P&L Simulator</span><nav><a href="index.html">← ダッシュボード</a><a href="weekly_trend.html">週次推移</a><a href="archive.html">アーカイブ</a></nav></div>
-<div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/5/27（水） / ATM 65,000 / VI None / SQまで12日</div></div>
+<div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/5/27（水） / ATM 64,500 / VI 26.95 / SQまで12日</div></div>
 <div class="kpi-strip">
-  <div class="kpi"><div class="label">ATM</div><div class="value">65,000</div></div>
-  <div class="kpi"><div class="label">VI</div><div class="value">None</div></div>
+  <div class="kpi"><div class="label">ATM</div><div class="value">64,500</div></div>
+  <div class="kpi"><div class="label">VI</div><div class="value">26.95</div></div>
   <div class="kpi"><div class="label">SQ</div><div class="value">2026-06-12</div></div>
   <div class="kpi"><div class="label">残り営業日</div><div class="value">12</div></div>
 </div>
 <div class="sim-section">
 <div style="margin:12px 0"><div style="color:var(--sub);font-size:11px;margin-bottom:6px">プリセット戦略</div>
+<span class="preset-btn" data-preset="0">Iron Condor</span>
+<span class="preset-btn" data-preset="1">Put Credit Spread</span>
+<span class="preset-btn" data-preset="2">Call Credit Spread</span>
+<span class="preset-btn" data-preset="3">Short Strangle + 先物ヘッジ</span>
+<span class="preset-btn" data-preset="4">P売り + mini先物ヘッジ</span>
+<span class="preset-btn" data-preset="5">ミニ週次θハーベスト</span>
 </div>
 <div style="margin:12px 0"><div style="display:flex;gap:8px;margin-bottom:8px">
   <button class="btn-outline btn" id="add-put">+ プット</button>
@@ -146,8 +158,8 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </div>
 <div class="footer"><a href="index.html">ダッシュボード</a> <a href="weekly_trend.html">週次推移</a> <a href="archive.html">アーカイブ</a></div>
 <script>
-var ATM=65000,VI=0,T=0.048,DAYS=12;
-var PRESETS=[];
+var ATM=64500,VI=26.95,T=0.048,DAYS=12;
+var PRESETS=[{"name": "Iron Condor", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 703.4}, {"type": "put", "side": "long", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 261.0}, {"type": "call", "side": "short", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 744.4}, {"type": "call", "side": "long", "strike": 68500, "qty": 1, "multiplier": 1000, "premium": 315.2}]}, {"name": "Put Credit Spread", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 703.4}, {"type": "put", "side": "long", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 261.0}]}, {"name": "Call Credit Spread", "legs": [{"type": "call", "side": "short", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 744.4}, {"type": "call", "side": "long", "strike": 68500, "qty": 1, "multiplier": 1000, "premium": 315.2}]}, {"name": "Short Strangle + 先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 703.4}, {"type": "call", "side": "short", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 744.4}, {"type": "futures", "side": "short", "entry": 64500, "qty": 0, "multiplier": 100}]}, {"name": "P売り + mini先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 703.4}, {"type": "futures", "side": "short", "entry": 63000, "qty": 3, "multiplier": 100}]}, {"name": "ミニ週次θハーベスト", "legs": [{"type": "put", "side": "short", "strike": 63000, "qty": 10, "multiplier": 100, "premium": 398.3}, {"type": "call", "side": "short", "strike": 66000, "qty": 10, "multiplier": 100, "premium": 417.2}]}];
 
 var legs=[];var legId=0;
 function normCdf(x){if(x>=0){var t=1/(1+0.2316419*x)}else{var t=1/(1-0.2316419*x)}var d=0.3989422804014327;var p=((((1.330274429*t-1.821255978)*t+1.781477937)*t-0.356563782)*t+0.319381530)*t;if(x>=0)return 1-d*Math.exp(-0.5*x*x)*p;return d*Math.exp(-0.5*x*x)*p;}
