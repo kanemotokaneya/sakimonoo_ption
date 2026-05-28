@@ -1360,22 +1360,30 @@ def _detail_assess_js(data):
 
 def _preview_gemini(data):
     assessment = data.get('s08_assessment', '')
+    source = data.get('s08_source', '')
     if not assessment:
         return '<span class="mm-label">生成待ち</span>'
+    badge = '👤 手動' if source == 'manual' else '🤖 AI'
     # Extract first ■ header as preview
     parts = assessment.split('■')
     for part in parts[1:2]:
         lines = part.strip().split('\n', 1)
         header = lines[0].strip()[:20]
-        return '<div class="mini-metrics"><div class="mini-metric"><div class="mm-value" style="font-size:12px;color:var(--accent)">■ %s…</div></div></div>' % esc(header)
-    return '<span class="mm-label">生成済み</span>'
+        return '<div class="mini-metrics"><div class="mini-metric"><div class="mm-label">%s</div><div class="mm-value" style="font-size:12px;color:var(--accent)">■ %s…</div></div></div>' % (badge, esc(header))
+    return '<span class="mm-label">%s 生成済み</span>' % badge
 
 
 def _detail_gemini_js(data):
     assessment = data.get('s08_assessment', '')
+    source = data.get('s08_source', '')
     if not assessment:
-        return "var h='<div class=\"insight\">GEMINI_API_KEY を設定するとAI予想が自動生成されます。</div>';return h;"
+        return "var h='<div class=\"insight\">手動分析(data/manual_assessment_YYYYMMDD.md)を置くか、GEMINI_API_KEY を設定すると表示されます。</div>';return h;"
     js = "var h='';"
+    # Source badge line
+    if source == 'manual':
+        js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">👤 手動分析(Claude等で作成)</div>';"
+    else:
+        js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">🤖 AI自動生成(Gemini)</div>';"
     js += "h+='<div class=\"insight\" style=\"white-space:pre-wrap;line-height:1.8\">';"
     parts = assessment.split('■')
     for i, part in enumerate(parts):
