@@ -163,7 +163,7 @@ def extract_options_oi(wb_oi):
 # --- Main aggregation ------------------------------------------------------
 
 def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_only=True,
-                          out_path=None):
+                          out_path=None, nikkei_close=None):
     """Build the multi-day OI timeseries dict — INCREMENTAL/ACCUMULATING.
 
     The history is persisted inside the output JSON itself (under '_snapshots'),
@@ -177,6 +177,8 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
       nearest_expiry_only: if True, limit top_puts/top_calls to the nearest
         major expiry only (e.g. 06月限 only, no 07月限 mixing). Default True.
       out_path: path to the existing oi_timeseries.json (to load prior history).
+      nikkei_close: today's Nikkei 225 close/settlement, stored in the snapshot
+        so a price line can be plotted alongside OI. Optional.
 
     Returns dict ready to be serialized as oi_timeseries.json.
     """
@@ -209,11 +211,24 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
             wb = openpyxl.load_workbook(fp, data_only=True)
             fut = extract_futures_oi(wb)
             opt = extract_options_oi(wb)
-            day_data[date_str] = {'futures': fut, 'options': opt}  # overwrite/add
+            snap = {'futures': fut, 'options': opt}
+            # Preserve any previously-stored nikkei close for this date, unless
+            # a fresh value is supplied (only applies to the most recent date).
+            prev_nikkei = day_data.get(date_str, {}).get('nikkei') if isinstance(day_data.get(date_str), dict) else None
+            if prev_nikkei is not None:
+                snap['nikkei'] = prev_nikkei
+            day_data[date_str] = snap  # overwrite/add
             new_dates.append(date_str)
         except Exception as e:
             print('[oi_timeseries] WARN: parse failed on %s: %s' % (fp, e))
             continue
+
+    # Attach today's Nikkei close to the latest date's snapshot (if provided)
+    if nikkei_close is not None and file_candidates:
+        latest_file_date = file_candidates[-1][0]
+        if latest_file_date in day_data and isinstance(day_data[latest_file_date], dict):
+            day_data[latest_file_date]['nikkei'] = float(nikkei_close)
+            print('[oi_timeseries] stored nikkei close %s for %s' % (nikkei_close, latest_file_date))
 
     if not day_data:
         return {'error': 'No snapshots: neither prior history nor *open_interest.xlsx in %s' % data_dir}
@@ -344,10 +359,20 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
         build_strike_series(put_scored,  'P', top_puts)
         build_strike_series(call_scored, 'C', top_calls)
 
+    # Build the Nikkei price series aligned with dates (None where unknown)
+    nikkei_series = []
+    has_nikkei = False
+    for d in dates:
+        v = day_data.get(d, {}).get('nikkei') if isinstance(day_data.get(d), dict) else None
+        if v is not None:
+            has_nikkei = True
+        nikkei_series.append(v)
+
     output = {
         'dates': dates,
         'n_dates': len(dates),
         'futures': futures_out,
+        'nikkei': nikkei_series if has_nikkei else None,
         'options': {
             'aggregate':  options_aggregate,
             'top_puts':   top_puts,
@@ -374,12 +399,15 @@ def main():
                     help='number of top strikes per expiry to track individually')
     ap.add_argument('--all-expiries', action='store_true',
                     help='include strikes from ALL expiries (default: only the nearest major expiry by OI)')
+    ap.add_argument('--nikkei', type=float, default=None,
+                    help="today's Nikkei 225 close/settlement to store for the price line")
     args = ap.parse_args()
 
     result = extract_oi_timeseries(args.data_dir, max_days=args.max_days,
                                    top_strikes=args.top_strikes,
                                    nearest_expiry_only=not args.all_expiries,
-                                   out_path=args.out)
+                                   out_path=args.out,
+                                   nikkei_close=args.nikkei)
 
     os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:

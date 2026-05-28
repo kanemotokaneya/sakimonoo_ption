@@ -317,7 +317,13 @@ a{color:var(--accent);text-decoration:none}
 .card-hdr{display:flex;align-items:center;gap:8px}
 .card-hdr .icon{font-size:18px}
 .card-hdr .title{font-family:Outfit;font-weight:600;font-size:14px;color:#fff}
-.card-hdr .arrow{margin-left:auto;color:var(--sub);font-size:12px;transition:transform .25s}
+.card-hdr .arrow{margin-left:8px;color:var(--sub);font-size:12px;transition:transform .25s}
+.card-hdr .date-badge{margin-left:auto;font-size:9px;font-family:'DM Mono',monospace;color:var(--sub);background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px;white-space:nowrap}
+.card-hdr .date-badge.weekly{color:#fbbf24;background:rgba(251,191,36,.12)}
+.section-hdr{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:16px 2px 2px}
+.section-hdr .section-title{font-family:Outfit;font-weight:700;font-size:11px;letter-spacing:.1em;color:var(--accent)}
+.section-hdr .section-line{flex:1;height:1px;background:var(--border)}
+.section-hdr:first-child{margin-top:4px}
 .card.open .card-hdr .arrow{transform:rotate(90deg);color:var(--accent)}
 .card-preview{margin-top:10px}
 .card-detail{display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;animation:fadeUp .3s ease-out}
@@ -552,13 +558,22 @@ OI_CHART_JS = r"""
   var FUTURES_LABELS = { n225_large: '225ラージ', n225_mini: '225mini', topix: 'TOPIX' };
   var OP_PUT_COLORS = ['#f87171', '#fb923c'];
   var OP_CALL_COLORS = ['#4ade80', '#22d3ee'];
-  var P_STRIKE_COLORS = ['#f87171','#fb7185','#f43f5e','#e11d48','#dc2626','#b91c1c','#fb923c','#ea580c'];
-  var C_STRIKE_COLORS = ['#4ade80','#22d3ee','#10b981','#06b6d4','#14b8a6','#84cc16','#0ea5e9','#3b82f6'];
+  // Distinct categorical hues — the P/C distinction is carried by the tab,
+  // so within a tab we use maximally-separated colors for legibility.
+  var STRIKE_COLORS = ['#f59e0b','#3b82f6','#10b981','#ec4899','#a78bfa','#06b6d4','#ef4444','#84cc16'];
+  var P_STRIKE_COLORS = STRIKE_COLORS;
+  var C_STRIKE_COLORS = STRIKE_COLORS;
 
   function getSeriesFor(tab) {
     var D = window.OI_TS_DATA;
     if (!D || D.error) return [];
     var out = [];
+    if (tab === 'nikkei') {
+      if (D.nikkei) {
+        out.push({ label: '日経225先物', color: '#fbbf24', data: D.nikkei });
+      }
+      return out;
+    }
     if (tab === 'futures') {
       var keys = ['n225_large', 'n225_mini', 'topix'];
       for (var i = 0; i < keys.length; i++) {
@@ -772,7 +787,8 @@ def _detail_oi_timeseries_js(oi_ts):
         return "var h='';h+='<div class=\"oi-empty\">建玉推移データなし — pipeline が `data/oi_timeseries.json` を未生成、または `*open_interest.xlsx` の蓄積が不足</div>';return h;"
     js = "var h='';"
     js += "h+='<div class=\"oi-tabs\">';"
-    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"futures\" type=\"button\">先物合計</button>';"
+    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"futures\" type=\"button\">先物建玉</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"nikkei\" type=\"button\">日経先物</button>';"
     js += "h+='<button class=\"oi-tab\" data-oi-tab=\"options_agg\" type=\"button\">OP集計</button>';"
     js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_puts\" type=\"button\">Pストライク</button>';"
     js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_calls\" type=\"button\">Cストライク</button>';"
@@ -844,23 +860,65 @@ def build_dashboard_html(data, oi_ts=None):
 
     h += '<div class="mobile-nav">\n  <a href="index.html">ダッシュボード</a>\n  <a href="pnl_simulator.html">P&L</a>\n  <a href="weekly_trend.html">週次</a>\n  <a href="archive.html">アーカイブ</a>\n</div>\n'
 
+    # Resolve data-vintage badges
+    def _short_date(yyyymmdd):
+        s = str(yyyymmdd or '')
+        if len(s) != 8:
+            return ''
+        return '%d/%d' % (int(s[4:6]), int(s[6:8]))
+
+    daily_badge = _short_date(meta.get('date'))
+    # Weekly participant snapshot date is in the weekly filename (files_found)
+    ff = meta.get('files_found', {}) or {}
+    import re as _re
+    weekly_date = ''
+    for key in ('fut_participants', 'op_participants'):
+        m = _re.search(r'(\d{8})', str(ff.get(key, '')))
+        if m:
+            weekly_date = _short_date(m.group(1))
+            break
+    weekly_badge = (weekly_date + ' 週次') if weekly_date else '週次'
+
     h += '<div class="grid">\n'
-    cards = [
-        ('futures', '📈', '先物建玉増減', _preview_futures(s02), _detail_futures_js(s02)),
-        ('oi_timeseries', '📈', '建玉推移', _preview_oi_timeseries(oi_ts), _detail_oi_timeseries_js(oi_ts)),
-        ('opval', '💰', 'オプション取引代金', _preview_opval(s03), _detail_opval_js(s03)),
-        ('oichg', '📊', 'オプション建玉増減', _preview_oichg(s04), _detail_oichg_js(s04)),
-        ('important', '⚡', '重要建玉変化', _preview_important(s05), _detail_important_js(s05)),
-        ('dist', '🦋', '建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind)),
-        ('jnet', '🏛', '大口手口（J-NET）', _preview_jnet(s07), _detail_jnet_js(s07)),
-        ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data)),
-        ('gemini', '🤖', 'AI予想', _preview_gemini(data), _detail_gemini_js(data)),
-        ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09)),
-        ('strategy', '🎲', '戦略マップ', _preview_strategy(s11), _detail_strategy_js(s11, atm)),
+    # Cards organized into domain groups. Each tuple now carries a date badge
+    # (text, is_weekly) so users can see at a glance which data vintage a card
+    # reflects (daily 5/28 vs weekly 5/22).
+    DB = (daily_badge, False)
+    WB = (weekly_badge, True)
+    card_groups = [
+        ('先物', [
+            ('futures', '📈', '先物建玉増減', _preview_futures(s02), _detail_futures_js(s02), DB),
+            ('oi_timeseries', '📈', '建玉推移', _preview_oi_timeseries(oi_ts), _detail_oi_timeseries_js(oi_ts), DB),
+        ]),
+        ('オプション', [
+            ('opval', '💰', 'OP取引代金', _preview_opval(s03), _detail_opval_js(s03), DB),
+            ('oichg', '📊', 'OP建玉増減', _preview_oichg(s04), _detail_oichg_js(s04), DB),
+            ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
+            ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
+            ('strategy', '🎲', 'OP戦略マップ', _preview_strategy(s11), _detail_strategy_js(s11, atm), DB),
+        ]),
+        ('参加者・手口', [
+            ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
+            ('jnet', '🏛', '大口手口（J-NET）', _preview_jnet(s07), _detail_jnet_js(s07), DB),
+        ]),
+        ('総合', [
+            ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data), DB),
+            ('gemini', '🤖', 'AI予想', _preview_gemini(data), _detail_gemini_js(data), DB),
+        ]),
     ]
-    for card_id, icon, title, preview_html, detail_js in cards:
-        h += '<div class="card" data-card="%s">\n  <div class="card-hdr">\n    <span class="icon">%s</span>\n    <span class="title">%s</span>\n    <span class="arrow">▶</span>\n  </div>\n' % (card_id, icon, esc(title))
-        h += '  <div class="card-preview">%s</div>\n  <div class="card-detail"></div>\n</div>\n' % preview_html
+    # Flat list for the JS function registration below
+    cards = []
+    for _gtitle, _gcards in card_groups:
+        cards.extend([(c[0], c[1], c[2], c[3], c[4]) for c in _gcards])
+
+    for gtitle, gcards in card_groups:
+        h += '<div class="section-hdr"><span class="section-title">%s</span><span class="section-line"></span></div>\n' % esc(gtitle)
+        for card_id, icon, title, preview_html, detail_js, badge in gcards:
+            btext, is_weekly = badge
+            badge_cls = 'date-badge weekly' if is_weekly else 'date-badge'
+            badge_html = ('<span class="%s">%s</span>' % (badge_cls, esc(btext))) if btext else ''
+            h += '<div class="card" data-card="%s">\n  <div class="card-hdr">\n    <span class="icon">%s</span>\n    <span class="title">%s</span>\n    %s\n    <span class="arrow">▶</span>\n  </div>\n' % (card_id, icon, esc(title), badge_html)
+            h += '  <div class="card-preview">%s</div>\n  <div class="card-detail"></div>\n</div>\n' % preview_html
     h += '</div>\n'
 
     h += '<div class="footer">\n  <a href="pnl_simulator.html">P&Lシミュレーター</a>\n  <a href="weekly_trend.html">週次推移</a>\n  <a href="archive.html">アーカイブ一覧</a>\n  <span>Generated by JPX Analysis Pipeline</span>\n</div>\n'

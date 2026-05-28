@@ -107,14 +107,23 @@ def main():
     oi_ts_script = os.path.join(scripts_dir, 'extract_oi_timeseries.py')
     if os.path.exists(oi_ts_script):
         oi_ts_json = os.path.join(datadir, 'oi_timeseries.json')
-        result = subprocess.run(
-            [sys.executable, oi_ts_script,
-             '--data-dir', datadir,
-             '--out', oi_ts_json,
-             '--max-days', '20',
-             '--top-strikes', '6'],
-            capture_output=True, text=True
-        )
+        # Pull today's Nikkei close from data.json for the price line
+        nikkei_close = None
+        try:
+            with open(data_json, 'r', encoding='utf-8') as f:
+                _d = json.load(f)
+            nikkei_close = (_d.get('s01', {}) or {}).get('nikkei_close') \
+                or (_d.get('metadata', {}) or {}).get('atm')
+        except Exception:
+            pass
+        oi_cmd = [sys.executable, oi_ts_script,
+                  '--data-dir', datadir,
+                  '--out', oi_ts_json,
+                  '--max-days', '20',
+                  '--top-strikes', '6']
+        if nikkei_close:
+            oi_cmd += ['--nikkei', str(nikkei_close)]
+        result = subprocess.run(oi_cmd, capture_output=True, text=True)
         print(result.stdout)
         if result.returncode != 0:
             print('[WARN] extract_oi_timeseries.py failed (non-fatal):', file=sys.stderr)
