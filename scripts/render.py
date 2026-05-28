@@ -555,8 +555,8 @@ OI_CHART_JS = r"""
     }
   }
 
-  var FUTURES_COLORS = { n225_large: '#f59e0b', n225_mini: '#3b82f6', topix: '#ec4899' };
-  var FUTURES_LABELS = { n225_large: '225ラージ', n225_mini: '225mini', topix: 'TOPIX' };
+  var FUTURES_COLORS = { nk225_large: '#f59e0b', nk225_mini: '#3b82f6', topix: '#ec4899' };
+  var FUTURES_LABELS = { nk225_large: '225ラージ', nk225_mini: '225mini', topix: 'TOPIX' };
   var OP_PUT_COLORS = ['#f87171', '#fb923c'];
   var OP_CALL_COLORS = ['#4ade80', '#22d3ee'];
   // Distinct categorical hues — the P/C distinction is carried by the tab,
@@ -576,7 +576,7 @@ OI_CHART_JS = r"""
       return out;
     }
     if (tab === 'futures') {
-      var keys = ['n225_large', 'n225_mini', 'topix'];
+      var keys = ['nk225_large', 'nk225_mini', 'topix'];
       for (var i = 0; i < keys.length; i++) {
         var k = keys[i];
         var fm = (D.futures && D.futures[k]) || {};
