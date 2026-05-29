@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>P&L Simulator 2026/5/28（木）</title>
+<title>P&L Simulator 2026/5/29（金）</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 
@@ -126,21 +126,15 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </head>
 <body>
 <div class="topbar"><span class="logo">P&L Simulator</span><nav><a href="index.html">← ダッシュボード</a><a href="weekly_trend.html">週次推移</a><a href="archive.html">アーカイブ</a></nav></div>
-<div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/5/28（木） / ATM 64,500 / VI 26.95 / SQまで11日</div></div>
+<div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/5/29（金） / ATM 66,500 / VI None / SQまで10日</div></div>
 <div class="kpi-strip">
-  <div class="kpi"><div class="label">ATM</div><div class="value">64,500</div></div>
-  <div class="kpi"><div class="label">VI</div><div class="value">26.95</div></div>
+  <div class="kpi"><div class="label">ATM</div><div class="value">66,500</div></div>
+  <div class="kpi"><div class="label">VI</div><div class="value">None</div></div>
   <div class="kpi"><div class="label">SQ</div><div class="value">2026-06-12</div></div>
-  <div class="kpi"><div class="label">残り営業日</div><div class="value">11</div></div>
+  <div class="kpi"><div class="label">残り営業日</div><div class="value">10</div></div>
 </div>
 <div class="sim-section">
 <div style="margin:12px 0"><div style="color:var(--sub);font-size:11px;margin-bottom:6px">プリセット戦略</div>
-<span class="preset-btn" data-preset="0">Iron Condor</span>
-<span class="preset-btn" data-preset="1">Put Credit Spread</span>
-<span class="preset-btn" data-preset="2">Call Credit Spread</span>
-<span class="preset-btn" data-preset="3">Short Strangle + 先物ヘッジ</span>
-<span class="preset-btn" data-preset="4">P売り + mini先物ヘッジ</span>
-<span class="preset-btn" data-preset="5">ミニ週次θハーベスト</span>
 </div>
 <div style="margin:12px 0"><div style="display:flex;gap:8px;margin-bottom:8px">
   <button class="btn-outline btn" id="add-put">+ プット</button>
@@ -158,8 +152,8 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </div>
 <div class="footer"><a href="index.html">ダッシュボード</a> <a href="weekly_trend.html">週次推移</a> <a href="archive.html">アーカイブ</a></div>
 <script>
-var ATM=64500,VI=26.95,T=0.044,DAYS=11;
-var PRESETS=[{"name": "Iron Condor", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 648.5}, {"type": "put", "side": "long", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 227.1}, {"type": "call", "side": "short", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 687.3}, {"type": "call", "side": "long", "strike": 68500, "qty": 1, "multiplier": 1000, "premium": 276.5}]}, {"name": "Put Credit Spread", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 648.5}, {"type": "put", "side": "long", "strike": 60500, "qty": 1, "multiplier": 1000, "premium": 227.1}]}, {"name": "Call Credit Spread", "legs": [{"type": "call", "side": "short", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 687.3}, {"type": "call", "side": "long", "strike": 68500, "qty": 1, "multiplier": 1000, "premium": 276.5}]}, {"name": "Short Strangle + 先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 648.5}, {"type": "call", "side": "short", "strike": 66500, "qty": 1, "multiplier": 1000, "premium": 687.3}, {"type": "futures", "side": "short", "entry": 64500, "qty": 0, "multiplier": 100}]}, {"name": "P売り + mini先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 62500, "qty": 1, "multiplier": 1000, "premium": 648.5}, {"type": "futures", "side": "short", "entry": 63000, "qty": 3, "multiplier": 100}]}, {"name": "ミニ週次θハーベスト", "legs": [{"type": "put", "side": "short", "strike": 63000, "qty": 10, "multiplier": 100, "premium": 398.3}, {"type": "call", "side": "short", "strike": 66000, "qty": 10, "multiplier": 100, "premium": 417.2}]}];
+var ATM=66500,VI=0,T=0.04,DAYS=10;
+var PRESETS=[];
 
 var legs=[];var legId=0;
 function normCdf(x){if(x>=0){var t=1/(1+0.2316419*x)}else{var t=1/(1-0.2316419*x)}var d=0.3989422804014327;var p=((((1.330274429*t-1.821255978)*t+1.781477937)*t-0.356563782)*t+0.319381530)*t;if(x>=0)return 1-d*Math.exp(-0.5*x*x)*p;return d*Math.exp(-0.5*x*x)*p;}
