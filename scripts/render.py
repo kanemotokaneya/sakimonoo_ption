@@ -295,6 +295,7 @@ a{color:var(--accent);text-decoration:none}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 .topbar{position:sticky;top:0;z-index:100;background:rgba(6,6,15,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
 .topbar .logo{font-family:Outfit;font-weight:700;font-size:16px;color:var(--accent)}
+.atm-warn{margin:10px 20px;padding:10px 14px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);border-radius:8px;color:#fbbf24;font-size:12px;line-height:1.6}
 .topbar nav a{margin-left:16px;font-size:12px;color:var(--sub);transition:color .2s}
 .topbar nav a:hover{color:var(--accent)}
 .hero{text-align:center;padding:32px 16px 8px;position:relative;overflow:hidden}
@@ -1103,6 +1104,11 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
     h += '    <a href="index.html">ダッシュボード</a>\n    <a href="pnl_simulator.html">P&Lシミュレーター</a>\n    <a href="weekly_trend.html">週次推移</a>\n    <a href="archive.html">アーカイブ</a>\n  </nav>\n</div>\n'
 
     h += '<div class="hero">\n  <h1>%s</h1>\n  <div class="sub">%s / SQまで%d営業日</div>\n</div>\n' % (esc(meta.get('date_formatted', '')), esc(meta.get('sq_label', '')), meta.get('days_to_sq', 0))
+
+    # ATM sanity warning banner (set by extract.py's self-correction)
+    atm_warn = meta.get('atm_warning')
+    if atm_warn:
+        h += '<div class="atm-warn">⚠️ ATM要確認: %s。fetch_market.pyが先物ラージの清算値を取得しているか確認してください。</div>\n' % esc(atm_warn)
 
     h += '<div class="kpi-strip">\n'
     vi_cls = 'down' if vi and vi > 30 else ''

@@ -286,6 +286,130 @@ def detect_files(data_dir):
 # Section Extractors
 # ============================================================
 
+def compute_oi_implied_atm(wb_oi):
+    """Estimate spot/ATM from the option OI distribution alone (no settlement
+    price needed). Heuristic: below spot, OTM puts carry more OI; above spot,
+    OTM calls carry more OI. The strike where (put_oi - call_oi) crosses zero
+    is therefore a good spot proxy. Returns (atm_estimate, near_expiry) or
+    (None, None) if it cannot be determined.
+    """
+    try:
+        ws = wb_oi['別紙1']
+    except Exception:
+        return None, None
+    pat_put = re.compile(r'NIKKEI\s*225\s*P\s*(\d{4})-(\d+)')
+    pat_call = re.compile(r'NIKKEI\s*225\s*C\s*(\d{4})-(\d+)')
+    by_expiry = defaultdict(lambda: defaultdict(lambda: {'put_oi': 0, 'call_oi': 0}))
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=False):
+        a_val = str(row[0].value).strip() if row[0].value else ''
+        g_val = str(row[6].value).strip() if len(row) > 6 and row[6].value else ''
+        m = pat_put.match(a_val)
+        if m and int(m.group(2)) % 500 == 0:
+            by_expiry[m.group(1)][int(m.group(2))]['put_oi'] += safe_num(row[2].value if len(row) > 2 else None)
+        m = pat_call.match(g_val)
+        if m and int(m.group(2)) % 500 == 0:
+            by_expiry[m.group(1)][int(m.group(2))]['call_oi'] += safe_num(row[8].value if len(row) > 8 else None)
+    if not by_expiry:
+        return None, None
+    # Near month = the expiry with the most total OI (robust vs fading weeklies)
+    best_e, best_tot = None, -1
+    for e, strikes in by_expiry.items():
+        tot = sum(d['put_oi'] + d['call_oi'] for d in strikes.values())
+        if tot > best_tot:
+            best_tot, best_e = tot, e
+    strikes = by_expiry[best_e]
+    sk = sorted(strikes.keys())
+    if len(sk) < 3:
+        return None, best_e
+    # ATM proxy: the strike where BOTH puts and calls are most actively held.
+    # Deep-OTM strikes carry heavy OI on one side only (tail puts / lotto calls),
+    # so min(put_oi, call_oi) peaks near the money where both sides are liquid.
+    # This is far more robust than a put/call crossover, which deep-OTM put
+    # hedges can trigger prematurely.
+    best_k, best_score = None, -1.0
+    for k in sk:
+        p = strikes[k]['put_oi']
+        c = strikes[k]['call_oi']
+        score = min(p, c)
+        if score > best_score:
+            best_score, best_k = score, k
+    if best_k is None or best_score <= 0:
+        return None, best_e
+    # Refine: OI-weighted centroid over the contiguous both-active band around
+    # the peak (strikes whose min(put,call) is at least 25% of the peak).
+    thresh = best_score * 0.25
+    num, den = 0.0, 0.0
+    for k in sk:
+        s = min(strikes[k]['put_oi'], strikes[k]['call_oi'])
+        if s >= thresh:
+            num += k * s
+            den += s
+    est = (num / den) if den else best_k
+    return round500(est), best_e
+
+
+def compute_oi_implied_atm(wb_oi):
+    """Informational only: the OI 'center of mass' of the near-month option
+    chain. NOTE: when price rallies/falls sharply away from the existing OI
+    base, this center LAGS spot (OI accumulates around old levels), so it is
+    NOT a reliable spot estimate — it is used only as a loose gross-error guard.
+    Returns (center_strike, near_expiry) or (None, None).
+    """
+    try:
+        ws = wb_oi['別紙1']
+    except Exception:
+        return None, None
+    pat_put = re.compile(r'NIKKEI\s*225\s*P\s*(\d{4})-(\d+)')
+    pat_call = re.compile(r'NIKKEI\s*225\s*C\s*(\d{4})-(\d+)')
+    by_expiry = defaultdict(lambda: defaultdict(lambda: {'put_oi': 0, 'call_oi': 0}))
+    for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=False):
+        a_val = str(row[0].value).strip() if row[0].value else ''
+        g_val = str(row[6].value).strip() if len(row) > 6 and row[6].value else ''
+        m = pat_put.match(a_val)
+        if m and int(m.group(2)) % 500 == 0:
+            by_expiry[m.group(1)][int(m.group(2))]['put_oi'] += safe_num(row[2].value if len(row) > 2 else None)
+        m = pat_call.match(g_val)
+        if m and int(m.group(2)) % 500 == 0:
+            by_expiry[m.group(1)][int(m.group(2))]['call_oi'] += safe_num(row[8].value if len(row) > 8 else None)
+    if not by_expiry:
+        return None, None
+    best_e = max(by_expiry, key=lambda e: sum(d['put_oi'] + d['call_oi'] for d in by_expiry[e].values()))
+    strikes = by_expiry[best_e]
+    num = den = 0.0
+    for k, d in strikes.items():
+        w = d['put_oi'] + d['call_oi']
+        num += k * w
+        den += w
+    if den <= 0:
+        return None, best_e
+    return round500(num / den), best_e
+
+
+def atm_proxy_from_weekly(wb_op):
+    """Best ATM proxy when the futures settlement is missing: the median strike
+    of the weekly participant option file. JPX publishes participant OI for a
+    band of strikes centred on the current ATM, so the median strike tracks
+    spot closely (typically within a few hundred yen). Returns int or None.
+    """
+    if wb_op is None:
+        return None
+    try:
+        ws = wb_op[wb_op.sheetnames[0]]
+    except Exception:
+        return None
+    strikes = []
+    for row in ws.iter_rows(values_only=True):
+        for v in row:
+            if isinstance(v, (int, float)) and 10000 < v < 100000:
+                # quarter-strikes (…125/250/375…) are the participant grid
+                strikes.append(float(v))
+    if len(strikes) < 3:
+        return None
+    strikes.sort()
+    mid = strikes[len(strikes) // 2]
+    return round500(mid)
+
+
 def extract_atm(wb_market):
     """Extract ATM (futures settlement price) from market_data."""
     ws = get_sheet(wb_market, '指数先物', 'market_data_Futures', 'summary_data_Futures')
@@ -2108,9 +2232,12 @@ def run(args):
 
     # Extract ATM + OHLC
     atm = None
+    atm_source = None
     ohlc = {}
     if wb_market:
         atm = extract_atm(wb_market)
+        if atm:
+            atm_source = 'settlement'
         print('[extract.py] ATM =', atm)
         ohlc = extract_ohlc_pivot(wb_market)
         if ohlc:
@@ -2133,8 +2260,52 @@ def run(args):
     # ATM fallback: if settlement price not in new-format Excel, use nikkei close
     if atm is None and nikkei:
         atm = round500(nikkei)
+        atm_source = 'nikkei_close'
         output['metadata']['atm'] = atm
         print('[extract.py] ATM fallback to Nikkei close: %s -> %s' % (nikkei, atm))
+
+    # --- ATM self-correction --------------------------------------------------
+    # The new derivatives_market_data format omits the futures settlement, so ATM
+    # comes from an external close (fetch_market.py / --nikkei) that can be stale
+    # or point at the wrong contract (spot index vs 先物ラージ). Two references:
+    #   * weekly participant strike-median: JPX centres the participant grid on
+    #     the current ATM, so its median strike tracks spot within a few hundred
+    #     yen — the reliable proxy / fallback.
+    #   * OI center-of-mass: informational only; lags spot when price runs away
+    #     from the existing OI base, so used only as a loose gross-error guard.
+    ATM_WARN_THRESHOLD = 2000   # vs weekly proxy
+    atm_oi_center, _near_e = (compute_oi_implied_atm(wb_oi) if wb_oi else (None, None))
+    atm_weekly_proxy = atm_proxy_from_weekly(wb_op)
+    if atm_weekly_proxy:
+        print('[extract.py] weekly-strike ATM proxy = %s' % atm_weekly_proxy)
+    if atm_oi_center:
+        print('[extract.py] OI center-of-mass (informational) = %s' % atm_oi_center)
+
+    atm_warning = None
+    if atm is None:
+        # No settlement and no supplied close: use the reliable weekly proxy,
+        # else fall back to the (looser) OI center of mass.
+        if atm_weekly_proxy:
+            atm = atm_weekly_proxy
+            atm_source = 'weekly_proxy'
+            print('[extract.py] ATM set from weekly-strike proxy: %s' % atm)
+        elif atm_oi_center:
+            atm = atm_oi_center
+            atm_source = 'oi_center'
+            print('[extract.py] ATM set from OI center-of-mass (loose): %s' % atm)
+        output['metadata']['atm'] = atm
+    elif atm_weekly_proxy:
+        diff = abs(atm - atm_weekly_proxy)
+        if diff >= ATM_WARN_THRESHOLD:
+            atm_warning = ('供給ATM %s が週次ストライク中心 %s と %s円乖離' % (atm, atm_weekly_proxy, diff))
+            print('[extract.py] *** ATM WARNING: supplied=%s vs weekly-proxy=%s (diff=%s) — '
+                  'fetch_market.py が先物ラージの清算値ではなく現物指数を拾っている可能性'
+                  % (atm, atm_weekly_proxy, diff))
+
+    output['metadata']['atm_source'] = atm_source
+    output['metadata']['atm_weekly_proxy'] = atm_weekly_proxy
+    output['metadata']['atm_oi_center'] = atm_oi_center
+    output['metadata']['atm_warning'] = atm_warning
 
     output['metadata']['nikkei_close'] = nikkei
     output['metadata']['vi'] = vi
