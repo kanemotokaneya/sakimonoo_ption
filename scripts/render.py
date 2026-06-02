@@ -1177,7 +1177,6 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
             ('op_oi_timeseries', '📉', 'OP建玉推移', _preview_op_oi_timeseries(oi_ts), _detail_op_oi_timeseries_js(oi_ts), DB),
             ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
-            ('strategy', '🎲', 'OP戦略マップ', _preview_strategy(s11), _detail_strategy_js(s11, atm), DB),
         ]),
         ('参加者・手口', [
             ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
