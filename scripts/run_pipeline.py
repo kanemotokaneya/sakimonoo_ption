@@ -79,108 +79,45 @@ def main():
         print(result.stderr, file=sys.stderr)
         sys.exit(1)
 
-    # Step 2.1: Weekly trend (multi-week WoW for futures OI by participant)
-    # Reads all *_indexfut_oi_by_tp.xlsx files in datadir, writes weekly_trend.json
-    # for the standalone weekly_trend.html page. Non-fatal: if it fails or no
-    # weekly archive exists yet, the page just shows "データ蓄積中".
-    print('\n=== Step 2.1: Building weekly trend ===')
-    weekly_script = os.path.join(scripts_dir, 'extract_weekly_trend.py')
-    if os.path.exists(weekly_script):
-        weekly_json = os.path.join(datadir, 'weekly_trend.json')
-        result = subprocess.run(
-            [sys.executable, weekly_script,
-             '--data-dir', datadir,
-             '--out', weekly_json],
-            capture_output=True, text=True
-        )
+    # Step 2.5: Generate ⑧ assessment (if API key available)
+    gemini_key = os.environ.get('GEMINI_API_KEY', '')
+    if gemini_key:
+        print('\n=== Step 2.5: Generating assessment (Gemini) ===')
+        assess_cmd = [sys.executable, os.path.join(scripts_dir, 'generate_assessment.py'),
+                      '--data', data_json, '--key', gemini_key]
+        result = subprocess.run(assess_cmd, capture_output=True, text=True)
         print(result.stdout)
-        if result.returncode != 0:
-            print('[WARN] extract_weekly_trend.py failed (non-fatal):', file=sys.stderr)
-            print(result.stderr, file=sys.stderr)
+        if result.stderr:
+            print(result.stderr)
     else:
-        print('[SKIP] scripts/extract_weekly_trend.py not found')
+        print('\n[SKIP] No GEMINI_API_KEY — ⑧ assessment will use placeholder')
 
-    # Step 2.2: OI timeseries (multi-day OI for futures + options aggregate + key strikes)
-    # Reads all *open_interest.xlsx files in datadir, writes oi_timeseries.json
-    # for the 建玉推移 card in dashboard. Non-fatal.
-    print('\n=== Step 2.2: Building OI timeseries ===')
-    oi_ts_script = os.path.join(scripts_dir, 'extract_oi_timeseries.py')
-    if os.path.exists(oi_ts_script):
-        oi_ts_json = os.path.join(datadir, 'oi_timeseries.json')
-        # Pull today's Nikkei close from data.json for the price line
-        nikkei_close = None
-        try:
-            with open(data_json, 'r', encoding='utf-8') as f:
-                _d = json.load(f)
-            nikkei_close = (_d.get('s01', {}) or {}).get('nikkei_close') \
-                or (_d.get('metadata', {}) or {}).get('atm')
-        except Exception:
-            pass
-        oi_cmd = [sys.executable, oi_ts_script,
-                  '--data-dir', datadir,
-                  '--out', oi_ts_json,
-                  '--max-days', '20',
-                  '--top-strikes', '6']
-        if nikkei_close:
-            oi_cmd += ['--nikkei', str(nikkei_close)]
-        result = subprocess.run(oi_cmd, capture_output=True, text=True)
-        print(result.stdout)
-        if result.returncode != 0:
-            print('[WARN] extract_oi_timeseries.py failed (non-fatal):', file=sys.stderr)
-            print(result.stderr, file=sys.stderr)
-    else:
-        print('[SKIP] scripts/extract_oi_timeseries.py not found')
+    # Step 2.6: Build time-series cards (建玉推移 / 週次手口推移)
+    # These regenerate oi_timeseries.json and weekly_trend.json which render.py
+    # embeds into the dashboard. Without this step the 建玉推移 and 週次手口推移
+    # cards stay stale even when new Excel files are pushed. Non-fatal: a missing
+    # weekly file (non-weekly days) should not break the whole pipeline.
+    print('\n=== Step 2.6: Building time-series cards ===')
+    oi_ts_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_oi_timeseries.py'),
+                 '--data-dir', datadir,
+                 '--out', os.path.join(datadir, 'oi_timeseries.json'),
+                 '--top-strikes', '6']
+    if nikkei:
+        oi_ts_cmd += ['--nikkei', str(nikkei)]
+    result = subprocess.run(oi_ts_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_oi_timeseries.py failed (建玉推移 card may be stale)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
 
-    # Step 2.5: Assessment — MANUAL OVERRIDE → Gemini fallback
-    # If data/manual_assessment_<YYYYMMDD>.md exists for today's analysis date,
-    # use its content verbatim as the ⑧ assessment (skip Gemini). The date
-    # suffix ensures a stale manual file from a previous day is never reused.
-    # If no manual file, fall back to Gemini auto-generation (if key present).
-    print('\n=== Step 2.5: Assessment (manual override -> Gemini fallback) ===')
-    analysis_date = ''
-    try:
-        with open(data_json, 'r', encoding='utf-8') as f:
-            _d = json.load(f)
-        analysis_date = _d.get('metadata', {}).get('date', '')
-    except Exception as e:
-        print('[WARN] could not read analysis date from data.json: %s' % e)
-
-    used_manual = False
-    if analysis_date:
-        manual_path = os.path.join(datadir, 'manual_assessment_%s.md' % analysis_date)
-        if os.path.exists(manual_path):
-            try:
-                with open(manual_path, 'r', encoding='utf-8') as f:
-                    manual_text = f.read().strip()
-                if manual_text:
-                    with open(data_json, 'r', encoding='utf-8') as f:
-                        _d = json.load(f)
-                    _d['s08_assessment'] = manual_text
-                    _d['s08_source'] = 'manual'
-                    with open(data_json, 'w', encoding='utf-8') as f:
-                        json.dump(_d, f, ensure_ascii=False, indent=2)
-                    used_manual = True
-                    print('[pipeline] OK Using MANUAL assessment: %s (%d chars)'
-                          % (manual_path, len(manual_text)))
-                else:
-                    print('[pipeline] manual_assessment file is empty — falling back to Gemini')
-            except Exception as e:
-                print('[WARN] failed to apply manual assessment: %s' % e)
-        else:
-            print('[pipeline] No manual_assessment_%s.md — falling back to Gemini' % analysis_date)
-
-    if not used_manual:
-        gemini_key = os.environ.get('GEMINI_API_KEY', '')
-        if gemini_key:
-            print('=== Generating assessment (Gemini fallback) ===')
-            assess_cmd = [sys.executable, os.path.join(scripts_dir, 'generate_assessment.py'),
-                          '--data', data_json, '--key', gemini_key]
-            result = subprocess.run(assess_cmd, capture_output=True, text=True)
-            print(result.stdout)
-            if result.stderr:
-                print(result.stderr)
-        else:
-            print('[SKIP] No manual file and no GEMINI_API_KEY — placeholder will be used')
+    wt_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_weekly_trend.py'),
+              '--data-dir', datadir,
+              '--out', os.path.join(datadir, 'weekly_trend.json')]
+    result = subprocess.run(wt_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_weekly_trend.py failed (週次手口推移 card may be stale)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
 
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')
