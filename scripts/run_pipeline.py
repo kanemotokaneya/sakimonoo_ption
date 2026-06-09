@@ -87,18 +87,55 @@ def main():
         print(result.stderr, file=sys.stderr)
         sys.exit(1)
 
-    # Step 2.5: Generate ⑧ assessment (if API key available)
-    gemini_key = os.environ.get('GEMINI_API_KEY', '')
-    if gemini_key:
-        print('\n=== Step 2.5: Generating assessment (Gemini) ===')
-        assess_cmd = [sys.executable, os.path.join(scripts_dir, 'generate_assessment.py'),
-                      '--data', data_json, '--key', gemini_key]
-        result = subprocess.run(assess_cmd, capture_output=True, text=True)
-        print(result.stdout)
-        if result.stderr:
-            print(result.stderr)
-    else:
-        print('\n[SKIP] No GEMINI_API_KEY — ⑧ assessment will use placeholder')
+    # Step 2.5: ⑧ assessment — manual override first, else Gemini
+    # Priority: data/manual_assessment_YYYYMMDD.md (dated, must match the data
+    # date) > Gemini (if GEMINI_API_KEY) > placeholder. The dated manual file
+    # lets a human-written (Claude) analysis appear with the 👤手動分析 badge,
+    # and the date match prevents a stale older file from being reused.
+    print('\n=== Step 2.5: ⑧ assessment ===')
+    data_date = None
+    try:
+        with open(data_json, encoding='utf-8') as f:
+            _d = json.load(f)
+        data_date = (_d.get('metadata') or {}).get('date')
+    except Exception as e:
+        print('[WARN] could not read data.json for date: %s' % e, file=sys.stderr)
+
+    manual_used = False
+    if data_date:
+        manual_path = os.path.join(datadir, 'manual_assessment_%s.md' % data_date)
+        if os.path.exists(manual_path):
+            try:
+                with open(manual_path, encoding='utf-8') as f:
+                    manual_text = f.read().strip()
+                if manual_text:
+                    with open(data_json, encoding='utf-8') as f:
+                        dj = json.load(f)
+                    dj['s08_assessment'] = manual_text
+                    dj['s08_source'] = 'manual'
+                    with open(data_json, 'w', encoding='utf-8') as f:
+                        json.dump(dj, f, ensure_ascii=False, indent=2)
+                    manual_used = True
+                    print('[assessment] manual override: %s (%d chars) -> manual'
+                          % (os.path.basename(manual_path), len(manual_text)))
+            except Exception as e:
+                print('[WARN] failed to inject manual assessment: %s' % e, file=sys.stderr)
+        else:
+            print('[assessment] no manual file for %s (looked for %s)'
+                  % (data_date, os.path.basename(manual_path)))
+
+    if not manual_used:
+        gemini_key = os.environ.get('GEMINI_API_KEY', '')
+        if gemini_key:
+            print('[assessment] falling back to Gemini')
+            assess_cmd = [sys.executable, os.path.join(scripts_dir, 'generate_assessment.py'),
+                          '--data', data_json, '--key', gemini_key]
+            result = subprocess.run(assess_cmd, capture_output=True, text=True)
+            print(result.stdout)
+            if result.stderr:
+                print(result.stderr)
+        else:
+            print('[SKIP] No manual file and no GEMINI_API_KEY -- assessment uses placeholder')
 
     # Step 2.6: Build time-series cards (建玉推移 / 週次手口推移)
     # These regenerate oi_timeseries.json and weekly_trend.json which render.py
