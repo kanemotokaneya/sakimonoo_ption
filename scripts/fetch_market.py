@@ -207,19 +207,95 @@ def _parse_ohlc_csv(lines):
     return history
 
 
+def fetch_yahoo_futures():
+    """Fetch front-month Nikkei 225 futures close (CME NIY=F, yen-denominated)
+    from Yahoo Finance. Used as a proxy for the OSE Nikkei 225 large futures to
+    compute a real basis (futures - spot). Tracks the index closely; contract
+    and session timing differ slightly, so treat the basis as indicative."""
+    try:
+        url = 'https://query1.finance.yahoo.com/v8/finance/chart/NIY%3DF?interval=1d&range=5d'
+        req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        resp = urlopen(req, timeout=12)
+        data = json.loads(resp.read().decode('utf-8'))
+        result = data.get('chart', {}).get('result', [])
+        if result:
+            meta = result[0].get('meta', {})
+            price = meta.get('regularMarketPrice')
+            if price and 20000 < price < 80000:
+                return float(price)
+            closes = result[0].get('indicators', {}).get('quote', [{}])[0].get('close', [])
+            for c in reversed(closes):
+                if c and 20000 < c < 80000:
+                    return float(c)
+    except Exception as e:
+        print('[fetch] yahoo futures (NIY=F) failed: %s' % e, file=sys.stderr)
+    return None
+
+
+def fetch_stooq_futures():
+    """Best-effort fallback: try stooq for a Nikkei 225 futures symbol."""
+    for sym in ['nk225.f', 'jp225', 'nkz']:
+        try:
+            url = 'https://stooq.com/q/l/?s=%s&f=sd2t2ohlcv&h&e=csv' % sym
+            req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            resp = urlopen(req, timeout=10)
+            text = resp.read().decode('utf-8').strip()
+            lines = text.split('\n')
+            if len(lines) >= 2:
+                parts = lines[1].split(',')
+                close = float(parts[6])
+                if 20000 < close < 80000:
+                    return close
+        except Exception:
+            continue
+    return None
+
+
+def fetch_nikkei_futures():
+    """Return (futures_close, source) for the front-month Nikkei 225 future."""
+    f = fetch_yahoo_futures()
+    if f:
+        return f, 'yahoo:NIY=F'
+    f = fetch_stooq_futures()
+    if f:
+        return f, 'stooq'
+    return None, None
+
+
 def run(args):
-    nikkei = None
-    vi = None
     source = 'none'
 
-    # Nikkei close
-    nikkei = fetch_stooq_nikkei()
-    if nikkei:
+    # Spot Nikkei 225 cash index
+    spot = fetch_stooq_nikkei()
+    if spot:
         source = 'stooq'
     else:
-        nikkei = fetch_yahoo_nikkei()
-        if nikkei:
+        spot = fetch_yahoo_nikkei()
+        if spot:
             source = 'yahoo'
+
+    # Front-month Nikkei 225 futures (for ATM + real basis)
+    futures, fut_source = fetch_nikkei_futures()
+    if futures:
+        print('[fetch] futures close from %s: %.0f' % (fut_source, futures), file=sys.stderr)
+    else:
+        print('[fetch] futures close unavailable — basis will be omitted, ATM falls back to spot', file=sys.stderr)
+
+    # Real basis = futures - spot (only when both are available; never faked)
+    basis = None
+    basis_signal = None
+    if futures and spot:
+        basis = round(futures - spot)
+        if basis > 0:
+            basis_signal = 'コンタンゴ（先物プレミアム）'
+        elif basis < 0:
+            basis_signal = 'バックワーデーション（先物ディスカウント）'
+        else:
+            basis_signal = 'フラット'
+        print('[fetch] basis = futures(%.0f) - spot(%.0f) = %+d (%s)' % (futures, spot, basis, basis_signal), file=sys.stderr)
+
+    # ATM basis prefers the futures close, falls back to spot
+    nikkei_for_atm = futures if futures else spot
 
     # VI (try multiple sources)
     vi = fetch_stooq_vi()
@@ -240,18 +316,23 @@ def run(args):
     ohlc_history = fetch_stooq_ohlc_history(25)
 
     result = {
-        'nikkei_close': nikkei,
+        'nikkei_close': nikkei_for_atm,   # value used downstream for ATM (futures preferred)
+        'nikkei_spot': spot,              # cash index close
+        'futures_close': futures,         # front-month futures close
+        'futures_source': fut_source,
+        'basis': basis,                   # real basis = futures - spot (or None)
+        'basis_signal': basis_signal,
         'vi': vi,
         'source': source,
         'timestamp': datetime.now().isoformat(),
         'ohlc_history': ohlc_history,
     }
 
-    print(json.dumps({k: v for k, v in result.items() if k != 'ohlc_history'}))
+    print(json.dumps({k: v for k, v in result.items() if k != 'ohlc_history'}, ensure_ascii=False))
 
     if args.out:
         with open(args.out, 'w') as f:
-            json.dump(result, f)
+            json.dump(result, f, ensure_ascii=False)
         print('[fetch] Written to %s' % args.out, file=sys.stderr)
 
     return result

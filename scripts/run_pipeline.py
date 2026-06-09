@@ -34,6 +34,8 @@ def main():
 
     nikkei = args.nikkei
     vi = args.vi
+    basis = None
+    spot = None
 
     # Step 1: Fetch market data if not provided
     if nikkei is None or vi is None:
@@ -54,6 +56,8 @@ def main():
                 nikkei = market['nikkei_close']
             if vi is None and market.get('vi'):
                 vi = market['vi']
+            basis = market.get('basis')
+            spot = market.get('nikkei_spot')
 
         if nikkei is None:
             print('[WARN] Nikkei close not available. Using ATM from futures as fallback.', file=sys.stderr)
@@ -71,6 +75,10 @@ def main():
         extract_cmd += ['--nikkei', str(nikkei)]
     if vi:
         extract_cmd += ['--vi', str(vi)]
+    if basis is not None:
+        extract_cmd += ['--basis', str(basis)]
+    if spot is not None:
+        extract_cmd += ['--spot', str(spot)]
 
     result = subprocess.run(extract_cmd, capture_output=True, text=True)
     print(result.stdout)

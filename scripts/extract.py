@@ -2132,17 +2132,27 @@ def compute_indicators(data):
         if atm and max_pain_strike:
             indicators['max_pain_diff'] = max_pain_strike - atm
 
-    # --- Futures Basis ---
-    nikkei = s01.get('nikkei_close')
-    atm = meta.get('atm')
-    if nikkei and atm:
-        basis = atm - nikkei
-        indicators['basis'] = round(basis)
-        indicators['basis_pct'] = round(basis / nikkei * 100, 2)
+    # --- Futures Basis (real: futures - spot) ---
+    # Only set a basis when a genuine futures-minus-spot value is supplied via
+    # --basis (computed by fetch_market.py from the futures and spot closes).
+    # The previous `atm - nikkei` formula was just a round-to-500 artifact when
+    # the settlement was missing, so it is no longer used. No real basis => no
+    # signal (render hides it) rather than a misleading contango/backwardation.
+    if args.basis is not None:
+        basis = round(args.basis)
+        indicators['basis'] = basis
+        spot_ref = args.spot if args.spot else meta.get('atm')
+        if spot_ref:
+            indicators['basis_pct'] = round(basis / spot_ref * 100, 2)
         if basis > 0:
             indicators['basis_signal'] = 'コンタンゴ（先物プレミアム）'
-        else:
+        elif basis < 0:
             indicators['basis_signal'] = 'バックワーデーション（先物ディスカウント）'
+        else:
+            indicators['basis_signal'] = 'フラット'
+    else:
+        indicators['basis'] = None
+        indicators['basis_signal'] = None
 
     # --- Wall Changes Summary ---
     if dist:
@@ -2548,8 +2558,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='JPX Market Analysis - Data Extractor')
     parser.add_argument('--dir', default='.', help='Directory containing JPX Excel files')
     parser.add_argument('--out', default='data.json', help='Output JSON path')
-    parser.add_argument('--nikkei', type=float, default=None, help='Nikkei 225 cash close')
+    parser.add_argument('--nikkei', type=float, default=None, help='Nikkei 225 close used for ATM (futures preferred)')
     parser.add_argument('--vi', type=float, default=None, help='Nikkei VI close')
+    parser.add_argument('--basis', type=float, default=None, help='Real futures basis (futures - spot) from fetch_market.py')
+    parser.add_argument('--spot', type=float, default=None, help='Spot index close (for basis %% calc)')
     args = parser.parse_args()
 
     run(args)
