@@ -2283,7 +2283,10 @@ def run(args):
     #     yen — the reliable proxy / fallback.
     #   * OI center-of-mass: informational only; lags spot when price runs away
     #     from the existing OI base, so used only as a loose gross-error guard.
-    ATM_WARN_THRESHOLD = 2000   # vs weekly proxy
+    # vs weekly proxy. Wide enough to ignore normal multi-day moves, because the
+    # weekly proxy is published only weekly and lags fast price moves by days.
+    # Only a gross discrepancy (a genuinely wrong feed) should trip it.
+    ATM_WARN_THRESHOLD = 4000
     atm_oi_center, _near_e = (compute_oi_implied_atm(wb_oi) if wb_oi else (None, None))
     atm_weekly_proxy = atm_proxy_from_weekly(wb_op)
     if atm_weekly_proxy:
@@ -2306,10 +2309,18 @@ def run(args):
         output['metadata']['atm'] = atm
     elif atm_weekly_proxy:
         diff = abs(atm - atm_weekly_proxy)
-        if diff >= ATM_WARN_THRESHOLD:
-            atm_warning = ('供給ATM %s が週次ストライク中心 %s と %s円乖離' % (atm, atm_weekly_proxy, diff))
+        # Suppress the warning when a real futures basis is present: that means
+        # the ATM came from the actual futures close (fetch_market fetched the
+        # future and computed futures-spot), so it is trustworthy and any gap to
+        # the weekly proxy is just the proxy lagging a fast move.
+        has_real_futures = (getattr(args, 'basis', None) is not None)
+        if diff >= ATM_WARN_THRESHOLD and not has_real_futures:
+            atm_warning = ('供給ATM %s が週次ストライク中心 %s と %s円乖離。'
+                           '週次は数日前のため急変動時はズレますが、念のため終値が'
+                           '極端に誤っていないか確認してください。'
+                           % (atm, atm_weekly_proxy, diff))
             print('[extract.py] *** ATM WARNING: supplied=%s vs weekly-proxy=%s (diff=%s) — '
-                  'fetch_market.py が先物ラージの清算値ではなく現物指数を拾っている可能性'
+                  'weekly proxy lags fast moves; verify the close is not grossly wrong'
                   % (atm, atm_weekly_proxy, diff))
 
     output['metadata']['atm_source'] = atm_source
