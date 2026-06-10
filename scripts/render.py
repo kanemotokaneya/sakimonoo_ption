@@ -2078,11 +2078,23 @@ def update_archive(archive_path, data):
         pass
     weekday = WEEKDAYS[dt.weekday()] if dt else ''
     date_disp = '%s.%s.%s' % (date_str[:4], date_str[4:6], date_str[6:8]) if len(date_str) == 8 else date_str
-    major_month = meta.get('major_month', '')
-    if len(major_month) >= 6:
-        section_id = 'archive-list-%s' % major_month[4:6]
-    else:
-        section_id = 'archive-list-06'
+    major_month = meta.get('major_month', '')   # e.g. 202606
+    sq_date_raw = meta.get('sq_date', '')        # e.g. 2026-06-12
+    try:
+        sq_mnum = int(sq_date_raw[5:7]) if len(sq_date_raw) == 10 else int(major_month[4:6])
+    except Exception:
+        sq_mnum = 0
+    badge_short = ('%d月限SQ' % sq_mnum) if sq_mnum else ((meta.get('sq_label', '') or 'SQ').split('（')[0])
+    section_id = 'archive-list-%s' % (major_month or 'unknown')
+    sq_disp = ''
+    if len(sq_date_raw) == 10:
+        try:
+            from datetime import datetime as _sqdt
+            _d = _sqdt.strptime(sq_date_raw, '%Y-%m-%d')
+            sq_disp = 'SQ日: %s/%s/%s（%s）' % (sq_date_raw[:4], sq_date_raw[5:7], sq_date_raw[8:10], WEEKDAYS[_d.weekday()])
+        except Exception:
+            sq_disp = 'SQ日: %s' % sq_date_raw
+
     vi_class = 'etag-vi high' if vi and vi > 30 else 'etag-vi'
     entry = '    <a href="JPX_portal_%s.html" class="entry">\n' % date_str
     entry += '      <span class="entry-date">%s</span>\n      <span class="entry-weekday">%s</span>\n' % (date_disp, weekday)
@@ -2096,20 +2108,39 @@ def update_archive(archive_path, data):
         print('[render.py] archive already contains %s — skipping' % date_str)
         return False
     import re
-    pattern = r'(<div[^>]*id=["\']%s["\'][^>]*>)' % re.escape(section_id)
-    match = re.search(pattern, html)
-    if match:
-        insert_pos = match.end()
-        html = html[:insert_pos] + '\n' + entry + html[insert_pos:]
-        print('[render.py] Inserted into %s' % section_id)
-    else:
-        alt_pat = r'(<div[^>]*id=["\']archive-list-\d+["\'][^>]*>)'
-        match = re.search(alt_pat, html)
-        if match:
-            html = html[:match.end()] + '\n' + entry + html[match.end():]
-            print('[render.py] Inserted into first available archive-list')
+    # Does a section for this SQ cycle already exist? Detect by the badge label
+    # (robust to the list-div id, which differs across older sections).
+    badge_pos = html.find('>%s<' % badge_short) if badge_short else -1
+    if badge_pos != -1:
+        m = re.search(r'id=["\'](archive-list-[\w-]+)["\'][^>]*>', html[badge_pos:])
+        if m:
+            insert_pos = badge_pos + m.end()
+            html = html[:insert_pos] + '\n' + entry + html[insert_pos:]
+            print('[render.py] Inserted into existing %s section' % badge_short)
         else:
-            print('[render.py] WARNING: No archive-list section found')
+            print('[render.py] WARNING: %s badge found but no archive-list div' % badge_short)
+            return False
+    else:
+        # New SQ cycle: auto-create a section at the top, demote old "current".
+        html = html.replace('class="sq-badge current"', 'class="sq-badge"')
+        sep = '=' * 8
+        new_section = (
+            '\n<!-- ' + sep + ' ' + badge_short + ' サイクル ' + sep + ' -->\n'
+            + '<div class="sq-section">\n'
+            + '<div class="sq-header">\n'
+            + '<span class="sq-badge current">' + badge_short + '</span>\n'
+            + '<span class="sq-meta">' + sq_disp + '</span>\n'
+            + '<span class="sq-range">期間中</span>\n'
+            + '</div>\n\n'
+            + '<div id="' + section_id + '">\n' + entry + '</div>\n'
+            + '</div>\n'
+        )
+        anchor = re.search(r'<div class="sq-section">', html)
+        if anchor:
+            html = html[:anchor.start()] + new_section + '\n' + html[anchor.start():]
+            print('[render.py] Created new SQ section: %s (%s)' % (badge_short, section_id))
+        else:
+            print('[render.py] WARNING: no sq-section anchor to create new section')
             return False
     with open(archive_path, 'w', encoding='utf-8') as f:
         f.write(html)
