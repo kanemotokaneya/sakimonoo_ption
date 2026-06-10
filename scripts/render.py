@@ -1998,6 +1998,45 @@ document.addEventListener('click',function(e){var el=e.target;if(el.classList.co
 document.getElementById('legs-container').addEventListener('click',function(e){if(e.target.classList.contains('leg-del')){var row=e.target.closest('.leg-row');var lid=row.getAttribute('data-lid');legs=legs.filter(function(l){return l.id!==lid;});renderLegs();}});
 """
 
+def _archive_highlights(data):
+    """Short 'notable levels' line for an archive entry so the day is reviewable
+    at a glance: ATM/MaxPain + the largest OI wall changes + the heaviest J-NET
+    strike (with the top participant). Returns an HTML span (inline-styled, so it
+    needs no extra CSS in archive.html)."""
+    ind = data.get('indicators', {})
+    meta = data.get('metadata', {})
+    import re
+    parts = []
+    walls = list(ind.get('walls_reinforced', []) or []) + list(ind.get('walls_weakened', []) or [])
+    walls = [w for w in walls if w.get('change')]
+    walls.sort(key=lambda w: abs(w.get('change', 0)), reverse=True)
+    for w in walls[:3]:
+        sg = '+' if w['change'] > 0 else ''
+        parts.append('%s%s %s%s' % (w.get('type', ''), fnum(w.get('strike', 0)), sg, fnum(w.get('change', 0))))
+    pat = re.compile(r'([CP])(\d{4})-(\d+)')
+    by = {}
+    for e in data.get('s07', []) or []:
+        m = pat.search(e.get('product', '') or '')
+        if not m:
+            continue
+        key = (m.group(1), int(m.group(3)))
+        by.setdefault(key, {'vol': 0, 'tp': '', 'tv': 0})
+        v = e.get('volume', 0) or 0
+        by[key]['vol'] += v
+        if v > by[key]['tv']:
+            by[key]['tv'] = v
+            by[key]['tp'] = e.get('participant', '')
+    if by:
+        (typ, strike), info = max(by.items(), key=lambda kv: kv[1]['vol'])
+        p = (info['tp'] or '').replace('証券', '').replace('クリアリン', '')[:5]
+        parts.append('JNET %s%s(%s%d)' % (typ, fnum(strike), p, int(info['vol'])))
+    atm = ind.get('atm') or meta.get('atm')
+    head = 'ATM%s MaxPain%s' % (fnum(atm) if atm else '-', fnum(ind.get('max_pain')) if ind.get('max_pain') else '-')
+    note = head + ('　注目: ' + ' '.join(parts) if parts else '')
+    return ('<span class="entry-note" style="display:block;font-size:10px;color:#7c879b;'
+            'margin-top:4px;line-height:1.5;font-family:DM Mono,monospace">%s</span>') % esc(note)
+
+
 def build_archive_snippet(data):
     meta = data['metadata']
     s01 = data.get('s01', {})
@@ -2017,6 +2056,7 @@ def build_archive_snippet(data):
     snippet = '<a href="JPX_portal_%s.html" class="entry">\n' % date_str
     snippet += '  <span class="entry-date">%s</span>\n  <span class="entry-weekday">%s</span>\n' % (date_disp, weekday)
     snippet += '  <span class="entry-tags">\n    <span class="etag etag-nikkei">日経平均 %s</span>\n    <span class="etag %s">VI %s</span>\n  </span>\n' % (fnum(nikkei), vi_class, vi)
+    snippet += '  ' + _archive_highlights(data) + '\n'
     snippet += '  <span class="entry-arrow">→</span>\n</a>\n'
     return snippet
 
@@ -2047,6 +2087,7 @@ def update_archive(archive_path, data):
     entry = '    <a href="JPX_portal_%s.html" class="entry">\n' % date_str
     entry += '      <span class="entry-date">%s</span>\n      <span class="entry-weekday">%s</span>\n' % (date_disp, weekday)
     entry += '      <span class="entry-tags">\n        <span class="etag etag-nikkei">%s</span>\n        <span class="etag %s">VI %s</span>\n      </span>\n' % (fnum(nikkei) if nikkei else '-', vi_class, vi if vi else '-')
+    entry += '      ' + _archive_highlights(data) + '\n'
     entry += '      <span class="entry-arrow">&rarr;</span>\n    </a>\n'
     with open(archive_path, 'r', encoding='utf-8') as f:
         html = f.read()
