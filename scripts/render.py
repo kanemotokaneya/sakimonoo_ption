@@ -1979,7 +1979,7 @@ def build_simulator_html(data):
     h += '</style>\n</head>\n<body>\n'
     h += '<div class="topbar"><span class="logo">P&L Simulator</span><nav><a href="index.html">← ダッシュボード</a><a href="weekly_trend.html">週次推移</a><a href="archive.html">アーカイブ</a></nav></div>\n'
     h += '<div class="hero"><h1>P&L Simulator</h1><div class="sub">%s / ATM %s / VI %s / SQまで%d日</div></div>\n' % (esc(meta.get('date_formatted', '')), fnum(atm), vi, days_to_sq)
-    h += '<div class="kpi-strip">\n  <div class="kpi"><div class="label">ATM</div><div class="value">%s</div></div>\n  <div class="kpi"><div class="label">VI</div><div class="value">%s</div></div>\n  <div class="kpi"><div class="label">SQ</div><div class="value">%s</div></div>\n  <div class="kpi"><div class="label">残り営業日</div><div class="value">%d</div></div>\n</div>\n' % (fnum(atm), vi, esc(meta.get('sq_date', '')), days_to_sq)
+    h += '<div class="kpi-strip">\n  <div class="kpi"><div class="label">ATM</div><div class="value">%s</div></div>\n  <div class="kpi"><div class="label">SQ</div><div class="value">%s</div></div>\n  <div class="kpi"><div class="label">残り営業日</div><div class="value">%d</div></div>\n</div>\n' % (fnum(atm), esc(meta.get('sq_date', '')), days_to_sq)
     h += '<div class="sim-section">\n<div style="margin:12px 0"><div style="color:var(--sub);font-size:11px;margin-bottom:6px">プリセット戦略</div>\n'
     for i, p in enumerate(presets):
         h += '<span class="preset-btn" data-preset="%d">%s</span>\n' % (i, esc(p['name']))

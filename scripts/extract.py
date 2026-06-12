@@ -145,6 +145,23 @@ def sq_date(y, m):
     return first_fri + timedelta(days=7)
 
 
+def next_monthly_sq(dt):
+    """Next *monthly* SQ (2nd Friday) strictly after dt. Nikkei 225 options
+    expire monthly, so the option analysis (MaxPain/walls/PCR) always pertains
+    to the next monthly SQ. On the SQ day itself the morning special quotation
+    has already settled and the EOD data reflects the new near month, so roll
+    forward to the following month. Returns (year, month, sq_date)."""
+    y, m = dt.year, dt.month
+    sq = sq_date(y, m)
+    if sq <= dt:
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+        sq = sq_date(y, m)
+    return y, m, sq
+
+
 def business_days_between(d1, d2):
     """Count business days between d1 and d2 (exclusive of d1, inclusive of d2)."""
     count = 0
@@ -928,6 +945,8 @@ def extract_s06(wb_oi, atm):
 
     # Also collect ALL strikes (no range limit) for global top ranking
     global_oi = defaultdict(lambda: {'put_oi': 0, 'call_oi': 0})
+    # Per-expiry, ALL strikes (no range limit) for per-expiry top ranking
+    global_by_expiry = defaultdict(lambda: defaultdict(lambda: {'put_oi': 0, 'call_oi': 0}))
 
     for row in ws.iter_rows(min_row=1, max_row=ws.max_row, values_only=False):
         a_val = str(row[0].value).strip() if row[0].value else ''
@@ -942,6 +961,7 @@ def extract_s06(wb_oi, atm):
             chg = safe_num(row[3].value if len(row) > 3 else None)
             if strike % 500 == 0:
                 global_oi[strike]['put_oi'] += oi
+                global_by_expiry[expiry][strike]['put_oi'] += oi
             if low <= strike <= high and strike % 500 == 0:
                 by_expiry[expiry][strike]['put_oi'] += oi
                 by_expiry[expiry][strike]['put_change'] += chg
@@ -955,6 +975,7 @@ def extract_s06(wb_oi, atm):
             chg = safe_num(row[9].value if len(row) > 9 else None)
             if strike % 500 == 0:
                 global_oi[strike]['call_oi'] += oi
+                global_by_expiry[expiry][strike]['call_oi'] += oi
             if low <= strike <= high and strike % 500 == 0:
                 by_expiry[expiry][strike]['call_oi'] += oi
                 by_expiry[expiry][strike]['call_change'] += chg
@@ -985,11 +1006,16 @@ def extract_s06(wb_oi, atm):
                 'call_change': d['call_change'],
                 'is_atm': (strike == atm_round),
             })
+        ge = global_by_expiry.get(expiry, {})
+        e_puts = sorted([(s, v['put_oi']) for s, v in ge.items() if v['put_oi'] > 0], key=lambda x: -x[1])
+        e_calls = sorted([(s, v['call_oi']) for s, v in ge.items() if v['call_oi'] > 0], key=lambda x: -x[1])
         expiry_distributions.append({
             'expiry': expiry,
             'label': label,
             'total_oi': total_oi,
             'distribution': dist,
+            'top_puts': [{'strike': s, 'oi': oi} for s, oi in e_puts[:5]],
+            'top_calls': [{'strike': s, 'oi': oi} for s, oi in e_calls[:5]],
         })
 
     # Also build combined (all expiries) for backward compatibility
@@ -2196,9 +2222,8 @@ def run(args):
     analysis_date = datetime.strptime(date_str, '%Y%m%d')
     weekday_ja = WEEKDAY_JA[analysis_date.weekday()]
 
-    # Determine SQ
-    major_y, major_m = next_major_month(analysis_date)
-    sq = sq_date(major_y, major_m)
+    # Determine the next monthly SQ (options roll monthly; on SQ day roll fwd)
+    sq_y, sq_m, sq = next_monthly_sq(analysis_date)
     days_to_sq = business_days_between(analysis_date, sq)
 
     output = {
@@ -2206,9 +2231,9 @@ def run(args):
             'date': date_str,
             'date_formatted': '%d/%d/%d（%s）' % (analysis_date.year, analysis_date.month, analysis_date.day, weekday_ja),
             'sq_date': sq.strftime('%Y-%m-%d'),
-            'sq_label': '%d月限SQ（%s）' % (major_m, sq.strftime('%m/%d')),
+            'sq_label': '%d月限SQ（%s）' % (sq_m, sq.strftime('%m/%d')),
             'days_to_sq': days_to_sq,
-            'major_month': '%04d%02d' % (major_y, major_m),
+            'major_month': '%04d%02d' % (sq_y, sq_m),
             'files_found': {k: os.path.basename(v) for k, v in files.items() if k != 'date_str'},
         }
     }
