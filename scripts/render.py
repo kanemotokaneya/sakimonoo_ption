@@ -576,12 +576,27 @@ OI_CHART_JS = r"""
       }
       return out;
     }
-    if (tab === 'futures') {
-      var keys = ['nk225_large', 'nk225_mini', 'topix'];
-      for (var i = 0; i < keys.length; i++) {
-        var k = keys[i];
-        var fm = (D.futures && D.futures[k]) || {};
-        if (fm.total) out.push({ label: FUTURES_LABELS[k], color: FUTURES_COLORS[k], data: fm.total });
+    if (tab === 'fut_large' || tab === 'fut_mini' || tab === 'fut_topix') {
+      var mkey = (tab === 'fut_large') ? 'nk225_large' : (tab === 'fut_mini') ? 'nk225_mini' : 'topix';
+      var fmd = (D.futures && D.futures[mkey]) || {};
+      var byL = fmd.by_limgetsu || {};
+      var order = fmd.limgetsu_order || [];
+      if (!order.length) order = Object.keys(byL);
+      var ranked = [];
+      for (var i = 0; i < order.length; i++) {
+        var lm = order[i]; var hist = byL[lm] || [];
+        var last = hist.length ? (hist[hist.length - 1] || 0) : 0;
+        ranked.push({ lm: lm, last: last });
+      }
+      ranked.sort(function (a, b) { return b.last - a.last; });
+      var keep = {}; var lim = Math.min(3, ranked.length);
+      for (var r = 0; r < lim; r++) keep[ranked[r].lm] = true;
+      var ci = 0;
+      for (var j = 0; j < order.length; j++) {
+        var lm2 = order[j]; if (!keep[lm2]) continue;
+        var shortl = lm2.replace('2026年', '').replace('2027年', "'27/").replace('2028年', "'28/").replace('限', '');
+        out.push({ label: shortl, color: STRIKE_COLORS[ci % STRIKE_COLORS.length], data: byL[lm2] });
+        ci++;
       }
       return out;
     }
@@ -986,14 +1001,17 @@ def _preview_op_oi_timeseries(oi_ts):
 
 
 def _detail_oi_timeseries_js(oi_ts):
-    """Futures 建玉推移 card — tabs: 日経先物 (default) + 先物OI.
+    """Futures 建玉推移 card — tabs per market (225ラージ / 225mini / TOPIX),
+    each showing that market's top contract months on its own scale.
     Chart drawn by init_oi_timeseries() (OI_CHART_JS).
     """
     if not oi_ts or oi_ts.get('error'):
         return "var h='';h+='<div class=\"oi-empty\">建玉推移データなし — pipeline が `data/oi_timeseries.json` を未生成、または `*open_interest.xlsx` の蓄積が不足</div>';return h;"
     js = "var h='';"
     js += "h+='<div class=\"oi-tabs\">';"
-    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"futures\" type=\"button\">先物OI</button>';"
+    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"fut_large\" type=\"button\">225ラージ</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"fut_mini\" type=\"button\">225mini</button>';"
+    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"fut_topix\" type=\"button\">TOPIX</button>';"
     js += "h+='</div>';"
     js += "h+='<div class=\"oi-chart-wrap\"><canvas class=\"oi-canvas\"></canvas></div>';"
     js += "h+='<div class=\"oi-meta\"></div>';"
@@ -1003,15 +1021,14 @@ def _detail_oi_timeseries_js(oi_ts):
 
 
 def _detail_op_oi_timeseries_js(oi_ts):
-    """Option OP建玉推移 card — tabs: OP集計 (default) + Pストライク + Cストライク.
+    """Option OP建玉推移 card — tabs: Pストライク (default) + Cストライク.
     Chart drawn by init_op_oi_timeseries() (same generic logic, OI_CHART_JS).
     """
     if not oi_ts or oi_ts.get('error'):
         return "var h='';h+='<div class=\"oi-empty\">OP建玉推移データなし — `*open_interest.xlsx` の蓄積が不足</div>';return h;"
     js = "var h='';"
     js += "h+='<div class=\"oi-tabs\">';"
-    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"options_agg\" type=\"button\">OP集計</button>';"
-    js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_puts\" type=\"button\">Pストライク</button>';"
+    js += "h+='<button class=\"oi-tab oi-tab-active\" data-oi-tab=\"top_puts\" type=\"button\">Pストライク</button>';"
     js += "h+='<button class=\"oi-tab\" data-oi-tab=\"top_calls\" type=\"button\">Cストライク</button>';"
     js += "h+='</div>';"
     js += "h+='<div class=\"oi-chart-wrap\"><canvas class=\"oi-canvas\"></canvas></div>';"
@@ -1111,8 +1128,6 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
         h += '<div class="atm-warn">⚠️ ATM要確認: %s。fetch_market.pyが先物ラージの清算値を取得しているか確認してください。</div>\n' % esc(atm_warn)
 
     h += '<div class="kpi-strip">\n'
-    vi_cls = 'down' if vi and vi > 30 else ''
-    h += '  <div class="kpi"><div class="label">VI</div><div class="value %s">%s</div></div>\n' % (vi_cls, vi if vi else '-')
     h += '  <div class="kpi"><div class="label">ATM</div><div class="value">%s</div></div>\n' % (fnum(atm) if atm else '-')
     mp = ind.get('max_pain')
     if mp:
@@ -1447,24 +1462,7 @@ def _detail_dist_js(s06, ind=None):
     js = "var h='';"
     js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">ATM = %s</div>';" % _js_str(fnum(s06.get('atm')))
 
-    # Top OI strikes (全行使価格)
-    top_puts = s06.get('top_puts', [])
-    top_calls = s06.get('top_calls', [])
-    if top_puts or top_calls:
-        js += "h+='<div style=\"display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px\">';"
-        if top_puts:
-            js += "h+='<div style=\"flex:1;min-width:140px;background:var(--card);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:8px\">';"
-            js += "h+='<div style=\"font-size:10px;font-weight:600;color:var(--put);margin-bottom:4px\">PUT \\u5EFA\\u7389 TOP5</div>';"
-            for i, tp in enumerate(top_puts[:5]):
-                js += "h+='<div style=\"font-size:11px;font-family:DM Mono;color:var(--text)\">%d. %s <span style=\"color:var(--sub)\">%s\\u679A</span></div>';" % (i + 1, _js_str(fnum(tp['strike'])), _js_str(fnum(tp['oi'])))
-            js += "h+='</div>';"
-        if top_calls:
-            js += "h+='<div style=\"flex:1;min-width:140px;background:var(--card);border:1px solid rgba(96,165,250,.2);border-radius:8px;padding:8px\">';"
-            js += "h+='<div style=\"font-size:10px;font-weight:600;color:var(--call);margin-bottom:4px\">CALL \\u5EFA\\u7389 TOP5</div>';"
-            for i, tc in enumerate(top_calls[:5]):
-                js += "h+='<div style=\"font-size:11px;font-family:DM Mono;color:var(--text)\">%d. %s <span style=\"color:var(--sub)\">%s\\u679A</span></div>';" % (i + 1, _js_str(fnum(tc['strike'])), _js_str(fnum(tc['oi'])))
-            js += "h+='</div>';"
-        js += "h+='</div>';"
+    # Top OI strikes are now shown per expiry (限月別) inside the loop below.
 
     by_expiry = s06.get('by_expiry', [])
     if by_expiry:
@@ -1474,6 +1472,23 @@ def _detail_dist_js(s06, ind=None):
             if max_oi < 10:
                 continue
             js += "h+='<div style=\"margin-top:%dpx;margin-bottom:6px;font-size:12px;font-weight:600;color:var(--accent)\">%s (OI: %s)</div>';" % (14 if ei > 0 else 4, _js_str(exp_data['label']), _js_str(fnum(exp_data['total_oi'])))
+            etp = exp_data.get('top_puts', [])
+            etc = exp_data.get('top_calls', [])
+            if etp or etc:
+                js += "h+='<div style=\"display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 8px\">';"
+                if etp:
+                    js += "h+='<div style=\"flex:1;min-width:130px;background:var(--card);border:1px solid rgba(248,113,113,.2);border-radius:6px;padding:6px\">';"
+                    js += "h+='<div style=\"font-size:9px;font-weight:600;color:var(--put);margin-bottom:3px\">PUT \\u5EFA\\u7389 TOP5</div>';"
+                    for i, tp in enumerate(etp[:5]):
+                        js += "h+='<div style=\"font-size:10px;font-family:DM Mono;color:var(--text)\">%d. %s <span style=\"color:var(--sub)\">%s\\u679A</span></div>';" % (i + 1, _js_str(fnum(tp['strike'])), _js_str(fnum(tp['oi'])))
+                    js += "h+='</div>';"
+                if etc:
+                    js += "h+='<div style=\"flex:1;min-width:130px;background:var(--card);border:1px solid rgba(96,165,250,.2);border-radius:6px;padding:6px\">';"
+                    js += "h+='<div style=\"font-size:9px;font-weight:600;color:var(--call);margin-bottom:3px\">CALL \\u5EFA\\u7389 TOP5</div>';"
+                    for i, tc in enumerate(etc[:5]):
+                        js += "h+='<div style=\"font-size:10px;font-family:DM Mono;color:var(--text)\">%d. %s <span style=\"color:var(--sub)\">%s\\u679A</span></div>';" % (i + 1, _js_str(fnum(tc['strike'])), _js_str(fnum(tc['oi'])))
+                    js += "h+='</div>';"
+                js += "h+='</div>';"
             js += "h+='<div style=\"display:flex;align-items:center;gap:4px;padding:2px 0;font-size:10px;color:var(--sub);font-weight:600\">';"
             js += "h+='<div style=\"width:50px;text-align:right\">P増減</div><div style=\"width:50px;text-align:right\">P建玉</div><div style=\"width:150px;text-align:center;color:var(--put)\">← PUT</div><div style=\"width:60px;text-align:center\">行使価格</div><div style=\"width:150px;text-align:center;color:var(--call)\">CALL →</div><div style=\"width:50px\">C建玉</div><div style=\"width:50px\">C増減</div></div>';"
             for d in dist:
@@ -2055,7 +2070,7 @@ def build_archive_snippet(data):
     vi_class = 'etag-vi high' if vi and vi > 30 else 'etag-vi'
     snippet = '<a href="JPX_portal_%s.html" class="entry">\n' % date_str
     snippet += '  <span class="entry-date">%s</span>\n  <span class="entry-weekday">%s</span>\n' % (date_disp, weekday)
-    snippet += '  <span class="entry-tags">\n    <span class="etag etag-nikkei">日経平均 %s</span>\n    <span class="etag %s">VI %s</span>\n  </span>\n' % (fnum(nikkei), vi_class, vi)
+    snippet += '  <span class="entry-tags">\n    <span class="etag etag-nikkei">日経平均 %s</span>\n  </span>\n' % (fnum(nikkei))
     snippet += '  ' + _archive_highlights(data) + '\n'
     snippet += '  <span class="entry-arrow">→</span>\n</a>\n'
     return snippet
@@ -2098,7 +2113,7 @@ def update_archive(archive_path, data):
     vi_class = 'etag-vi high' if vi and vi > 30 else 'etag-vi'
     entry = '    <a href="JPX_portal_%s.html" class="entry">\n' % date_str
     entry += '      <span class="entry-date">%s</span>\n      <span class="entry-weekday">%s</span>\n' % (date_disp, weekday)
-    entry += '      <span class="entry-tags">\n        <span class="etag etag-nikkei">%s</span>\n        <span class="etag %s">VI %s</span>\n      </span>\n' % (fnum(nikkei) if nikkei else '-', vi_class, vi if vi else '-')
+    entry += '      <span class="entry-tags">\n        <span class="etag etag-nikkei">%s</span>\n      </span>\n' % (fnum(nikkei) if nikkei else '-')
     entry += '      ' + _archive_highlights(data) + '\n'
     entry += '      <span class="entry-arrow">&rarr;</span>\n    </a>\n'
     with open(archive_path, 'r', encoding='utf-8') as f:
