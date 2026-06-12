@@ -29,6 +29,12 @@ SYSTEM_PROMPT = """あなたはJPXデリバティブ市場を専門とするト�
 以下の4項目を記述してください。各項目3-5文。HTMLタグは使わないでください。
 具体的な価格水準を必ず数字で示すこと。曖昧な表現は避ける。
 
+【IVの扱い（重要）】
+・ATM IVの水準と期間構造（期近が高い/低い）から相場の警戒度を読む。
+・プットスキュー（下方IV−上方IV）が厚い＝下方ヘッジ需要・暴落警戒。薄い/フラット＝楽観。
+・建玉が大きく増えた行使価格は、そのストライクのIVの動きも併せて売買方向を推定する：OI増＋IV上昇＝買い需要（上抜け加速やヘッジ買い）、OI増＋IV低下/横ばい＝売り（コール売り/プット売り＝抵抗・壁）。
+・ただしJ-NET手口に売買区分は無いため、IVとprice actionで補強しつつ断定は避ける。
+
 ■ 先物の方向性（ロング or ショート）
 ・建玉増減、海外勢のポジション、PCR、先物ベーシスから総合判断し、「ロング寄り」「ショート寄り」「様子見」のいずれかを明示。
 ・判断根拠を2-3個の具体的データで裏付ける（例: 「ラージ+XX枚の買い増し」「PCR 1.97は弱気過剰」）。
@@ -41,15 +47,16 @@ SYSTEM_PROMPT = """あなたはJPXデリバティブ市場を専門とするト�
 ■ オプション売りの安全圏
 ・OTM確率、建玉壁の厚さ、参加者のポジション（ABN/BNPなどのHF代理がどこに売り建てているか）から、プット売り・コール売りの推奨ゾーンを提示。
 ・「P XX,000以下は建玉壁XX枚＋OTM確率XX%で売りエッジあり」のように根拠付き。
+・IVも必ず考慮: IVが高い行使価格ほど売りプレミアムが厚く妙味がある（例「C72,000はIV XX%で割高＝売り候補」）。下方プットスキューが厚いほどプット売りの受取は大きいが暴落リスクも比例して高い点に留意。
 ・危険な行使価格帯（売ってはいけないゾーン）も明示。
 
 ■ リスクシナリオ
-・現在のポジションが崩れるトリガー（VIスパイク、壁の崩壊、海外勢の反転など）。
+・現在のポジションが崩れるトリガー（IV/スキューの急変＝特に下方IVの跳ね上がり、壁の崩壊、海外勢の反転など）。
 ・その場合の損切り水準やヘッジアクション（mini先物でデルタヘッジなど）を具体的に提案。
 """
 
 
-def build_data_summary(data):
+def build_data_summary(data, iv=None):
     """Extract key data points for the LLM prompt."""
     lines = []
     meta = data.get('metadata', {})
@@ -130,6 +137,35 @@ def build_data_summary(data):
                     p['nk225_large'], p['nk225_mini'], p['topix'],
                     p['put_net'], p['call_net'], p['strategy']))
 
+    # Implied volatility / skew (from iv.json, nearest monthly expiry)
+    if iv and not iv.get('error') and iv.get('expiries'):
+        monthly = [e for e in iv['expiries'] if len(e['expiry']) == 6]
+        if monthly:
+            e0 = monthly[0]
+            lines.append('')
+            lines.append('--- IV/スキュー (%s月限) ---' % e0['expiry'][4:6].lstrip('0'))
+            if e0.get('atm_iv'):
+                lines.append('ATM IV: %.1f%%' % (e0['atm_iv'] * 100))
+            if e0.get('skew_10pct') is not None:
+                lines.append('プットスキュー(10%%下IV-10%%上IV): %+.1fpt（プラス=下方IVが高い=下方ヘッジ需要/暴落警戒）' % e0['skew_10pct'])
+            ts = []
+            for m in monthly[:4]:
+                if m.get('atm_iv'):
+                    ts.append('%s月 %.1f%%' % (m['expiry'][4:6].lstrip('0'), m['atm_iv'] * 100))
+            if ts:
+                lines.append('ATM IV期間構造: ' + ' / '.join(ts))
+            spot = e0.get('underlying') or 0
+            picks = []
+            for pt in e0.get('smile', []):
+                k = pt.get('strike')
+                ivv = pt.get('iv')
+                if ivv and spot and 0.85 * spot <= k <= 1.15 * spot and k % 1000 == 0:
+                    side = 'P' if k < spot else ('C' if k > spot else 'ATM')
+                    picks.append('%s%d=%.1f%%' % (side, k, ivv * 100))
+            if picks:
+                step = max(1, len(picks) // 7)
+                lines.append('主要ストライクIV: ' + '  '.join(picks[::step]))
+
     return '\n'.join(lines)
 
 
@@ -206,7 +242,17 @@ def run(args):
     with open(args.data, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    data_summary = build_data_summary(data)
+    # Load iv.json (optional) from the same directory as data.json
+    iv = None
+    _ivpath = os.path.join(os.path.dirname(args.data) or '.', 'iv.json')
+    if os.path.exists(_ivpath):
+        try:
+            with open(_ivpath, 'r', encoding='utf-8') as f:
+                iv = json.load(f)
+        except Exception as _e:
+            print('[assess] iv.json load error: %s' % _e, file=sys.stderr)
+
+    data_summary = build_data_summary(data, iv=iv)
     print('[assess] Data summary: %d chars' % len(data_summary), file=sys.stderr)
 
     # Try primary model, then fallbacks

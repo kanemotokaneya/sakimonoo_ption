@@ -2202,16 +2202,15 @@ def _archive_highlights(data):
         if not m:
             continue
         key = (m.group(1), int(m.group(3)))
-        by.setdefault(key, {'vol': 0, 'tp': '', 'tv': 0})
-        v = e.get('volume', 0) or 0
-        by[key]['vol'] += v
-        if v > by[key]['tv']:
-            by[key]['tv'] = v
-            by[key]['tp'] = e.get('participant', '')
+        by.setdefault(key, {'vol': 0, 'n': 0})
+        by[key]['vol'] += (e.get('volume', 0) or 0)
+        by[key]['n'] += 1
     if by:
         (typ, strike), info = max(by.items(), key=lambda kv: kv[1]['vol'])
-        p = (info['tp'] or '').replace('証券', '').replace('クリアリン', '')[:5]
-        parts.append('JNET %s%s(%s%d)' % (typ, fnum(strike), p, int(info['vol'])))
+        # Show strike + TOTAL J-NET volume + participant count. Do NOT attribute
+        # the total to a single name: J-NET volume is typically split across
+        # several houses (and has no buy/sell side), so naming one is misleading.
+        parts.append('JNET %s%s %s枚(%d社)' % (typ, fnum(strike), fnum(int(info['vol'])), info['n']))
     atm = ind.get('atm') or meta.get('atm')
     head = 'ATM%s MaxPain%s' % (fnum(atm) if atm else '-', fnum(ind.get('max_pain')) if ind.get('max_pain') else '-')
     note = head + ('　注目: ' + ' '.join(parts) if parts else '')
