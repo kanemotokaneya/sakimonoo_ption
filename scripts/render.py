@@ -2099,7 +2099,9 @@ def update_archive(archive_path, data):
         sq_mnum = int(sq_date_raw[5:7]) if len(sq_date_raw) == 10 else int(major_month[4:6])
     except Exception:
         sq_mnum = 0
-    badge_short = ('%d月限SQ' % sq_mnum) if sq_mnum else ((meta.get('sq_label', '') or 'SQ').split('（')[0])
+    badge_short = (meta.get('sq_badge') or '').strip()
+    if not badge_short:
+        badge_short = ('%d月ミニSQ' % sq_mnum) if (sq_mnum and sq_mnum not in (3, 6, 9, 12)) else (('%d月SQ' % sq_mnum) if sq_mnum else ((meta.get('sq_label', '') or 'SQ').split('（')[0]))
     section_id = 'archive-list-%s' % (major_month or 'unknown')
     sq_disp = ''
     if len(sq_date_raw) == 10:

@@ -162,6 +162,12 @@ def next_monthly_sq(dt):
     return y, m, sq
 
 
+
+def sq_badge_label(m):
+    """Archive/section badge label. Quarterly (major) SQ months 3/6/9/12 are
+    'X月SQ'; the other (mini) months are 'X月ミニSQ'."""
+    return ('%d月SQ' % m) if m in (3, 6, 9, 12) else ('%d月ミニSQ' % m)
+
 def business_days_between(d1, d2):
     """Count business days between d1 and d2 (exclusive of d1, inclusive of d2)."""
     count = 0
@@ -2231,7 +2237,8 @@ def run(args):
             'date': date_str,
             'date_formatted': '%d/%d/%d（%s）' % (analysis_date.year, analysis_date.month, analysis_date.day, weekday_ja),
             'sq_date': sq.strftime('%Y-%m-%d'),
-            'sq_label': '%d月限SQ（%s）' % (sq_m, sq.strftime('%m/%d')),
+            'sq_label': '%s（%s）' % (sq_badge_label(sq_m), sq.strftime('%m/%d')),
+            'sq_badge': sq_badge_label(sq_m),
             'days_to_sq': days_to_sq,
             'major_month': '%04d%02d' % (sq_y, sq_m),
             'files_found': {k: os.path.basename(v) for k, v in files.items() if k != 'date_str'},
