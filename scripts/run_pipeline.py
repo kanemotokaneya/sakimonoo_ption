@@ -164,6 +164,18 @@ def main():
         print('[WARN] extract_weekly_trend.py failed (週次手口推移 card may be stale)', file=sys.stderr)
         print(result.stderr, file=sys.stderr)
 
+    # Step 2.7: Extract implied volatility (IVスマイル card) from the OSE
+    # theoretical-price file (oseYYYYMMDDtp.csv). Non-fatal: if the tp.csv is not
+    # present, the IVスマイル card simply shows an empty state.
+    iv_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_iv.py'),
+              '--data-dir', datadir,
+              '--out', os.path.join(datadir, 'iv.json')]
+    result = subprocess.run(iv_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_iv.py failed (IVスマイル card may be empty)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')
     render_cmd = [sys.executable, os.path.join(scripts_dir, 'render.py'),

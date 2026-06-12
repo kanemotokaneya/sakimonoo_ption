@@ -1093,7 +1093,168 @@ def _detail_weekly_trend_js(wt):
     return js
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None):
+# ============================================================
+# IVスマイル/スキュー カード (extract_iv.py → iv.json)
+# ============================================================
+IV_CARD_CSS = r"""
+.iv-tabs{display:flex;gap:0;margin:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.iv-tab{padding:7px 14px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer}
+.iv-tab.iv-tab-active{color:var(--accent);border-bottom-color:var(--accent)}
+.iv-stat{display:flex;gap:18px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);padding:8px 4px 2px}
+.iv-stat b{color:var(--text);font-weight:600}
+.iv-smile{width:100%;height:auto;display:block;margin:4px 0 2px}
+.iv-tbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--sub);display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 4px 8px}
+.iv-note{font-size:10px;color:var(--sub);padding:6px 4px;line-height:1.6;border-top:1px solid var(--border)}
+"""
+
+IV_CARD_JS = r"""
+window.init_iv = function(card){
+  var tabs = card.querySelector('.iv-tabs');
+  if(!tabs) return;
+  tabs.addEventListener('click', function(ev){
+    var t = ev.target;
+    if(t.classList && t.classList.contains('iv-tab')){
+      ev.stopPropagation();
+      var exp = t.getAttribute('data-iv-exp');
+      var btns = tabs.querySelectorAll('.iv-tab');
+      for(var i=0;i<btns.length;i++){ btns[i].classList.remove('iv-tab-active'); }
+      t.classList.add('iv-tab-active');
+      var panes = card.querySelectorAll('.iv-pane');
+      for(var j=0;j<panes.length;j++){
+        panes[j].style.display = (panes[j].getAttribute('data-iv-exp')===exp) ? 'block' : 'none';
+      }
+    }
+  });
+};
+"""
+
+
+def _load_iv(data_dir='data'):
+    path = os.path.join(data_dir, 'iv.json')
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print('[render.py] iv.json load error: %s' % e)
+        return None
+
+
+def _kshort(k):
+    k = int(k)
+    if k % 1000 == 0:
+        return '%dk' % (k // 1000)
+    return '%.1fk' % (k / 1000.0)
+
+
+def _iv_smile_svg(e):
+    """Compact OTM IV smile as inline SVG (double-quoted attrs, single line)."""
+    spot = e.get('underlying') or 0
+    pts = []
+    for p in e.get('smile', []):
+        iv = p.get('iv')
+        k = p.get('strike')
+        if iv and iv > 0 and spot and 0.78 * spot <= k <= 1.18 * spot:
+            pts.append((k, iv))
+    pts.sort()
+    if len(pts) < 3:
+        return ''
+    ks = [p[0] for p in pts]
+    ivs = [p[1] for p in pts]
+    kmin, kmax = min(ks), max(ks)
+    ivmin, ivmax = min(ivs), max(ivs)
+    if kmax == kmin or ivmax == ivmin:
+        return ''
+    W, H = 320.0, 168.0
+    x0, x1 = 40.0, 312.0
+    y0, y1 = 14.0, 134.0
+
+    def sx(k):
+        return x0 + (k - kmin) / (kmax - kmin) * (x1 - x0)
+
+    def sy(v):
+        return y1 - (v - ivmin) / (ivmax - ivmin) * (y1 - y0)
+
+    poly = ' '.join('%.1f,%.1f' % (sx(k), sy(v)) for k, v in pts)
+    o = []
+    o.append('<svg class="iv-smile" viewBox="0 0 %g %g" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' % (W, H))
+    o.append('<line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#2a3142" stroke-width="1"/>' % (x0, y1, x1, y1))
+    o.append('<line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#2a3142" stroke-width="1"/>' % (x0, y0, x0, y1))
+    if kmin <= spot <= kmax:
+        o.append('<line x1="%.1f" y1="%g" x2="%.1f" y2="%g" stroke="#facc15" stroke-width="1" stroke-dasharray="3 3"/>' % (sx(spot), y0, sx(spot), y1))
+        o.append('<text x="%.1f" y="%g" fill="#facc15" font-size="8" text-anchor="middle">ATM</text>' % (sx(spot), y0 - 4))
+    o.append('<polyline points="%s" fill="none" stroke="#818cf8" stroke-width="2"/>' % poly)
+    o.append('<circle cx="%.1f" cy="%.1f" r="2.6" fill="#f87171"/>' % (sx(ks[0]), sy(ivs[0])))
+    o.append('<circle cx="%.1f" cy="%.1f" r="2.6" fill="#60a5fa"/>' % (sx(ks[-1]), sy(ivs[-1])))
+    o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%.0f%%</text>' % (x0 - 3, y0 + 5, ivmax * 100))
+    o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%.0f%%</text>' % (x0 - 3, y1, ivmin * 100))
+    o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="start">%s</text>' % (x0, H - 4, _kshort(kmin)))
+    o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%s</text>' % (x1, H - 4, _kshort(kmax)))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def _preview_iv(iv):
+    if not iv or iv.get('error') or not iv.get('expiries'):
+        return '<span class="mm-label">IVデータなし</span>'
+    m = [e for e in iv['expiries'] if len(e['expiry']) == 6]
+    if not m:
+        return '<span class="mm-label">IVデータなし</span>'
+    e = m[0]
+    atm = (e.get('atm_iv') or 0) * 100
+    sk = e.get('skew_10pct')
+    sk_s = ('+%.1f' % sk) if (sk is not None and sk >= 0) else (('%.1f' % sk) if sk is not None else '-')
+    h = '<div class="mini-metrics">'
+    h += '<div class="mini-metric"><div class="mm-label">ATM IV</div><div class="mm-value" style="color:var(--yellow)">%.1f%%</div></div>' % atm
+    h += '<div class="mini-metric"><div class="mm-label">P-スキュー</div><div class="mm-value" style="color:var(--put)">%spt</div></div>' % sk_s
+    h += '<div class="mini-metric"><div class="mm-label">限月</div><div class="mm-value">%d月</div></div>' % int(e['expiry'][4:6])
+    h += '</div>'
+    return h
+
+
+def _detail_iv_js(iv):
+    if not iv or iv.get('error') or not iv.get('expiries'):
+        return "var h='';h+='<div class=\"oi-empty\">IVデータなし — `oseYYYYMMDDtp.csv` を data/ に置いて再実行してください</div>';return h;"
+    monthly = [e for e in iv['expiries'] if len(e['expiry']) == 6][:4]
+    if not monthly:
+        return "var h='';h+='<div class=\"oi-empty\">月限のIVデータが見つかりません</div>';return h;"
+    js = "var h='';"
+    js += "h+='<div class=\"iv-tabs\">';"
+    for i, e in enumerate(monthly):
+        mlabel = '%d月' % int(e['expiry'][4:6])
+        active = ' iv-tab-active' if i == 0 else ''
+        js += "h+='<button class=\"iv-tab%s\" data-iv-exp=\"%s\" type=\"button\">%s</button>';" % (active, e['expiry'], mlabel)
+    js += "h+='</div>';"
+    for i, e in enumerate(monthly):
+        disp = 'block' if i == 0 else 'none'
+        js += "h+='<div class=\"iv-pane\" data-iv-exp=\"%s\" style=\"display:%s\">';" % (e['expiry'], disp)
+        atm = (e.get('atm_iv') or 0) * 100
+        sk = e.get('skew_10pct')
+        sk_s = ('+%.1f' % sk) if (sk is not None and sk >= 0) else (('%.1f' % sk) if sk is not None else '-')
+        spot = e.get('underlying') or 0
+        js += "h+='<div class=\"iv-stat\">ATM IV <b>%.1f%%</b>　プットスキュー(10%%) <b>%spt</b>　原資産 <b>%s</b></div>';" % (atm, sk_s, fnum(int(spot)))
+        svg = _iv_smile_svg(e)
+        if svg:
+            js += "h+='" + svg + "';"
+        win = [p for p in e.get('smile', []) if p.get('iv') and spot and 0.80 * spot <= p['strike'] <= 1.16 * spot]
+        if win:
+            step = max(1, len(win) // 6)
+            js += "h+='<div class=\"iv-tbl\">';"
+            for p in win[::step]:
+                k = p['strike']
+                ivv = p['iv']
+                tag = 'P' if k < spot else ('C' if k > spot else '=')
+                js += "h+='<span>%s%s %.1f%%</span>';" % (tag, _kshort(k), ivv * 100)
+            js += "h+='</div>';"
+        js += "h+='</div>';"
+    js += "h+='<div class=\"iv-note\">下方(プット)のIVが上方(コール)より高い＝下方ヘッジ需要(スキュー)。曲線が急なほど暴落警戒が強く、プット売りで取れるプレミアムも厚い。清算IVベース。</div>';"
+    js += "return h;"
+    return js
+
+
+
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1114,7 +1275,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS)
+    h += '<style>\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS)
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1129,6 +1290,10 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
 
     h += '<div class="kpi-strip">\n'
     h += '  <div class="kpi"><div class="label">ATM</div><div class="value">%s</div></div>\n' % (fnum(atm) if atm else '-')
+    if iv and not iv.get('error') and iv.get('expiries'):
+        _ivm = [e for e in iv['expiries'] if len(e['expiry']) == 6]
+        if _ivm and _ivm[0].get('atm_iv'):
+            h += '  <div class="kpi"><div class="label">ATM IV</div><div class="value">%.1f%%</div></div>\n' % (_ivm[0]['atm_iv'] * 100)
     mp = ind.get('max_pain')
     if mp:
         h += '  <div class="kpi"><div class="label">Max Pain</div><div class="value">%s</div></div>\n' % fnum(mp)
@@ -1192,6 +1357,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
             ('op_oi_timeseries', '📉', 'OP建玉推移', _preview_op_oi_timeseries(oi_ts), _detail_op_oi_timeseries_js(oi_ts), DB),
             ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
+            ('iv', '📐', 'IVスマイル', _preview_iv(iv), _detail_iv_js(iv), DB),
         ]),
         ('参加者・手口', [
             ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
@@ -1230,6 +1396,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None):
     h += 'window.WT_DATA = ' + json.dumps(wt or {}, ensure_ascii=False) + ';\n'
     h += OI_CHART_JS
     h += WEEKLY_TREND_JS
+    h += IV_CARD_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2170,6 +2337,11 @@ def run(args):
     data_dir = os.path.dirname(args.data) or '.'
     oi_ts = _load_oi_timeseries(data_dir)
     wt = _load_weekly_trend(data_dir)
+    iv = _load_iv(data_dir)
+    if iv and not iv.get('error'):
+        print('[render.py] Loaded iv.json: %d expiries' % len(iv.get('expiries', [])))
+    else:
+        print('[render.py] iv.json not found — IVスマイル card will show empty state')
     if wt and not wt.get('error'):
         print('[render.py] Loaded weekly_trend: %d weeks' % len(wt.get('weeks', [])))
     if oi_ts:
@@ -2189,7 +2361,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
