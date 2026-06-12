@@ -1220,10 +1220,10 @@
     }
   ],
   "source": "live",
-  "data_date": "20260611",
+  "data_date": "20260612",
   "strike_matrix": {
-    "atm": 64500,
-    "atm_round": 64500,
+    "atm": 67000,
+    "atm_round": 67000,
     "strikes": [
       66375,
       66500,
@@ -1271,18 +1271,9 @@
         "call_total": -192.0,
         "significance": 341.0,
         "is_new": false,
-        "deltas": {
-          "66750": {
-            "put": -72.0,
-            "call": -90.0
-          },
-          "66875": {
-            "put": -40.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": -112.0,
-        "call_total_delta": -90.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "ビーオブエー証券",
@@ -1323,18 +1314,9 @@
         "call_total": 117.0,
         "significance": 248.0,
         "is_new": false,
-        "deltas": {
-          "66750": {
-            "put": 0,
-            "call": 104.0
-          },
-          "66875": {
-            "put": 5.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": 5.0,
-        "call_total_delta": 104.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "ＡＢＮクリアリン証券",
@@ -1375,22 +1357,9 @@
         "call_total": 77.0,
         "significance": 106.0,
         "is_new": false,
-        "deltas": {
-          "66625": {
-            "put": 2.0,
-            "call": 2.0
-          },
-          "66750": {
-            "put": 92.0,
-            "call": 26.0
-          },
-          "66875": {
-            "put": 30.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": 124.0,
-        "call_total_delta": 28.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "みずほ証券",
@@ -1474,22 +1443,9 @@
         "call_total": -30.0,
         "significance": 67.0,
         "is_new": false,
-        "deltas": {
-          "66625": {
-            "put": 5.0,
-            "call": 0
-          },
-          "66750": {
-            "put": 5.0,
-            "call": 1.0
-          },
-          "66875": {
-            "put": 3.0,
-            "call": -2.0
-          }
-        },
-        "put_total_delta": 13.0,
-        "call_total_delta": -1.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "ＪＰモルガン証券",
@@ -1530,18 +1486,9 @@
         "call_total": -31.0,
         "significance": 66.0,
         "is_new": false,
-        "deltas": {
-          "66750": {
-            "put": -34.0,
-            "call": -51.0
-          },
-          "66875": {
-            "put": 2.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": -32.0,
-        "call_total_delta": -51.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "バークレイズ証券",
@@ -1582,17 +1529,8 @@
         "call_total": -12.0,
         "significance": 37.0,
         "is_new": false,
-        "deltas": {
-          "66750": {
-            "put": 1.0,
-            "call": 0
-          },
-          "66875": {
-            "put": 10.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": 11.0,
+        "deltas": {},
+        "put_total_delta": 0.0,
         "call_total_delta": 0.0
       },
       {
@@ -1634,18 +1572,9 @@
         "call_total": 6.0,
         "significance": 12.0,
         "is_new": false,
-        "deltas": {
-          "66625": {
-            "put": -1.0,
-            "call": 0
-          },
-          "66750": {
-            "put": 1.0,
-            "call": -1.0
-          }
-        },
+        "deltas": {},
         "put_total_delta": 0.0,
-        "call_total_delta": -1.0
+        "call_total_delta": 0.0
       },
       {
         "name": "ＳＢＩ証券",
@@ -1686,14 +1615,9 @@
         "call_total": -8.0,
         "significance": 12.0,
         "is_new": false,
-        "deltas": {
-          "66750": {
-            "put": -1.0,
-            "call": 2.0
-          }
-        },
-        "put_total_delta": -1.0,
-        "call_total_delta": 2.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "ＢＮＰパリバ証券",
@@ -1734,22 +1658,9 @@
         "call_total": 0.0,
         "significance": 11.0,
         "is_new": false,
-        "deltas": {
-          "66625": {
-            "put": 3.0,
-            "call": 0
-          },
-          "66750": {
-            "put": 8.0,
-            "call": 8.0
-          },
-          "66875": {
-            "put": -10.0,
-            "call": 2.0
-          }
-        },
-        "put_total_delta": 1.0,
-        "call_total_delta": 10.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "楽天証券",
@@ -1790,14 +1701,9 @@
         "call_total": -2.0,
         "significance": 10.0,
         "is_new": false,
-        "deltas": {
-          "66625": {
-            "put": -9.0,
-            "call": -1.0
-          }
-        },
-        "put_total_delta": -9.0,
-        "call_total_delta": -1.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "三菱ＵＦＪｅスマート",
@@ -1967,14 +1873,9 @@
         "call_total": 3.0,
         "significance": 3.0,
         "is_new": false,
-        "deltas": {
-          "66750": {
-            "put": 0,
-            "call": 1.0
-          }
-        },
+        "deltas": {},
         "put_total_delta": 0,
-        "call_total_delta": 1.0
+        "call_total_delta": 0.0
       },
       {
         "name": "インタラクティブ証券",
@@ -2015,16 +1916,11 @@
         "call_total": -2.0,
         "significance": 2.0,
         "is_new": false,
-        "deltas": {
-          "66625": {
-            "put": 0,
-            "call": -1.0
-          }
-        },
+        "deltas": {},
         "put_total_delta": 0,
-        "call_total_delta": -1.0
+        "call_total_delta": 0.0
       }
     ],
-    "prev_date": "20260610"
+    "prev_date": "20260611"
   }
 }
