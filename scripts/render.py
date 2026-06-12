@@ -1102,7 +1102,9 @@ IV_CARD_CSS = r"""
 .iv-tab.iv-tab-active{color:var(--accent);border-bottom-color:var(--accent)}
 .iv-stat{display:flex;gap:18px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);padding:8px 4px 2px}
 .iv-stat b{color:var(--text);font-weight:600}
-.iv-smile{width:100%;height:auto;display:block;margin:4px 0 2px}
+.iv-smile{width:100%;height:auto;display:block;margin:2px 0;touch-action:none;-webkit-user-select:none;user-select:none}
+.iv-readout{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);text-align:center;padding:5px 4px;min-height:20px}
+.iv-readout b{color:var(--accent);font-weight:600}
 .iv-tbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--sub);display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 4px 8px}
 .iv-note{font-size:10px;color:var(--sub);padding:6px 4px;line-height:1.6;border-top:1px solid var(--border)}
 """
@@ -1110,23 +1112,81 @@ IV_CARD_CSS = r"""
 IV_CARD_JS = r"""
 window.init_iv = function(card){
   var tabs = card.querySelector('.iv-tabs');
-  if(!tabs) return;
-  tabs.addEventListener('click', function(ev){
-    var t = ev.target;
-    if(t.classList && t.classList.contains('iv-tab')){
-      ev.stopPropagation();
-      var exp = t.getAttribute('data-iv-exp');
-      var btns = tabs.querySelectorAll('.iv-tab');
-      for(var i=0;i<btns.length;i++){ btns[i].classList.remove('iv-tab-active'); }
-      t.classList.add('iv-tab-active');
-      var panes = card.querySelectorAll('.iv-pane');
-      for(var j=0;j<panes.length;j++){
-        panes[j].style.display = (panes[j].getAttribute('data-iv-exp')===exp) ? 'block' : 'none';
+  if(tabs){
+    tabs.addEventListener('click', function(ev){
+      var t = ev.target;
+      if(t.classList && t.classList.contains('iv-tab')){
+        ev.stopPropagation();
+        var exp = t.getAttribute('data-iv-exp');
+        var btns = tabs.querySelectorAll('.iv-tab');
+        for(var i=0;i<btns.length;i++){ btns[i].classList.remove('iv-tab-active'); }
+        t.classList.add('iv-tab-active');
+        var panes = card.querySelectorAll('.iv-pane');
+        for(var j=0;j<panes.length;j++){
+          panes[j].style.display = (panes[j].getAttribute('data-iv-exp')===exp) ? 'block' : 'none';
+        }
+      }
+    });
+  }
+  var svgs = card.querySelectorAll('.iv-smile');
+  for(var s=0;s<svgs.length;s++){ wireSmile(svgs[s]); }
+
+  function wireSmile(svg){
+    var g = (svg.getAttribute('data-geom')||'').split('|');
+    if(g.length<8){ return; }
+    var x0=parseFloat(g[0]),x1=parseFloat(g[1]),y0=parseFloat(g[2]),y1=parseFloat(g[3]);
+    var kmin=parseFloat(g[4]),kmax=parseFloat(g[5]),ivmin=parseFloat(g[6]),ivmax=parseFloat(g[7]);
+    var spot = (g.length>8) ? parseFloat(g[8]) : 0;
+    var raw=(svg.getAttribute('data-pts')||'').split(' ');
+    var pts=[];
+    for(var i=0;i<raw.length;i++){
+      var kv=raw[i].split(':');
+      if(kv.length===2){ pts.push([parseFloat(kv[0]),parseFloat(kv[1])]); }
+    }
+    if(pts.length<2){ return; }
+    var pane = svg.closest ? svg.closest('.iv-pane') : null;
+    var readout = pane ? pane.querySelector('.iv-readout') : null;
+    var cross = svg.querySelector('.iv-cross');
+    var dot = svg.querySelector('.iv-dot');
+    var VBW = 320;
+
+    function sx(k){ return x0 + (k-kmin)/(kmax-kmin)*(x1-x0); }
+    function sy(v){ return y1 - (v-ivmin)/(ivmax-ivmin)*(y1-y0); }
+
+    function update(clientX){
+      var rect = svg.getBoundingClientRect();
+      if(rect.width<=0){ return; }
+      var localX = (clientX - rect.left)/rect.width*VBW;
+      if(localX<x0){ localX=x0; }
+      if(localX>x1){ localX=x1; }
+      var kx = kmin + (localX-x0)/(x1-x0)*(kmax-kmin);
+      var best=0, bd=1e18;
+      for(var i=0;i<pts.length;i++){
+        var d=Math.abs(pts[i][0]-kx);
+        if(d<bd){ bd=d; best=i; }
+      }
+      var k=pts[best][0], v=pts[best][1];
+      var px=sx(k), py=sy(v);
+      if(cross){ cross.setAttribute('x1',px); cross.setAttribute('x2',px); cross.setAttribute('opacity','0.7'); }
+      if(dot){ dot.setAttribute('cx',px); dot.setAttribute('cy',py); dot.setAttribute('opacity','1'); }
+      if(readout){
+        var side = (spot && k<spot) ? 'P' : ((spot && k>spot) ? 'C' : '');
+        readout.innerHTML = '<b>'+side+Math.round(k).toLocaleString()+'</b> ・ IV <b>'+(v*100).toFixed(1)+'%</b>';
       }
     }
-  });
+    function hide(){
+      if(cross){ cross.setAttribute('opacity','0'); }
+      if(dot){ dot.setAttribute('opacity','0'); }
+    }
+    svg.addEventListener('click', function(ev){ ev.stopPropagation(); });
+    svg.addEventListener('touchstart', function(ev){ ev.stopPropagation(); if(ev.touches[0]){ ev.preventDefault(); update(ev.touches[0].clientX); } }, {passive:false});
+    svg.addEventListener('touchmove', function(ev){ ev.stopPropagation(); if(ev.touches[0]){ ev.preventDefault(); update(ev.touches[0].clientX); } }, {passive:false});
+    svg.addEventListener('mousemove', function(ev){ update(ev.clientX); });
+    svg.addEventListener('mouseleave', hide);
+  }
 };
 """
+
 
 
 def _load_iv(data_dir='data'):
@@ -1149,7 +1209,9 @@ def _kshort(k):
 
 
 def _iv_smile_svg(e):
-    """Compact OTM IV smile as inline SVG (double-quoted attrs, single line)."""
+    """Compact OTM IV smile as inline SVG with touch/hover crosshair support.
+    Embeds data-geom (x0|x1|y0|y1|kmin|kmax|ivmin|ivmax|spot) and data-pts
+    (strike:iv ...) so init_iv can map a finger position to the nearest strike."""
     spot = e.get('underlying') or 0
     pts = []
     for p in e.get('smile', []):
@@ -1177,8 +1239,10 @@ def _iv_smile_svg(e):
         return y1 - (v - ivmin) / (ivmax - ivmin) * (y1 - y0)
 
     poly = ' '.join('%.1f,%.1f' % (sx(k), sy(v)) for k, v in pts)
+    geom = '%g|%g|%g|%g|%d|%d|%g|%g|%d' % (x0, x1, y0, y1, kmin, kmax, ivmin, ivmax, int(spot))
+    dpts = ' '.join('%d:%.4f' % (k, v) for k, v in pts)
     o = []
-    o.append('<svg class="iv-smile" viewBox="0 0 %g %g" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' % (W, H))
+    o.append('<svg class="iv-smile" viewBox="0 0 %g %g" preserveAspectRatio="xMidYMid meet" data-geom="%s" data-pts="%s" xmlns="http://www.w3.org/2000/svg">' % (W, H, geom, dpts))
     o.append('<line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#2a3142" stroke-width="1"/>' % (x0, y1, x1, y1))
     o.append('<line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#2a3142" stroke-width="1"/>' % (x0, y0, x0, y1))
     if kmin <= spot <= kmax:
@@ -1191,6 +1255,9 @@ def _iv_smile_svg(e):
     o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%.0f%%</text>' % (x0 - 3, y1, ivmin * 100))
     o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="start">%s</text>' % (x0, H - 4, _kshort(kmin)))
     o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%s</text>' % (x1, H - 4, _kshort(kmax)))
+    # crosshair (hidden until touch/hover)
+    o.append('<line class="iv-cross" x1="0" y1="%g" x2="0" y2="%g" stroke="#e5e7eb" stroke-width="0.8" opacity="0"/>' % (y0, y1))
+    o.append('<circle class="iv-dot" cx="0" cy="0" r="3.4" fill="#a5b4fc" stroke="#fff" stroke-width="0.8" opacity="0"/>')
     o.append('</svg>')
     return ''.join(o)
 
@@ -1234,6 +1301,7 @@ def _detail_iv_js(iv):
         sk_s = ('+%.1f' % sk) if (sk is not None and sk >= 0) else (('%.1f' % sk) if sk is not None else '-')
         spot = e.get('underlying') or 0
         js += "h+='<div class=\"iv-stat\">ATM IV <b>%.1f%%</b>　プットスキュー(10%%) <b>%spt</b>　原資産 <b>%s</b></div>';" % (atm, sk_s, fnum(int(spot)))
+        js += "h+='<div class=\"iv-readout\">指でグラフをなぞると 価格帯 / IV を表示</div>';"
         svg = _iv_smile_svg(e)
         if svg:
             js += "h+='" + svg + "';"
