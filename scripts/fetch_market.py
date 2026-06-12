@@ -294,8 +294,14 @@ def run(args):
             basis_signal = 'フラット'
         print('[fetch] basis = futures(%.0f) - spot(%.0f) = %+d (%s)' % (futures, spot, basis, basis_signal), file=sys.stderr)
 
-    # ATM basis prefers the futures close, falls back to spot
-    nikkei_for_atm = futures if futures else spot
+    # ATM prefers the CASH index close (^nkx, JST 15:00), which tracks the OSE
+    # Nikkei 225 large-futures day-session close (15:15) within a few hundred yen.
+    # NIY=F is the CME continuous future: it settles in the US session (later than
+    # the OSE close) and rolls on a different schedule, so on a trending day it can
+    # diverge from the OSE 先物ラージ終値 by 1,000+ (e.g. an evening rally after the
+    # OSE close). We therefore use it only as an indicative reference / basis, not
+    # as the ATM source. Falls back to futures only if the cash index is missing.
+    nikkei_for_atm = spot if spot else futures
 
     # VI (try multiple sources)
     vi = fetch_stooq_vi()
@@ -316,7 +322,7 @@ def run(args):
     ohlc_history = fetch_stooq_ohlc_history(25)
 
     result = {
-        'nikkei_close': nikkei_for_atm,   # value used downstream for ATM (futures preferred)
+        'nikkei_close': nikkei_for_atm,   # value used downstream for ATM (cash index preferred; tracks OSE close)
         'nikkei_spot': spot,              # cash index close
         'futures_close': futures,         # front-month futures close
         'futures_source': fut_source,
