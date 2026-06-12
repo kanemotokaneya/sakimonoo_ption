@@ -47,14 +47,6 @@ a{color:inherit;text-decoration:none}
 @media(max-width:768px){.mobile-nav{display:flex}}
 footer{text-align:center;padding:24px;color:var(--muted);font-size:11px;border-top:1px solid var(--border);margin-top:30px}
 footer a{color:var(--accent);text-decoration:none;margin:0 8px}
-
-/* --- 折りたたみ（プルダウン） --- */
-.sq-header{cursor:pointer;user-select:none}
-.sq-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.sq-count{font-family:'DM Mono';font-size:10px;color:var(--sub)}
-.sq-chev{font-size:13px;color:var(--sub);transition:transform .2s;line-height:1}
-.sq-section.collapsed .sq-chev{transform:rotate(-90deg)}
-.sq-section.collapsed div[id]{display:none}
 </style>
 </head>
 <body>
@@ -87,16 +79,14 @@ footer a{color:var(--accent);text-decoration:none;margin:0 8px}
 </div>
 
 <!-- ═══ 6月限SQサイクル（2026/3/16〜6/12） ═══ -->
-
-<!-- ======== 7月ミニSQ サイクル ======== -->
 <div class="sq-section">
 <div class="sq-header">
-<span class="sq-badge current">7月ミニSQ</span>
-<span class="sq-meta">SQ日: 2026/07/10（金）</span>
+<span class="sq-badge current">6月限SQ</span>
+<span class="sq-meta">SQ日: 2026/06/12（金）</span>
 <span class="sq-range">期間中</span>
 </div>
 
-<div id="archive-list-202607">
+<div id="archive-list-0625">
     <a href="JPX_portal_20260612.html" class="entry">
       <span class="entry-date">2026.06.12</span>
       <span class="entry-weekday">金</span>
@@ -104,20 +94,9 @@ footer a{color:var(--accent);text-decoration:none;margin:0 8px}
         <span class="etag etag-nikkei">66,970</span>
         <span class="etag etag-vi high">VI 38.22</span>
       </span>
-      <span class="entry-note" style="display:block;font-size:10px;color:#7c879b;margin-top:4px;line-height:1.5;font-family:DM Mono,monospace">ATM67,000 MaxPain64,000　注目: C72,000 +2,502 C69,000 +2,217 P62,000 +338 JNET P65,500(バークレイ400)</span>
+      <span class="entry-note" style="display:block;font-size:10px;color:#7c879b;margin-top:4px;line-height:1.5;font-family:DM Mono,monospace">ATM67,000 MaxPain64,000　注目: C72,000 +2,502 C69,000 +2,217 P62,000 +338 JNET P65,500 400枚(4社)</span>
       <span class="entry-arrow">&rarr;</span>
     </a>
-</div>
-</div>
-
-<div class="sq-section">
-<div class="sq-header">
-<span class="sq-badge">6月限SQ</span>
-<span class="sq-meta">SQ日: 2026/06/12（金）</span>
-<span class="sq-range">期間中</span>
-</div>
-
-<div id="archive-list-0625">
 
     <a href="JPX_portal_20260611.html" class="entry">
       <span class="entry-date">2026.06.11</span>
@@ -126,7 +105,7 @@ footer a{color:var(--accent);text-decoration:none;margin:0 8px}
         <span class="etag etag-nikkei">64,640</span>
         <span class="etag etag-vi">VI -</span>
       </span>
-      <span class="entry-note" style="display:block;font-size:10px;color:#7c879b;margin-top:4px;line-height:1.5;font-family:DM Mono,monospace">ATM64,500 MaxPain62,500　注目: C69,000 +1,056 C65,000 +527 P65,000 -435 JNET C64,500(野村1400)</span>
+      <span class="entry-note" style="display:block;font-size:10px;color:#7c879b;margin-top:4px;line-height:1.5;font-family:DM Mono,monospace">ATM64,500 MaxPain62,500　注目: C69,000 +1,056 C65,000 +527 P65,000 -435 JNET C64,500 1,400枚(5社)</span>
       <span class="entry-arrow">&rarr;</span>
     </a>
 
@@ -846,36 +825,5 @@ footer a{color:var(--accent);text-decoration:none;margin:0 8px}
 <span style="font-size:10px">JPX Derivatives Intelligence © 2026 — Not investment advice</span>
 </footer>
 
-<script>
-(function(){
-  function init(){
-    var secs=document.querySelectorAll('.sq-section');
-    for(var i=0;i<secs.length;i++){
-      (function(sec){
-        var hdr=sec.querySelector('.sq-header');
-        if(!hdr||hdr.getAttribute('data-collapsible'))return;
-        hdr.setAttribute('data-collapsible','1');
-        var right=document.createElement('span');
-        right.className='sq-right';
-        var list=sec.querySelector('div[id]');
-        if(list){
-          var n=list.querySelectorAll('.entry').length;
-          var c=document.createElement('span');
-          c.className='sq-count'; c.textContent=n+'件';
-          right.appendChild(c);
-        }
-        var chev=document.createElement('span');
-        chev.className='sq-chev'; chev.textContent='▾';
-        right.appendChild(chev);
-        hdr.appendChild(right);
-        if(!sec.querySelector('.sq-badge.current')) sec.classList.add('collapsed');
-        hdr.addEventListener('click', function(){ sec.classList.toggle('collapsed'); });
-      })(secs[i]);
-    }
-  }
-  if(document.readyState!=='loading') init();
-  else document.addEventListener('DOMContentLoaded', init);
-})();
-</script>
 </body>
 </html>
