@@ -179,10 +179,12 @@ def extract_weekly_trend(data_dir, max_weeks=5):
         week_data[date_str] = {}
         for sec_key, (s, e) in sections.items():
             week_data[date_str][sec_key] = extract_section_nets(ws, s, e)
-            if sec_key not in limgetsu_per_section:
-                lim = detect_first_limgetsu(ws, s)
-                if lim:
-                    limgetsu_per_section[sec_key] = lim
+            # Use the LATEST week's limgetsu (candidates are ascending, so the
+            # last file processed = current front contract). Earlier code locked
+            # this to the oldest week, which went stale across an SQ roll.
+            lim = detect_first_limgetsu(ws, s)
+            if lim:
+                limgetsu_per_section[sec_key] = lim
 
     # Build per-section participant rows
     output = {
