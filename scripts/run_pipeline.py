@@ -176,6 +176,18 @@ def main():
         print('[WARN] extract_iv.py failed (IVスマイル card may be empty)', file=sys.stderr)
         print(result.stderr, file=sys.stderr)
 
+    # Step 2.8: Accumulate the daily IV / skew time-series (IV推移 card). Reads
+    # the ose<date>tp.csv files present and upserts into iv_timeseries.json, so
+    # the history grows one point per day. Non-fatal.
+    ivts_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_iv_timeseries.py'),
+                '--data-dir', datadir,
+                '--out', os.path.join(datadir, 'iv_timeseries.json')]
+    result = subprocess.run(ivts_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_iv_timeseries.py failed (IV推移 card may be stale)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')
     render_cmd = [sys.executable, os.path.join(scripts_dir, 'render.py'),

@@ -1322,7 +1322,200 @@ def _detail_iv_js(iv):
 
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None, iv=None):
+# ============================================================
+# IV推移 カード (extract_iv_timeseries.py → iv_timeseries.json)
+# ============================================================
+IV_TREND_CSS = r"""
+.ivt-tabs{display:flex;gap:0;margin:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.ivt-tab{padding:7px 14px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer}
+.ivt-tab.ivt-tab-active{color:var(--accent);border-bottom-color:var(--accent)}
+.ivt-chart{width:100%;height:auto;display:block;margin:4px 0}
+.ivt-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:10px;color:var(--sub);padding:2px 4px 6px}
+.ivt-legend span{display:inline-flex;align-items:center;gap:4px}
+.ivt-dot{width:9px;height:3px;display:inline-block;border-radius:2px}
+.ivt-tbl{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);display:flex;flex-wrap:wrap;gap:6px 16px;padding:6px 4px}
+.ivt-tbl b{color:var(--accent)}
+.ivt-note{font-size:10px;color:var(--sub);padding:6px 4px;line-height:1.6;border-top:1px solid var(--border)}
+"""
+
+IV_TREND_JS = r"""
+window.init_ivtrend = function(card){
+  var tabs = card.querySelector('.ivt-tabs');
+  if(!tabs) return;
+  tabs.addEventListener('click', function(ev){
+    var t = ev.target;
+    if(t.classList && t.classList.contains('ivt-tab')){
+      ev.stopPropagation();
+      var key = t.getAttribute('data-ivt');
+      var btns = tabs.querySelectorAll('.ivt-tab');
+      for(var i=0;i<btns.length;i++){ btns[i].classList.remove('ivt-tab-active'); }
+      t.classList.add('ivt-tab-active');
+      var panes = card.querySelectorAll('.ivt-pane');
+      for(var j=0;j<panes.length;j++){
+        panes[j].style.display = (panes[j].getAttribute('data-ivt')===key) ? 'block' : 'none';
+      }
+    }
+  });
+};
+"""
+
+_IVT_COLORS = ['#818cf8', '#34d399', '#fbbf24', '#f472b6']
+
+
+def _ivt_date_label(d):
+    # '20260612' -> '6/12'
+    if len(d) == 8:
+        return '%d/%d' % (int(d[4:6]), int(d[6:8]))
+    return d
+
+
+def _iv_trend_svg(dates, series, y_suffix='%'):
+    """Multi-line chart over dates. series = list of {name,color,values:[..None..]}.
+    Single-line SVG string (double-quoted attrs, no single quotes)."""
+    vals = [v for s in series for v in s['values'] if v is not None]
+    if len(dates) < 1 or not vals:
+        return ''
+    vmin, vmax = min(vals), max(vals)
+    if vmax == vmin:
+        vmax = vmin + 1.0
+    pad = (vmax - vmin) * 0.15
+    vmin -= pad
+    vmax += pad
+    W, H = 340.0, 184.0
+    x0, x1 = 42.0, 328.0
+    y0, y1 = 14.0, 150.0
+    n = len(dates)
+
+    def sx(i):
+        return x0 if n == 1 else x0 + i / (n - 1.0) * (x1 - x0)
+
+    def sy(v):
+        return y1 - (v - vmin) / (vmax - vmin) * (y1 - y0)
+
+    o = []
+    o.append('<svg class="ivt-chart" viewBox="0 0 %g %g" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">' % (W, H))
+    o.append('<line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#2a3142" stroke-width="1"/>' % (x0, y1, x1, y1))
+    o.append('<line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#2a3142" stroke-width="1"/>' % (x0, y0, x0, y1))
+    # y labels (max top, min bottom)
+    o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%.0f%s</text>' % (x0 - 3, y0 + 5, vmax, y_suffix))
+    o.append('<text x="%g" y="%g" fill="#5b647a" font-size="8" text-anchor="end">%.0f%s</text>' % (x0 - 3, y1, vmin, y_suffix))
+    # x date labels
+    for i, d in enumerate(dates):
+        o.append('<text x="%.1f" y="%g" fill="#5b647a" font-size="8" text-anchor="middle">%s</text>' % (sx(i), H - 4, _ivt_date_label(d)))
+    # series polylines + dots
+    for s in series:
+        col = s.get('color', '#818cf8')
+        pts = [(sx(i), sy(v)) for i, v in enumerate(s['values']) if v is not None]
+        if len(pts) >= 2:
+            poly = ' '.join('%.1f,%.1f' % (x, y) for x, y in pts)
+            o.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="2"/>' % (poly, col))
+        for x, y in pts:
+            o.append('<circle cx="%.1f" cy="%.1f" r="2.6" fill="%s"/>' % (x, y, col))
+    o.append('</svg>')
+    return ''.join(o)
+
+
+def _load_iv_ts(data_dir='data'):
+    path = os.path.join(data_dir, 'iv_timeseries.json')
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print('[render.py] iv_timeseries.json load error: %s' % e)
+        return None
+
+
+def _mlabel(exp):
+    return '%d月' % int(exp[4:6]) if len(exp) == 6 else exp
+
+
+def _preview_ivtrend(ivts):
+    if not ivts or ivts.get('error') or not ivts.get('dates'):
+        return '<span class="mm-label">IV推移データなし</span>'
+    dates = ivts['dates']
+    front = ivts.get('front')
+    arr = (ivts.get('atm_iv') or {}).get(front) or []
+    sk = (ivts.get('skew') or {}).get(front) or []
+    last_iv = next((v for v in reversed(arr) if v is not None), None)
+    last_sk = next((v for v in reversed(sk) if v is not None), None)
+    h = '<div class="mini-metrics">'
+    h += '<div class="mini-metric"><div class="mm-label">ATM IV(%s)</div><div class="mm-value" style="color:var(--yellow)">%s</div></div>' % (_mlabel(front), ('%.1f%%' % last_iv) if last_iv is not None else '-')
+    h += '<div class="mini-metric"><div class="mm-label">スキュー</div><div class="mm-value" style="color:var(--put)">%s</div></div>' % (('%+.1f' % last_sk) if last_sk is not None else '-')
+    h += '<div class="mini-metric"><div class="mm-label">日数</div><div class="mm-value">%d</div></div>' % len(dates)
+    h += '</div>'
+    return h
+
+
+def _detail_ivtrend_js(ivts):
+    if not ivts or ivts.get('error') or not ivts.get('dates'):
+        return ("var h='';h+='<div class=\"oi-empty\">IV推移データなし — extract_iv_timeseries.py を実行し "
+                "ose<date>tp.csv を日次で蓄積してください</div>';return h;")
+    dates = ivts['dates']
+    atm = ivts.get('atm_iv') or {}
+    skew = ivts.get('skew') or {}
+    front = ivts.get('front')
+    chart_exps = ivts.get('chart_expiries') or sorted(atm.keys())
+
+    # ATM IV series (one line per expiry)
+    atm_series = []
+    for i, exp in enumerate(chart_exps):
+        atm_series.append({'name': _mlabel(exp), 'color': _IVT_COLORS[i % len(_IVT_COLORS)], 'values': atm.get(exp) or []})
+    svg_atm = _iv_trend_svg(dates, atm_series, '%')
+    # skew series (front)
+    sk_series = [{'name': _mlabel(front) + 'スキュー', 'color': '#f87171', 'values': skew.get(front) or []}]
+    svg_sk = _iv_trend_svg(dates, sk_series, '')
+
+    def legend(series):
+        s = "h+='<div class=\"ivt-legend\">';"
+        for sr in series:
+            s += "h+='<span><span class=\"ivt-dot\" style=\"background:%s\"></span>%s</span>';" % (sr['color'], sr['name'])
+        s += "h+='</div>';"
+        return s
+
+    js = "var h='';"
+    js += "h+='<div class=\"ivt-tabs\">';"
+    js += "h+='<button class=\"ivt-tab ivt-tab-active\" data-ivt=\"atm\" type=\"button\">ATM IV推移</button>';"
+    js += "h+='<button class=\"ivt-tab\" data-ivt=\"skew\" type=\"button\">スキュー推移</button>';"
+    js += "h+='</div>';"
+    # ATM pane
+    js += "h+='<div class=\"ivt-pane\" data-ivt=\"atm\" style=\"display:block\">';"
+    js += legend(atm_series)
+    if svg_atm:
+        js += "h+='" + svg_atm + "';"
+    js += "h+='</div>';"
+    # skew pane
+    js += "h+='<div class=\"ivt-pane\" data-ivt=\"skew\" style=\"display:none\">';"
+    if svg_sk:
+        js += "h+='" + svg_sk + "';"
+    js += "h+='<div class=\"ivt-note\">スキュー(10%%下IV−10%%上IV)が立つほど下方ヘッジ需要・暴落警戒が強い。</div>';"
+    js += "h+='</div>';"
+    # latest values + WoW table
+    def last_two(arr):
+        xs = [(i, v) for i, v in enumerate(arr) if v is not None]
+        if not xs:
+            return None, None
+        if len(xs) == 1:
+            return xs[-1][1], None
+        return xs[-1][1], xs[-1][1] - xs[-2][1]
+    js += "h+='<div class=\"ivt-tbl\">';"
+    for exp in chart_exps:
+        cur, ch = last_two(atm.get(exp) or [])
+        if cur is not None:
+            chs = (' (%+.1f)' % ch) if ch is not None else ''
+            js += "h+='<span>%s ATM <b>%.1f%%</b>%s</span>';" % (_mlabel(exp), cur, chs)
+    scur, sch = last_two(skew.get(front) or [])
+    if scur is not None:
+        schs = (' (%+.1f)' % sch) if sch is not None else ''
+        js += "h+='<span>スキュー <b>%+.1f</b>%s</span>';" % (scur, schs)
+    js += "h+='</div>';"
+    js += "return h;"
+    return js
+
+
+
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1343,7 +1536,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None):
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS)
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS)
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1426,6 +1619,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None):
             ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
             ('iv', '📐', 'IVスマイル', _preview_iv(iv), _detail_iv_js(iv), DB),
+            ('ivtrend', '📈', 'IV推移', _preview_ivtrend(ivts), _detail_ivtrend_js(ivts), DB),
         ]),
         ('参加者・手口', [
             ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
@@ -1465,6 +1659,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None):
     h += OI_CHART_JS
     h += WEEKLY_TREND_JS
     h += IV_CARD_JS
+    h += IV_TREND_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2405,6 +2600,7 @@ def run(args):
     oi_ts = _load_oi_timeseries(data_dir)
     wt = _load_weekly_trend(data_dir)
     iv = _load_iv(data_dir)
+    ivts = _load_iv_ts(data_dir)
     if iv and not iv.get('error'):
         print('[render.py] Loaded iv.json: %d expiries' % len(iv.get('expiries', [])))
     else:
@@ -2428,7 +2624,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
