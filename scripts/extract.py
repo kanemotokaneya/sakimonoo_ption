@@ -2346,7 +2346,14 @@ def run(args):
         # future and computed futures-spot), so it is trustworthy and any gap to
         # the weekly proxy is just the proxy lagging a fast move.
         has_real_futures = (getattr(args, 'basis', None) is not None)
-        if diff >= ATM_WARN_THRESHOLD and not has_real_futures:
+        # The weekly proxy is published only weekly and lags fast moves, so a
+        # multi-thousand-yen gap after a genuine trend (e.g. a +5% rally) is
+        # EXPECTED and must not warn. When the close is from a live/trusted feed
+        # (fetch_market close or --nikkei), only an implausibly large gap — one
+        # that suggests a wrong feed rather than a real move — should trip it.
+        live_close = atm_source in ('nikkei_close', 'settlement', 'futures_close')
+        threshold = 7000 if live_close else ATM_WARN_THRESHOLD
+        if diff >= threshold and not has_real_futures:
             atm_warning = ('供給ATM %s が週次ストライク中心 %s と %s円乖離。'
                            '週次は数日前のため急変動時はズレますが、念のため終値が'
                            '極端に誤っていないか確認してください。'
