@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>P&L Simulator 2026/6/15（月）</title>
+<title>P&L Simulator 2026/6/16（火）</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 
@@ -127,14 +127,20 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </head>
 <body>
 <div class="topbar"><span class="logo">P&L Simulator</span><nav><a href="index.html">← ダッシュボード</a><a href="weekly_trend.html">週次推移</a><a href="archive.html">アーカイブ</a></nav></div>
-<div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/6/15（月） / ATM 69,500 / VI None / SQまで19日</div></div>
+<div class="hero"><h1>P&L Simulator</h1><div class="sub">2026/6/16（火） / ATM 70,000 / VI 31.09 / SQまで18日</div></div>
 <div class="kpi-strip">
-  <div class="kpi"><div class="label">ATM</div><div class="value">69,500</div></div>
+  <div class="kpi"><div class="label">ATM</div><div class="value">70,000</div></div>
   <div class="kpi"><div class="label">SQ</div><div class="value">2026-07-10</div></div>
-  <div class="kpi"><div class="label">残り営業日</div><div class="value">19</div></div>
+  <div class="kpi"><div class="label">残り営業日</div><div class="value">18</div></div>
 </div>
 <div class="sim-section">
 <div style="margin:12px 0"><div style="color:var(--sub);font-size:11px;margin-bottom:6px">プリセット戦略</div>
+<span class="preset-btn" data-preset="0">Iron Condor</span>
+<span class="preset-btn" data-preset="1">Put Credit Spread</span>
+<span class="preset-btn" data-preset="2">Call Credit Spread</span>
+<span class="preset-btn" data-preset="3">Short Strangle + 先物ヘッジ</span>
+<span class="preset-btn" data-preset="4">P売り + mini先物ヘッジ</span>
+<span class="preset-btn" data-preset="5">ミニ週次θハーベスト</span>
 </div>
 <div style="margin:12px 0"><div style="display:flex;gap:8px;margin-bottom:8px">
   <button class="btn-outline btn" id="add-put">+ プット</button>
@@ -152,8 +158,8 @@ tr.atm-row{background:rgba(251,191,36,.08)}
 </div>
 <div class="footer"><a href="index.html">ダッシュボード</a> <a href="weekly_trend.html">週次推移</a> <a href="archive.html">アーカイブ</a></div>
 <script>
-var ATM=69500,VI=0,T=0.076,DAYS=19;
-var PRESETS=[];
+var ATM=70000,VI=31.09,T=0.072,DAYS=18;
+var PRESETS=[{"name": "Iron Condor", "legs": [{"type": "put", "side": "short", "strike": 68000, "qty": 1, "multiplier": 1000, "premium": 1432.9}, {"type": "put", "side": "long", "strike": 66000, "qty": 1, "multiplier": 1000, "premium": 802.5}, {"type": "call", "side": "short", "strike": 72000, "qty": 1, "multiplier": 1000, "premium": 1495.6}, {"type": "call", "side": "long", "strike": 74000, "qty": 1, "multiplier": 1000, "premium": 907.7}]}, {"name": "Put Credit Spread", "legs": [{"type": "put", "side": "short", "strike": 68000, "qty": 1, "multiplier": 1000, "premium": 1432.9}, {"type": "put", "side": "long", "strike": 66000, "qty": 1, "multiplier": 1000, "premium": 802.5}]}, {"name": "Call Credit Spread", "legs": [{"type": "call", "side": "short", "strike": 72000, "qty": 1, "multiplier": 1000, "premium": 1495.6}, {"type": "call", "side": "long", "strike": 74000, "qty": 1, "multiplier": 1000, "premium": 907.7}]}, {"name": "Short Strangle + 先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 68000, "qty": 1, "multiplier": 1000, "premium": 1432.9}, {"type": "call", "side": "short", "strike": 72000, "qty": 1, "multiplier": 1000, "premium": 1495.6}, {"type": "futures", "side": "short", "entry": 70000, "qty": 0, "multiplier": 100}]}, {"name": "P売り + mini先物ヘッジ", "legs": [{"type": "put", "side": "short", "strike": 68000, "qty": 1, "multiplier": 1000, "premium": 1432.9}, {"type": "futures", "side": "short", "entry": 68500, "qty": 3, "multiplier": 100}]}, {"name": "ミニ週次θハーベスト", "legs": [{"type": "put", "side": "short", "strike": 68500, "qty": 10, "multiplier": 100, "premium": 651.4}, {"type": "call", "side": "short", "strike": 71500, "qty": 10, "multiplier": 100, "premium": 675.9}]}];
 
 var legs=[];var legId=0;
 function normCdf(x){if(x>=0){var t=1/(1+0.2316419*x)}else{var t=1/(1-0.2316419*x)}var d=0.3989422804014327;var p=((((1.330274429*t-1.821255978)*t+1.781477937)*t-0.356563782)*t+0.319381530)*t;if(x>=0)return 1-d*Math.exp(-0.5*x*x)*p;return d*Math.exp(-0.5*x*x)*p;}
