@@ -15,27 +15,27 @@
       "fut_participants": "20260612_indexfut_oi_by_tp.xlsx",
       "stock_vol": "stock_val_1_260402.xls"
     },
-    "atm": 70000,
+    "atm": 69000,
     "ohlc": {},
     "atm_source": "nikkei_close",
     "atm_weekly_proxy": 66000,
     "atm_oi_center": 57500,
-    "atm_warning": "供給ATM 70000 が週次ストライク中心 66000 と 4000円乖離。週次は数日前のため急変動時はズレますが、念のため終値が極端に誤っていないか確認してください。",
-    "nikkei_close": 69815.0,
+    "atm_warning": null,
+    "nikkei_close": 69040.0,
     "vi": 31.09
   },
   "s01": {
-    "nikkei_close": 69815.0,
+    "nikkei_close": 69040.0,
     "vi": 31.09,
     "range_1d": {
-      "width": 1373,
-      "low": 68442,
-      "high": 71188
+      "width": 1358,
+      "low": 67682,
+      "high": 70398
     },
     "range_1w": {
-      "width": 3010,
-      "low": 66805,
-      "high": 72825
+      "width": 2977,
+      "low": 66063,
+      "high": 72017
     }
   },
   "s02": {
@@ -555,9 +555,25 @@
     }
   ],
   "s06": {
-    "atm": 70000,
-    "atm_round": 70000,
+    "atm": 69000,
+    "atm_round": 69000,
     "distribution": [
+      {
+        "strike": 64000,
+        "put_oi": 3899,
+        "put_change": 303,
+        "call_oi": 2895,
+        "call_change": 10,
+        "is_atm": false
+      },
+      {
+        "strike": 64500,
+        "put_oi": 1214,
+        "put_change": 6,
+        "call_oi": 189,
+        "call_change": -1,
+        "is_atm": false
+      },
       {
         "strike": 65000,
         "put_oi": 3471,
@@ -628,7 +644,7 @@
         "put_change": 107,
         "call_oi": 5217,
         "call_change": -8,
-        "is_atm": false
+        "is_atm": true
       },
       {
         "strike": 69500,
@@ -644,7 +660,7 @@
         "put_change": 498,
         "call_oi": 5366,
         "call_change": 337,
-        "is_atm": true
+        "is_atm": false
       },
       {
         "strike": 70500,
@@ -709,30 +725,30 @@
         "call_oi": 1061,
         "call_change": 126,
         "is_atm": false
-      },
-      {
-        "strike": 74500,
-        "put_oi": 0,
-        "put_change": 0,
-        "call_oi": 152,
-        "call_change": 24,
-        "is_atm": false
-      },
-      {
-        "strike": 75000,
-        "put_oi": 3,
-        "put_change": 1,
-        "call_oi": 3728,
-        "call_change": 1138,
-        "is_atm": false
       }
     ],
     "by_expiry": [
       {
         "expiry": "2607",
         "label": "2026年07月限",
-        "total_oi": 30833,
+        "total_oi": 31755,
         "distribution": [
+          {
+            "strike": 64000,
+            "put_oi": 1286,
+            "put_change": 301,
+            "call_oi": 1103,
+            "call_change": -1,
+            "is_atm": false
+          },
+          {
+            "strike": 64500,
+            "put_oi": 1011,
+            "put_change": 3,
+            "call_oi": 179,
+            "call_change": -1,
+            "is_atm": false
+          },
           {
             "strike": 65000,
             "put_oi": 2099,
@@ -803,7 +819,7 @@
             "put_change": 47,
             "call_oi": 4386,
             "call_change": -7,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 69500,
@@ -819,7 +835,7 @@
             "put_change": 98,
             "call_oi": 2092,
             "call_change": 86,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 70500,
@@ -884,22 +900,6 @@
             "call_oi": 384,
             "call_change": 126,
             "is_atm": false
-          },
-          {
-            "strike": 74500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 152,
-            "call_change": 24,
-            "is_atm": false
-          },
-          {
-            "strike": 75000,
-            "put_oi": 2,
-            "put_change": 1,
-            "call_oi": 2503,
-            "call_change": 989,
-            "is_atm": false
           }
         ],
         "top_puts": [
@@ -950,8 +950,24 @@
       {
         "expiry": "2608",
         "label": "2026年08月限",
-        "total_oi": 8721,
+        "total_oi": 9794,
         "distribution": [
+          {
+            "strike": 64000,
+            "put_oi": 1303,
+            "put_change": 2,
+            "call_oi": 425,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 64500,
+            "put_oi": 3,
+            "put_change": 3,
+            "call_oi": 10,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 65000,
             "put_oi": 532,
@@ -1022,7 +1038,7 @@
             "put_change": 0,
             "call_oi": 400,
             "call_change": -1,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 69500,
@@ -1038,7 +1054,7 @@
             "put_change": 0,
             "call_oi": 1620,
             "call_change": 251,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 70500,
@@ -1103,22 +1119,6 @@
             "call_oi": 209,
             "call_change": 0,
             "is_atm": false
-          },
-          {
-            "strike": 74500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 0,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 75000,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 668,
-            "call_change": 49,
-            "is_atm": false
           }
         ],
         "top_puts": [
@@ -1169,8 +1169,24 @@
       {
         "expiry": "2609",
         "label": "2026年09月限",
-        "total_oi": 18992,
+        "total_oi": 21311,
         "distribution": [
+          {
+            "strike": 64000,
+            "put_oi": 1310,
+            "put_change": 0,
+            "call_oi": 1367,
+            "call_change": 11,
+            "is_atm": false
+          },
+          {
+            "strike": 64500,
+            "put_oi": 200,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 65000,
             "put_oi": 840,
@@ -1241,7 +1257,7 @@
             "put_change": 60,
             "call_oi": 431,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 69500,
@@ -1257,7 +1273,7 @@
             "put_change": 400,
             "call_oi": 1654,
             "call_change": 0,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 70500,
@@ -1321,22 +1337,6 @@
             "put_change": 0,
             "call_oi": 468,
             "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 74500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 0,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 75000,
-            "put_oi": 1,
-            "put_change": 0,
-            "call_oi": 557,
-            "call_change": 100,
             "is_atm": false
           }
         ],
@@ -2613,7 +2613,7 @@
     "source": "live",
     "data_date": "20260616",
     "strike_matrix": {
-      "atm": 70000,
+      "atm": 69000,
       "atm_round": 66000,
       "strikes": [
         65750,
@@ -3403,7 +3403,7 @@
           "call_total_delta": 0
         }
       ],
-      "prev_date": "20260615"
+      "prev_date": "20260616"
     }
   },
   "s10": {
@@ -4620,153 +4620,153 @@
     },
     "otm_table": [
       {
-        "strike": 65000,
+        "strike": 64000,
         "type": "put",
         "label": "Deep OTM P",
         "otm_prob": {
-          "vi_minus10": 90.5,
-          "vi_current": 81.3,
-          "vi_plus10": 74.9
+          "vi_minus10": 90.8,
+          "vi_current": 81.6,
+          "vi_plus10": 75.2
         },
-        "bs_price": 577.0
+        "bs_price": 554.7
+      },
+      {
+        "strike": 66000,
+        "type": "put",
+        "label": "OTM P",
+        "otm_prob": {
+          "vi_minus10": 78.4,
+          "vi_current": 70.3,
+          "vi_plus10": 65.7
+        },
+        "bs_price": 1057.1
       },
       {
         "strike": 67000,
         "type": "put",
         "label": "OTM P",
         "otm_prob": {
-          "vi_minus10": 78.1,
-          "vi_current": 70.0,
-          "vi_plus10": 65.4
+          "vi_minus10": 69.8,
+          "vi_current": 63.8,
+          "vi_plus10": 60.5
         },
-        "bs_price": 1086.0
+        "bs_price": 1401.6
       },
       {
         "strike": 68000,
         "type": "put",
-        "label": "OTM P",
-        "otm_prob": {
-          "vi_minus10": 69.6,
-          "vi_current": 63.6,
-          "vi_plus10": 60.4
-        },
-        "bs_price": 1432.9
-      },
-      {
-        "strike": 69000,
-        "type": "put",
         "label": "Near OTM P",
         "otm_prob": {
-          "vi_minus10": 60.0,
-          "vi_current": 56.8,
-          "vi_plus10": 55.2
+          "vi_minus10": 60.2,
+          "vi_current": 56.9,
+          "vi_plus10": 55.3
         },
-        "bs_price": 1846.6
+        "bs_price": 1813.9
+      },
+      {
+        "strike": 71000,
+        "type": "call",
+        "label": "OTM C",
+        "otm_prob": {
+          "vi_minus10": 69.3,
+          "vi_current": 63.4,
+          "vi_plus10": 60.2
+        },
+        "bs_price": 1464.2
       },
       {
         "strike": 72000,
         "type": "call",
         "label": "OTM C",
         "otm_prob": {
-          "vi_minus10": 69.1,
-          "vi_current": 63.2,
-          "vi_plus10": 60.1
+          "vi_minus10": 77.4,
+          "vi_current": 69.5,
+          "vi_plus10": 65.0
         },
-        "bs_price": 1495.6
+        "bs_price": 1144.2
       },
       {
-        "strike": 73000,
-        "type": "call",
-        "label": "OTM C",
-        "otm_prob": {
-          "vi_minus10": 77.1,
-          "vi_current": 69.3,
-          "vi_plus10": 64.8
-        },
-        "bs_price": 1173.5
-      },
-      {
-        "strike": 75000,
+        "strike": 74000,
         "type": "call",
         "label": "Deep OTM C",
         "otm_prob": {
-          "vi_minus10": 88.9,
-          "vi_current": 79.6,
-          "vi_plus10": 73.4
+          "vi_minus10": 89.2,
+          "vi_current": 79.9,
+          "vi_plus10": 73.7
         },
-        "bs_price": 692.3
+        "bs_price": 668.7
       }
     ],
     "edge_scores": [
       {
         "zone": "Deep OTM コール",
         "type": "sell-c",
-        "range_low": 75000,
-        "range_high": 80000,
-        "wall_max_oi": 3728,
-        "wall_strike": 75000,
-        "wall_score": 0.493,
-        "otm_score": 0.592,
+        "range_low": 74000,
+        "range_high": 79000,
+        "wall_max_oi": 1061,
+        "wall_strike": 74000,
+        "wall_score": 0.14,
+        "otm_score": 0.598,
         "flow_score": 0.5,
         "participant_score": 0,
-        "total_score": 0.396,
+        "total_score": 0.31,
         "stars": 2
       },
       {
         "zone": "OTM コール",
         "type": "sell-c",
-        "range_low": 72000,
-        "range_high": 75000,
+        "range_low": 71000,
+        "range_high": 74000,
         "wall_max_oi": 7567,
         "wall_strike": 72000,
         "wall_score": 1.0,
-        "otm_score": 0.592,
+        "otm_score": 0.598,
         "flow_score": 0.5,
         "participant_score": 0,
-        "total_score": 0.523,
+        "total_score": 0.524,
         "stars": 3
       },
       {
         "zone": "ATM帯",
         "type": "atm",
-        "range_low": 68000,
-        "range_high": 72000,
-        "wall_max_oi": 1094,
-        "wall_strike": 69000,
-        "wall_score": 0.145,
-        "otm_score": 0.272,
+        "range_low": 67000,
+        "range_high": 71000,
+        "wall_max_oi": 1628,
+        "wall_strike": 67000,
+        "wall_score": 0.215,
+        "otm_score": 0.276,
         "flow_score": 0,
         "participant_score": 0,
-        "total_score": 0.104,
+        "total_score": 0.123,
         "stars": 1
       },
       {
         "zone": "OTM プット",
         "type": "sell-p",
-        "range_low": 65000,
-        "range_high": 69000,
-        "wall_max_oi": 3471,
-        "wall_strike": 65000,
-        "wall_score": 0.459,
-        "otm_score": 0.626,
+        "range_low": 64000,
+        "range_high": 68000,
+        "wall_max_oi": 3899,
+        "wall_strike": 64000,
+        "wall_score": 0.515,
+        "otm_score": 0.632,
         "flow_score": 0.5,
         "participant_score": 0,
-        "total_score": 0.396,
-        "stars": 2
+        "total_score": 0.412,
+        "stars": 3
       },
       {
         "zone": "Deep OTM プット",
         "type": "sell-p",
-        "range_low": 60000,
-        "range_high": 65000,
-        "wall_max_oi": 3471,
-        "wall_strike": 65000,
-        "wall_score": 0.459,
-        "otm_score": 0.626,
+        "range_low": 59000,
+        "range_high": 64000,
+        "wall_max_oi": 3899,
+        "wall_strike": 64000,
+        "wall_score": 0.515,
+        "otm_score": 0.632,
         "flow_score": 0.5,
         "participant_score": 0,
-        "total_score": 0.396,
-        "stars": 2
+        "total_score": 0.412,
+        "stars": 3
       }
     ],
     "presets": [
@@ -4776,34 +4776,34 @@
           {
             "type": "put",
             "side": "short",
-            "strike": 68000,
+            "strike": 67000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1432.9
+            "premium": 1401.6
           },
           {
             "type": "put",
             "side": "long",
-            "strike": 66000,
+            "strike": 65000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 802.5
+            "premium": 776.6
           },
           {
             "type": "call",
             "side": "short",
-            "strike": 72000,
+            "strike": 71000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1495.6
+            "premium": 1464.2
           },
           {
             "type": "call",
             "side": "long",
-            "strike": 74000,
+            "strike": 73000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 907.7
+            "premium": 881.2
           }
         ]
       },
@@ -4813,18 +4813,18 @@
           {
             "type": "put",
             "side": "short",
-            "strike": 68000,
+            "strike": 67000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1432.9
+            "premium": 1401.6
           },
           {
             "type": "put",
             "side": "long",
-            "strike": 66000,
+            "strike": 65000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 802.5
+            "premium": 776.6
           }
         ]
       },
@@ -4834,18 +4834,18 @@
           {
             "type": "call",
             "side": "short",
-            "strike": 72000,
+            "strike": 71000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1495.6
+            "premium": 1464.2
           },
           {
             "type": "call",
             "side": "long",
-            "strike": 74000,
+            "strike": 73000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 907.7
+            "premium": 881.2
           }
         ]
       },
@@ -4855,23 +4855,23 @@
           {
             "type": "put",
             "side": "short",
-            "strike": 68000,
+            "strike": 67000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1432.9
+            "premium": 1401.6
           },
           {
             "type": "call",
             "side": "short",
-            "strike": 72000,
+            "strike": 71000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1495.6
+            "premium": 1464.2
           },
           {
             "type": "futures",
             "side": "short",
-            "entry": 70000,
+            "entry": 69000,
             "qty": 0,
             "multiplier": 100
           }
@@ -4883,15 +4883,15 @@
           {
             "type": "put",
             "side": "short",
-            "strike": 68000,
+            "strike": 67000,
             "qty": 1,
             "multiplier": 1000,
-            "premium": 1432.9
+            "premium": 1401.6
           },
           {
             "type": "futures",
             "side": "short",
-            "entry": 68500,
+            "entry": 67500,
             "qty": 3,
             "multiplier": 100
           }
@@ -4903,18 +4903,18 @@
           {
             "type": "put",
             "side": "short",
-            "strike": 68500,
+            "strike": 67500,
             "qty": 10,
             "multiplier": 100,
-            "premium": 651.4
+            "premium": 635.2
           },
           {
             "type": "call",
             "side": "short",
-            "strike": 71500,
+            "strike": 70500,
             "qty": 10,
             "multiplier": 100,
-            "premium": 675.9
+            "premium": 659.6
           }
         ]
       }
@@ -4924,18 +4924,12 @@
     "pcr_volume": 1.85,
     "pcr_oi": 1.96,
     "pcr_signal": "強い弱気（逆張り買いシグナル）",
-    "max_pain": 65500,
-    "max_pain_total": 17837000,
-    "max_pain_diff": -4500,
+    "max_pain": 65000,
+    "max_pain_total": 21833500,
+    "max_pain_diff": -4000,
     "basis": null,
     "basis_signal": null,
     "walls_reinforced": [
-      {
-        "strike": 75000,
-        "type": "C",
-        "oi": 3728,
-        "change": 1138
-      },
       {
         "strike": 72000,
         "type": "C",
@@ -4953,6 +4947,12 @@
         "type": "C",
         "oi": 5366,
         "change": 337
+      },
+      {
+        "strike": 64000,
+        "type": "P",
+        "oi": 3899,
+        "change": 303
       }
     ],
     "walls_weakened": []
@@ -4973,36 +4973,36 @@
     },
     "fibonacci": {
       "trend": "uptrend",
-      "high": 70021,
+      "high": 69682,
       "low": 59292,
       "period": 20,
       "levels": {
-        "0%": 70021,
-        "23.6%": 67489,
-        "38.2%": 65922,
-        "50%": 64656,
-        "61.8%": 63391,
-        "78.6%": 61588,
+        "0%": 69682,
+        "23.6%": 67230,
+        "38.2%": 65713,
+        "50%": 64487,
+        "61.8%": 63261,
+        "78.6%": 61516,
         "100%": 59292
       },
       "label": "押し目水準（上昇トレンド中の戻り）"
     },
     "bollinger": {
       "period": 20,
-      "mean": 65047,
-      "std": 2368,
-      "upper3": 72153,
-      "upper2": 69784,
-      "upper1": 67416,
-      "lower1": 62679,
-      "lower2": 60310,
-      "lower3": 57942,
-      "current_sigma": 1.84,
-      "bandwidth": 14.56
+      "mean": 65043,
+      "std": 2360,
+      "upper3": 72124,
+      "upper2": 69764,
+      "upper1": 67403,
+      "lower1": 62682,
+      "lower2": 60322,
+      "lower3": 57962,
+      "current_sigma": 1.81,
+      "bandwidth": 14.52
     },
     "rsi": {
       "period": 14,
-      "value": 63.2,
+      "value": 63.0,
       "signal": "やや過熱"
     }
   },
