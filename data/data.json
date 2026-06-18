@@ -1,65 +1,55 @@
 {
   "metadata": {
-    "date": "20260617",
-    "date_formatted": "2026/6/17（水）",
+    "date": "20260618",
+    "date_formatted": "2026/6/18（木）",
     "sq_date": "2026-07-10",
     "sq_label": "7月ミニSQ（07/10）",
     "sq_badge": "7月ミニSQ",
-    "days_to_sq": 17,
+    "days_to_sq": 16,
     "major_month": "202607",
     "files_found": {
-      "open_interest": "20260617open_interest.xlsx",
-      "jnet": "20260617_volume_by_participant_whole_day_J-NET.xlsx",
-      "market_data": "20260617_derivatives_market_data_whole_day.xlsx",
+      "open_interest": "20260618open_interest.xlsx",
+      "jnet": "20260618_volume_by_participant_whole_day_J-NET.xlsx",
+      "market_data": "20260618_derivatives_market_data_whole_day.xlsx",
       "op_participants": "20260612_nk225op_oi_by_tp.xlsx",
       "fut_participants": "20260612_indexfut_oi_by_tp.xlsx",
       "stock_vol": "stock_val_1_260402.xls"
     },
-    "atm": 70000,
+    "atm": 71500,
     "ohlc": {},
     "atm_source": "nikkei_close",
     "atm_weekly_proxy": 66000,
-    "atm_oi_center": 57500,
+    "atm_oi_center": 58500,
     "atm_warning": null,
-    "nikkei_close": 70050.0,
-    "vi": 31.09
+    "nikkei_close": 71430.0,
+    "vi": null
   },
   "s01": {
-    "nikkei_close": 70050.0,
-    "vi": 31.09,
-    "range_1d": {
-      "width": 1377,
-      "low": 68673,
-      "high": 71427
-    },
-    "range_1w": {
-      "width": 3020,
-      "low": 67030,
-      "high": 73070
-    }
+    "nikkei_close": 71430.0,
+    "vi": null
   },
   "s02": {
     "nk225_large": {
       "months": [
         {
           "label": "2026年09月限",
-          "oi": 140423,
-          "change": -1826
+          "oi": 141069,
+          "change": 646
         },
         {
           "label": "2026年12月限",
-          "oi": 16890,
-          "change": -117
+          "oi": 16898,
+          "change": 8
         },
         {
           "label": "2027年03月限",
-          "oi": 602,
-          "change": -3
+          "oi": 606,
+          "change": 4
         },
         {
           "label": "2027年06月限",
           "oi": 1583,
-          "change": 1
+          "change": 0
         },
         {
           "label": "2027年09月限",
@@ -68,8 +58,8 @@
         },
         {
           "label": "2027年12月限",
-          "oi": 7301,
-          "change": -200
+          "oi": 7566,
+          "change": 265
         },
         {
           "label": "2028年06月限",
@@ -88,8 +78,8 @@
         },
         {
           "label": "2029年12月限",
-          "oi": 2325,
-          "change": 0
+          "oi": 2200,
+          "change": -125
         },
         {
           "label": "2030年06月限",
@@ -98,8 +88,8 @@
         },
         {
           "label": "2030年12月限",
-          "oi": 124,
-          "change": 0
+          "oi": 249,
+          "change": 125
         },
         {
           "label": "2031年06月限",
@@ -137,70 +127,70 @@
           "change": 0
         }
       ],
-      "total_oi": 173568,
-      "total_change": -2145
+      "total_oi": 174491,
+      "total_change": 923
     },
     "nk225_mini": {
       "months": [
         {
           "label": "2026年07月限",
-          "oi": 44279,
-          "change": 197
+          "oi": 42980,
+          "change": -1299
         },
         {
           "label": "2026年08月限",
-          "oi": 5436,
-          "change": -8
+          "oi": 6465,
+          "change": 1029
         },
         {
           "label": "2026年09月限",
-          "oi": 154851,
-          "change": -1129
+          "oi": 153355,
+          "change": -1496
         },
         {
           "label": "2026年10月限",
           "oi": 126,
-          "change": -10
+          "change": 0
         },
         {
           "label": "2026年12月限",
-          "oi": 3321,
-          "change": 92
+          "oi": 3511,
+          "change": 190
         },
         {
           "label": "2027年03月限",
-          "oi": 1327,
-          "change": -57
+          "oi": 1319,
+          "change": -8
         },
         {
           "label": "2027年06月限",
-          "oi": 809,
-          "change": 23
+          "oi": 783,
+          "change": -26
         },
         {
           "label": "2027年09月限",
-          "oi": 132,
-          "change": 4
+          "oi": 144,
+          "change": 12
         },
         {
           "label": "2027年12月限",
-          "oi": 792,
-          "change": 4
+          "oi": 794,
+          "change": 2
         },
         {
           "label": "2028年06月限",
-          "oi": 89,
+          "oi": 90,
           "change": 1
         },
         {
           "label": "2028年12月限",
-          "oi": 673,
-          "change": 0
+          "oi": 668,
+          "change": -5
         },
         {
           "label": "2029年06月限",
-          "oi": 306,
-          "change": 1
+          "oi": 305,
+          "change": -1
         },
         {
           "label": "2029年12月限",
@@ -214,7 +204,7 @@
         },
         {
           "label": "2030年12月限",
-          "oi": 92,
+          "oi": 93,
           "change": 1
         },
         {
@@ -223,15 +213,15 @@
           "change": 0
         }
       ],
-      "total_oi": 212606,
-      "total_change": -881
+      "total_oi": 211006,
+      "total_change": -1600
     },
     "topix": {
       "months": [
         {
           "label": "2026年09月限",
-          "oi": 394489,
-          "change": -1488
+          "oi": 391949,
+          "change": -2540
         },
         {
           "label": "2026年12月限",
@@ -240,13 +230,13 @@
         },
         {
           "label": "2027年03月限",
-          "oi": 200,
-          "change": 0
+          "oi": 300,
+          "change": 100
         },
         {
           "label": "2027年06月限",
           "oi": 100,
-          "change": 100
+          "change": 0
         },
         {
           "label": "2027年09月限",
@@ -256,7 +246,7 @@
         {
           "label": "2027年12月限",
           "oi": 2411,
-          "change": 500
+          "change": 0
         },
         {
           "label": "2028年06月限",
@@ -294,32 +284,32 @@
           "change": 0
         }
       ],
-      "total_oi": 404302,
-      "total_change": -888
+      "total_oi": 401862,
+      "total_change": -2440
     }
   },
   "s03": {
     "large": {
-      "put_volume": 22884.0,
-      "call_volume": 15198.0,
-      "total_volume": 38082.0,
-      "put_value": 34167095680.0,
-      "call_value": 57117021523.0,
-      "total_value": 91284117203.0,
-      "jnet_volume": 26335.0,
-      "jnet_value": 86703231203.0,
-      "jnet_ratio": 95.0
+      "put_volume": 38548.0,
+      "call_volume": 24313.0,
+      "total_volume": 62861.0,
+      "put_value": 46019125193.0,
+      "call_value": 65006221180.0,
+      "total_value": 111025346373.0,
+      "jnet_volume": 44099.0,
+      "jnet_value": 101877803373.0,
+      "jnet_ratio": 91.8
     },
     "mini": {
-      "put_volume": 39135.0,
-      "call_volume": 18140.0,
-      "total_volume": 57275.0,
-      "put_value": 791704200.0,
-      "call_value": 787591260.0,
-      "total_value": 1579295460.0,
-      "jnet_volume": 6520.0,
-      "jnet_value": 50881260.0,
-      "jnet_ratio": 3.2
+      "put_volume": 66744.0,
+      "call_volume": 30721.0,
+      "total_volume": 97465.0,
+      "put_value": 1879742820.0,
+      "call_value": 3149032340.0,
+      "total_value": 5028775160.0,
+      "jnet_volume": 9520.0,
+      "jnet_value": 92937760.0,
+      "jnet_ratio": 1.8
     }
   },
   "s04": {
@@ -327,58 +317,58 @@
       "call_month_totals": [
         {
           "label": "限月合計",
-          "oi": 47069,
-          "change": 80
+          "oi": 54471,
+          "change": 7402
         },
         {
           "label": "限月合計",
-          "oi": 11774,
-          "change": -526
+          "oi": 11865,
+          "change": 91
         },
         {
           "label": "限月合計",
-          "oi": 41271,
-          "change": -549
+          "oi": 42488,
+          "change": 1217
         }
       ],
       "put_month_totals": [
         {
           "label": "限月合計",
-          "oi": 82737,
-          "change": 2037
+          "oi": 89107,
+          "change": 6370
         },
         {
           "label": "限月合計",
-          "oi": 33615,
-          "change": -648
+          "oi": 38345,
+          "change": 4730
         },
         {
           "label": "限月合計",
-          "oi": 68188,
-          "change": 1752
+          "oi": 69337,
+          "change": 1149
         }
       ],
-      "call_total_change": 2184,
-      "call_total_oi": 219374,
-      "put_total_change": 6569,
-      "put_total_oi": 432504
+      "call_total_change": 10779,
+      "call_total_oi": 230153,
+      "put_total_change": 16262,
+      "put_total_oi": 448766
     },
     "mini": {
       "call_month_totals": [
         {
           "label": "限月合計",
-          "oi": 9803,
-          "change": 613
+          "oi": 9484,
+          "change": -319
         },
         {
           "label": "限月合計",
-          "oi": 644,
-          "change": 173
+          "oi": 880,
+          "change": 236
         },
         {
           "label": "限月合計",
-          "oi": 38,
-          "change": 0
+          "oi": 52,
+          "change": 14
         },
         {
           "label": "限月合計",
@@ -389,23 +379,23 @@
       "put_month_totals": [
         {
           "label": "限月合計",
-          "oi": 40598,
-          "change": 3286
+          "oi": 44192,
+          "change": 3594
         },
         {
           "label": "限月合計",
-          "oi": 1,
-          "change": 1
+          "oi": 771,
+          "change": 770
         },
         {
           "label": "限月合計",
-          "oi": 3931,
-          "change": 1093
+          "oi": 5756,
+          "change": 1825
         },
         {
           "label": "限月合計",
-          "oi": 52,
-          "change": 6
+          "oi": 105,
+          "change": 53
         },
         {
           "label": "限月合計",
@@ -413,288 +403,408 @@
           "change": 0
         }
       ],
-      "call_total_change": 834,
-      "call_total_oi": 32116,
-      "put_total_change": 4449,
-      "put_total_oi": 68384
+      "call_total_change": 72,
+      "call_total_oi": 32188,
+      "put_total_change": 10121,
+      "put_total_oi": 78505
     }
   },
   "s05": [
     {
       "type": "P",
       "expiry": "2607",
-      "strike": 35000,
-      "change": 359,
-      "oi": 1901,
-      "name": "NIKKEI 225 P2607-35000"
-    },
-    {
-      "type": "P",
-      "expiry": "2607",
       "strike": 50000,
-      "change": -758,
-      "oi": 3152,
+      "change": 975,
+      "oi": 4127,
       "name": "NIKKEI 225 P2607-50000"
     },
     {
       "type": "P",
       "expiry": "2607",
-      "strike": 58500,
-      "change": 302,
-      "oi": 1060,
-      "name": "NIKKEI 225 P2607-58500"
+      "strike": 53250,
+      "change": 397,
+      "oi": 805,
+      "name": "NIKKEI 225 P2607-53250"
     },
     {
       "type": "P",
       "expiry": "2607",
-      "strike": 60500,
-      "change": 305,
-      "oi": 1747,
-      "name": "NIKKEI 225 P2607-60500"
+      "strike": 55000,
+      "change": 303,
+      "oi": 4474,
+      "name": "NIKKEI 225 P2607-55000"
     },
     {
       "type": "P",
       "expiry": "2607",
-      "strike": 65000,
-      "change": 547,
-      "oi": 2646,
-      "name": "NIKKEI 225 P2607-65000"
+      "strike": 58000,
+      "change": 457,
+      "oi": 3001,
+      "name": "NIKKEI 225 P2607-58000"
+    },
+    {
+      "type": "P",
+      "expiry": "2607",
+      "strike": 60000,
+      "change": 312,
+      "oi": 3804,
+      "name": "NIKKEI 225 P2607-60000"
+    },
+    {
+      "type": "P",
+      "expiry": "2607",
+      "strike": 66250,
+      "change": 669,
+      "oi": 705,
+      "name": "NIKKEI 225 P2607-66250"
     },
     {
       "type": "P",
       "expiry": "2607",
       "strike": 67000,
-      "change": 450,
-      "oi": 707,
+      "change": 525,
+      "oi": 1232,
       "name": "NIKKEI 225 P2607-67000"
+    },
+    {
+      "type": "P",
+      "expiry": "2607",
+      "strike": 69250,
+      "change": 537,
+      "oi": 655,
+      "name": "NIKKEI 225 P2607-69250"
+    },
+    {
+      "type": "P",
+      "expiry": "2607",
+      "strike": 70000,
+      "change": 594,
+      "oi": 799,
+      "name": "NIKKEI 225 P2607-70000"
+    },
+    {
+      "type": "C",
+      "expiry": "2607",
+      "strike": 69000,
+      "change": -416,
+      "oi": 3970,
+      "name": "NIKKEI 225 C2607-69000"
+    },
+    {
+      "type": "C",
+      "expiry": "2607",
+      "strike": 69250,
+      "change": 1000,
+      "oi": 3004,
+      "name": "NIKKEI 225 C2607-69250"
+    },
+    {
+      "type": "C",
+      "expiry": "2607",
+      "strike": 72000,
+      "change": 489,
+      "oi": 5956,
+      "name": "NIKKEI 225 C2607-72000"
+    },
+    {
+      "type": "C",
+      "expiry": "2607",
+      "strike": 72250,
+      "change": 996,
+      "oi": 3002,
+      "name": "NIKKEI 225 C2607-72250"
     },
     {
       "type": "C",
       "expiry": "2607",
       "strike": 75000,
-      "change": -311,
-      "oi": 2192,
+      "change": 1218,
+      "oi": 3410,
       "name": "NIKKEI 225 C2607-75000"
     },
     {
-      "type": "P",
-      "expiry": "2608",
-      "strike": 25000,
-      "change": -1203,
-      "oi": 3022,
-      "name": "NIKKEI 225 P2608-25000"
+      "type": "C",
+      "expiry": "2607",
+      "strike": 78000,
+      "change": 645,
+      "oi": 1238,
+      "name": "NIKKEI 225 C2607-78000"
+    },
+    {
+      "type": "C",
+      "expiry": "2607",
+      "strike": 80000,
+      "change": 2272,
+      "oi": 4011,
+      "name": "NIKKEI 225 C2607-80000"
     },
     {
       "type": "P",
       "expiry": "2608",
-      "strike": 56000,
-      "change": -351,
-      "oi": 1237,
-      "name": "NIKKEI 225 P2608-56000"
+      "strike": 50000,
+      "change": 452,
+      "oi": 2669,
+      "name": "NIKKEI 225 P2608-50000"
+    },
+    {
+      "type": "P",
+      "expiry": "2608",
+      "strike": 62000,
+      "change": 465,
+      "oi": 1243,
+      "name": "NIKKEI 225 P2608-62000"
+    },
+    {
+      "type": "P",
+      "expiry": "2608",
+      "strike": 65500,
+      "change": 500,
+      "oi": 1217,
+      "name": "NIKKEI 225 P2608-65500"
+    },
+    {
+      "type": "P",
+      "expiry": "2608",
+      "strike": 66000,
+      "change": 800,
+      "oi": 802,
+      "name": "NIKKEI 225 P2608-66000"
+    },
+    {
+      "type": "P",
+      "expiry": "2608",
+      "strike": 66500,
+      "change": 395,
+      "oi": 503,
+      "name": "NIKKEI 225 P2608-66500"
+    },
+    {
+      "type": "P",
+      "expiry": "2608",
+      "strike": 68000,
+      "change": 1102,
+      "oi": 1111,
+      "name": "NIKKEI 225 P2608-68000"
+    },
+    {
+      "type": "P",
+      "expiry": "2609",
+      "strike": 30000,
+      "change": 560,
+      "oi": 4053,
+      "name": "NIKKEI 225 P2609-30000"
     },
     {
       "type": "P",
       "expiry": "2609",
       "strike": 50000,
-      "change": 300,
-      "oi": 7666,
+      "change": 460,
+      "oi": 8126,
       "name": "NIKKEI 225 P2609-50000"
     },
     {
       "type": "P",
       "expiry": "2609",
       "strike": 60000,
-      "change": 400,
-      "oi": 3716,
+      "change": -300,
+      "oi": 3416,
       "name": "NIKKEI 225 P2609-60000"
     },
     {
       "type": "P",
       "expiry": "2609",
-      "strike": 63000,
-      "change": 331,
-      "oi": 1691,
-      "name": "NIKKEI 225 P2609-63000"
+      "strike": 64000,
+      "change": 325,
+      "oi": 1635,
+      "name": "NIKKEI 225 P2609-64000"
     },
     {
       "type": "C",
       "expiry": "2609",
-      "strike": 72000,
-      "change": -400,
-      "oi": 1691,
-      "name": "NIKKEI 225 C2609-72000"
+      "strike": 30000,
+      "change": 560,
+      "oi": 3650,
+      "name": "NIKKEI 225 C2609-30000"
+    },
+    {
+      "type": "C",
+      "expiry": "2609",
+      "strike": 50000,
+      "change": 560,
+      "oi": 4550,
+      "name": "NIKKEI 225 C2609-50000"
     }
   ],
   "s06": {
-    "atm": 70000,
-    "atm_round": 70000,
+    "atm": 71500,
+    "atm_round": 71500,
     "distribution": [
       {
-        "strike": 65000,
-        "put_oi": 4118,
-        "put_change": 647,
-        "call_oi": 6237,
-        "call_change": -250,
-        "is_atm": false
-      },
-      {
-        "strike": 65500,
-        "put_oi": 1428,
-        "put_change": 102,
-        "call_oi": 994,
-        "call_change": 0,
-        "is_atm": false
-      },
-      {
-        "strike": 66000,
-        "put_oi": 1645,
-        "put_change": 60,
-        "call_oi": 2364,
-        "call_change": -10,
-        "is_atm": false
-      },
-      {
         "strike": 66500,
-        "put_oi": 1228,
-        "put_change": -3,
+        "put_oi": 1650,
+        "put_change": 422,
         "call_oi": 629,
         "call_change": 0,
         "is_atm": false
       },
       {
         "strike": 67000,
-        "put_oi": 2079,
-        "put_change": 451,
-        "call_oi": 2115,
+        "put_oi": 2807,
+        "put_change": 728,
+        "call_oi": 2113,
         "call_change": -2,
         "is_atm": false
       },
       {
         "strike": 67500,
-        "put_oi": 174,
-        "put_change": 98,
+        "put_oi": 235,
+        "put_change": 61,
         "call_oi": 1730,
-        "call_change": -20,
-        "is_atm": false
-      },
-      {
-        "strike": 68000,
-        "put_oi": 590,
-        "put_change": 227,
-        "call_oi": 2356,
-        "call_change": -5,
-        "is_atm": false
-      },
-      {
-        "strike": 68500,
-        "put_oi": 198,
-        "put_change": -1,
-        "call_oi": 649,
-        "call_change": 1,
-        "is_atm": false
-      },
-      {
-        "strike": 69000,
-        "put_oi": 1094,
-        "put_change": 0,
-        "call_oi": 5217,
         "call_change": 0,
         "is_atm": false
       },
       {
+        "strike": 68000,
+        "put_oi": 1731,
+        "put_change": 1141,
+        "call_oi": 2342,
+        "call_change": -14,
+        "is_atm": false
+      },
+      {
+        "strike": 68500,
+        "put_oi": 214,
+        "put_change": 16,
+        "call_oi": 649,
+        "call_change": 0,
+        "is_atm": false
+      },
+      {
+        "strike": 69000,
+        "put_oi": 1119,
+        "put_change": 25,
+        "call_oi": 4801,
+        "call_change": -416,
+        "is_atm": false
+      },
+      {
         "strike": 69500,
-        "put_oi": 343,
-        "put_change": -2,
-        "call_oi": 503,
-        "call_change": 5,
+        "put_oi": 473,
+        "put_change": 130,
+        "call_oi": 488,
+        "call_change": -15,
         "is_atm": false
       },
       {
         "strike": 70000,
-        "put_oi": 701,
-        "put_change": 4,
-        "call_oi": 5033,
-        "call_change": -333,
-        "is_atm": true
+        "put_oi": 1511,
+        "put_change": 810,
+        "call_oi": 5026,
+        "call_change": -7,
+        "is_atm": false
       },
       {
         "strike": 70500,
-        "put_oi": 1,
-        "put_change": 1,
-        "call_oi": 966,
-        "call_change": -2,
+        "put_oi": 35,
+        "put_change": 34,
+        "call_oi": 963,
+        "call_change": -3,
         "is_atm": false
       },
       {
         "strike": 71000,
-        "put_oi": 3,
-        "put_change": 0,
-        "call_oi": 1888,
-        "call_change": -107,
+        "put_oi": 31,
+        "put_change": 28,
+        "call_oi": 1897,
+        "call_change": 9,
         "is_atm": false
       },
       {
         "strike": 71500,
         "put_oi": 5,
         "put_change": 0,
-        "call_oi": 170,
-        "call_change": 2,
-        "is_atm": false
+        "call_oi": 173,
+        "call_change": 3,
+        "is_atm": true
       },
       {
         "strike": 72000,
-        "put_oi": 4,
-        "put_change": 4,
-        "call_oi": 7272,
-        "call_change": -295,
+        "put_oi": 6,
+        "put_change": 2,
+        "call_oi": 7860,
+        "call_change": 588,
         "is_atm": false
       },
       {
         "strike": 72500,
         "put_oi": 0,
         "put_change": 0,
-        "call_oi": 1612,
-        "call_change": -23,
+        "call_oi": 1690,
+        "call_change": 78,
         "is_atm": false
       },
       {
         "strike": 73000,
         "put_oi": 0,
         "put_change": 0,
-        "call_oi": 438,
-        "call_change": 39,
+        "call_oi": 559,
+        "call_change": 121,
         "is_atm": false
       },
       {
         "strike": 73500,
         "put_oi": 0,
         "put_change": 0,
-        "call_oi": 444,
-        "call_change": 44,
+        "call_oi": 292,
+        "call_change": -152,
         "is_atm": false
       },
       {
         "strike": 74000,
-        "put_oi": 7,
-        "put_change": 1,
-        "call_oi": 1139,
-        "call_change": 78,
+        "put_oi": 10,
+        "put_change": 3,
+        "call_oi": 1091,
+        "call_change": -48,
         "is_atm": false
       },
       {
         "strike": 74500,
         "put_oi": 0,
         "put_change": 0,
-        "call_oi": 151,
-        "call_change": -1,
+        "call_oi": 167,
+        "call_change": 16,
         "is_atm": false
       },
       {
         "strike": 75000,
         "put_oi": 3,
         "put_change": 0,
-        "call_oi": 3252,
-        "call_change": -476,
+        "call_oi": 4457,
+        "call_change": 1205,
+        "is_atm": false
+      },
+      {
+        "strike": 75500,
+        "put_oi": 0,
+        "put_change": 0,
+        "call_oi": 112,
+        "call_change": 16,
+        "is_atm": false
+      },
+      {
+        "strike": 76000,
+        "put_oi": 0,
+        "put_change": 0,
+        "call_oi": 1396,
+        "call_change": 184,
+        "is_atm": false
+      },
+      {
+        "strike": 76500,
+        "put_oi": 0,
+        "put_change": 0,
+        "call_oi": 157,
+        "call_change": 16,
         "is_atm": false
       }
     ],
@@ -702,280 +812,256 @@
       {
         "expiry": "2607",
         "label": "2026年07月限",
-        "total_oi": 31713,
+        "total_oi": 29045,
         "distribution": [
           {
-            "strike": 65000,
-            "put_oi": 2646,
-            "put_change": 547,
-            "call_oi": 1557,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 65500,
-            "put_oi": 436,
-            "put_change": 101,
-            "call_oi": 824,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 66000,
-            "put_oi": 543,
-            "put_change": 60,
-            "call_oi": 882,
-            "call_change": -7,
-            "is_atm": false
-          },
-          {
             "strike": 66500,
-            "put_oi": 1120,
-            "put_change": -6,
+            "put_oi": 1147,
+            "put_change": 27,
             "call_oi": 626,
             "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 67000,
-            "put_oi": 707,
-            "put_change": 450,
-            "call_oi": 1038,
+            "put_oi": 1232,
+            "put_change": 525,
+            "call_oi": 1036,
             "call_change": -2,
             "is_atm": false
           },
           {
             "strike": 67500,
-            "put_oi": 149,
-            "put_change": 98,
+            "put_oi": 182,
+            "put_change": 33,
             "call_oi": 605,
-            "call_change": -20,
+            "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 68000,
-            "put_oi": 195,
-            "put_change": 19,
-            "call_oi": 1254,
-            "call_change": -2,
+            "put_oi": 234,
+            "put_change": 39,
+            "call_oi": 1243,
+            "call_change": -11,
             "is_atm": false
           },
           {
             "strike": 68500,
-            "put_oi": 173,
-            "put_change": -1,
+            "put_oi": 189,
+            "put_change": 16,
             "call_oi": 547,
             "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 69000,
-            "put_oi": 194,
-            "put_change": 0,
-            "call_oi": 4386,
-            "call_change": 0,
+            "put_oi": 219,
+            "put_change": 25,
+            "call_oi": 3970,
+            "call_change": -416,
             "is_atm": false
           },
           {
             "strike": 69500,
-            "put_oi": 271,
-            "put_change": -2,
-            "call_oi": 370,
-            "call_change": 5,
+            "put_oi": 352,
+            "put_change": 81,
+            "call_oi": 356,
+            "call_change": -14,
             "is_atm": false
           },
           {
             "strike": 70000,
-            "put_oi": 205,
-            "put_change": 4,
-            "call_oi": 1896,
-            "call_change": -196,
-            "is_atm": true
+            "put_oi": 799,
+            "put_change": 594,
+            "call_oi": 1889,
+            "call_change": -7,
+            "is_atm": false
           },
           {
             "strike": 70500,
-            "put_oi": 1,
-            "put_change": 1,
-            "call_oi": 960,
-            "call_change": -1,
+            "put_oi": 34,
+            "put_change": 33,
+            "call_oi": 957,
+            "call_change": -3,
             "is_atm": false
           },
           {
             "strike": 71000,
-            "put_oi": 2,
-            "put_change": 0,
-            "call_oi": 604,
-            "call_change": -107,
+            "put_oi": 30,
+            "put_change": 28,
+            "call_oi": 613,
+            "call_change": 9,
             "is_atm": false
           },
           {
             "strike": 71500,
             "put_oi": 5,
             "put_change": 0,
-            "call_oi": 166,
-            "call_change": 2,
-            "is_atm": false
+            "call_oi": 169,
+            "call_change": 3,
+            "is_atm": true
           },
           {
             "strike": 72000,
-            "put_oi": 4,
-            "put_change": 4,
-            "call_oi": 5467,
-            "call_change": 102,
+            "put_oi": 6,
+            "put_change": 2,
+            "call_oi": 5956,
+            "call_change": 489,
             "is_atm": false
           },
           {
             "strike": 72500,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 370,
-            "call_change": 3,
+            "call_oi": 448,
+            "call_change": 78,
             "is_atm": false
           },
           {
             "strike": 73000,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 329,
-            "call_change": 19,
+            "call_oi": 449,
+            "call_change": 120,
             "is_atm": false
           },
           {
             "strike": 73500,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 368,
-            "call_change": 43,
+            "call_oi": 216,
+            "call_change": -152,
             "is_atm": false
           },
           {
             "strike": 74000,
-            "put_oi": 7,
-            "put_change": 1,
-            "call_oi": 462,
-            "call_change": 78,
+            "put_oi": 10,
+            "put_change": 3,
+            "call_oi": 404,
+            "call_change": -58,
             "is_atm": false
           },
           {
             "strike": 74500,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 150,
-            "call_change": -2,
+            "call_oi": 166,
+            "call_change": 16,
             "is_atm": false
           },
           {
             "strike": 75000,
             "put_oi": 2,
             "put_change": 0,
-            "call_oi": 2192,
-            "call_change": -311,
+            "call_oi": 3410,
+            "call_change": 1218,
+            "is_atm": false
+          },
+          {
+            "strike": 75500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 111,
+            "call_change": 15,
+            "is_atm": false
+          },
+          {
+            "strike": 76000,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 1298,
+            "call_change": 142,
+            "is_atm": false
+          },
+          {
+            "strike": 76500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 135,
+            "call_change": 16,
             "is_atm": false
           }
         ],
         "top_puts": [
           {
-            "strike": 53000,
-            "oi": 4175
-          },
-          {
             "strike": 55000,
-            "oi": 4171
+            "oi": 4474
           },
           {
-            "strike": 60000,
-            "oi": 3492
+            "strike": 53000,
+            "oi": 4157
           },
           {
             "strike": 50000,
-            "oi": 3152
+            "oi": 4127
           },
           {
-            "strike": 48000,
-            "oi": 2918
+            "strike": 60000,
+            "oi": 3804
+          },
+          {
+            "strike": 58000,
+            "oi": 3001
           }
         ],
         "top_calls": [
           {
             "strike": 72000,
-            "oi": 5467
-          },
-          {
-            "strike": 69000,
-            "oi": 4386
-          },
-          {
-            "strike": 75000,
-            "oi": 2192
-          },
-          {
-            "strike": 70000,
-            "oi": 1896
+            "oi": 5956
           },
           {
             "strike": 80000,
-            "oi": 1739
+            "oi": 4011
+          },
+          {
+            "strike": 69000,
+            "oi": 3970
+          },
+          {
+            "strike": 75000,
+            "oi": 3410
+          },
+          {
+            "strike": 70000,
+            "oi": 1889
           }
         ]
       },
       {
         "expiry": "2608",
         "label": "2026年08月限",
-        "total_oi": 8290,
+        "total_oi": 7829,
         "distribution": [
           {
-            "strike": 65000,
-            "put_oi": 632,
-            "put_change": 100,
-            "call_oi": 795,
-            "call_change": -250,
-            "is_atm": false
-          },
-          {
-            "strike": 65500,
-            "put_oi": 717,
-            "put_change": 1,
-            "call_oi": 20,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 66000,
-            "put_oi": 2,
-            "put_change": 0,
-            "call_oi": 92,
-            "call_change": -3,
-            "is_atm": false
-          },
-          {
             "strike": 66500,
-            "put_oi": 108,
-            "put_change": 3,
+            "put_oi": 503,
+            "put_change": 395,
             "call_oi": 3,
             "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 67000,
-            "put_oi": 722,
-            "put_change": 1,
+            "put_oi": 900,
+            "put_change": 178,
             "call_oi": 304,
             "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 67500,
-            "put_oi": 25,
-            "put_change": 0,
+            "put_oi": 30,
+            "put_change": 5,
             "call_oi": 0,
             "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 68000,
-            "put_oi": 9,
-            "put_change": 8,
-            "call_oi": 330,
+            "put_oi": 1111,
+            "put_change": 1102,
+            "call_oi": 327,
             "call_change": -3,
             "is_atm": false
           },
@@ -984,7 +1070,7 @@
             "put_oi": 25,
             "put_change": 0,
             "call_oi": 1,
-            "call_change": 1,
+            "call_change": 0,
             "is_atm": false
           },
           {
@@ -997,26 +1083,26 @@
           },
           {
             "strike": 69500,
-            "put_oi": 22,
-            "put_change": 0,
-            "call_oi": 132,
-            "call_change": 0,
+            "put_oi": 71,
+            "put_change": 49,
+            "call_oi": 131,
+            "call_change": -1,
             "is_atm": false
           },
           {
             "strike": 70000,
-            "put_oi": 56,
-            "put_change": 0,
+            "put_oi": 72,
+            "put_change": 16,
             "call_oi": 1382,
-            "call_change": -238,
-            "is_atm": true
+            "call_change": 0,
+            "is_atm": false
           },
           {
             "strike": 70500,
-            "put_oi": 0,
-            "put_change": 0,
+            "put_oi": 1,
+            "put_change": 1,
             "call_oi": 0,
-            "call_change": -1,
+            "call_change": 0,
             "is_atm": false
           },
           {
@@ -1033,14 +1119,14 @@
             "put_change": 0,
             "call_oi": 4,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 72000,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 114,
-            "call_change": 3,
+            "call_oi": 123,
+            "call_change": 9,
             "is_atm": false
           },
           {
@@ -1048,15 +1134,15 @@
             "put_oi": 0,
             "put_change": 0,
             "call_oi": 636,
-            "call_change": -26,
+            "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 73000,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 24,
-            "call_change": 20,
+            "call_oi": 25,
+            "call_change": 1,
             "is_atm": false
           },
           {
@@ -1064,7 +1150,7 @@
             "put_oi": 0,
             "put_change": 0,
             "call_oi": 1,
-            "call_change": 1,
+            "call_change": 0,
             "is_atm": false
           },
           {
@@ -1080,15 +1166,39 @@
             "put_oi": 0,
             "put_change": 0,
             "call_oi": 1,
-            "call_change": 1,
+            "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 75000,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 619,
-            "call_change": -49,
+            "call_oi": 621,
+            "call_change": 2,
+            "is_atm": false
+          },
+          {
+            "strike": 75500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 1,
+            "call_change": 1,
+            "is_atm": false
+          },
+          {
+            "strike": 76000,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 42,
+            "call_change": 42,
+            "is_atm": false
+          },
+          {
+            "strike": 76500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
             "is_atm": false
           }
         ],
@@ -1098,20 +1208,20 @@
             "oi": 3022
           },
           {
-            "strike": 30000,
-            "oi": 2417
+            "strike": 50000,
+            "oi": 2669
           },
           {
-            "strike": 50000,
-            "oi": 2217
+            "strike": 30000,
+            "oi": 2417
           },
           {
             "strike": 38000,
             "oi": 1505
           },
           {
-            "strike": 63000,
-            "oi": 1344
+            "strike": 64000,
+            "oi": 1342
           }
         ],
         "top_calls": [
@@ -1140,32 +1250,8 @@
       {
         "expiry": "2609",
         "label": "2026年09月限",
-        "total_oi": 18777,
+        "total_oi": 11548,
         "distribution": [
-          {
-            "strike": 65000,
-            "put_oi": 840,
-            "put_change": 0,
-            "call_oi": 3885,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 65500,
-            "put_oi": 275,
-            "put_change": 0,
-            "call_oi": 150,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 66000,
-            "put_oi": 1100,
-            "put_change": 0,
-            "call_oi": 1390,
-            "call_change": 0,
-            "is_atm": false
-          },
           {
             "strike": 66500,
             "put_oi": 0,
@@ -1176,16 +1262,16 @@
           },
           {
             "strike": 67000,
-            "put_oi": 650,
-            "put_change": 0,
+            "put_oi": 675,
+            "put_change": 25,
             "call_oi": 773,
             "call_change": 0,
             "is_atm": false
           },
           {
             "strike": 67500,
-            "put_oi": 0,
-            "put_change": 0,
+            "put_oi": 23,
+            "put_change": 23,
             "call_oi": 1125,
             "call_change": 0,
             "is_atm": false
@@ -1193,7 +1279,7 @@
           {
             "strike": 68000,
             "put_oi": 386,
-            "put_change": 200,
+            "put_change": 0,
             "call_oi": 772,
             "call_change": 0,
             "is_atm": false
@@ -1224,11 +1310,11 @@
           },
           {
             "strike": 70000,
-            "put_oi": 440,
-            "put_change": 0,
+            "put_oi": 640,
+            "put_change": 200,
             "call_oi": 1755,
-            "call_change": 101,
-            "is_atm": true
+            "call_change": 0,
+            "is_atm": false
           },
           {
             "strike": 70500,
@@ -1252,14 +1338,14 @@
             "put_change": 0,
             "call_oi": 0,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 72000,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 1691,
-            "call_change": -400,
+            "call_oi": 1781,
+            "call_change": 90,
             "is_atm": false
           },
           {
@@ -1290,8 +1376,8 @@
             "strike": 74000,
             "put_oi": 0,
             "put_change": 0,
-            "call_oi": 468,
-            "call_change": 0,
+            "call_oi": 478,
+            "call_change": 10,
             "is_atm": false
           },
           {
@@ -1306,23 +1392,47 @@
             "strike": 75000,
             "put_oi": 1,
             "put_change": 0,
-            "call_oi": 441,
-            "call_change": -116,
+            "call_oi": 426,
+            "call_change": -15,
+            "is_atm": false
+          },
+          {
+            "strike": 75500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 76000,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 56,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 76500,
+            "put_oi": 0,
+            "put_change": 0,
+            "call_oi": 22,
+            "call_change": 0,
             "is_atm": false
           }
         ],
         "top_puts": [
           {
             "strike": 50000,
-            "oi": 7666
-          },
-          {
-            "strike": 60000,
-            "oi": 3716
+            "oi": 8126
           },
           {
             "strike": 30000,
-            "oi": 3493
+            "oi": 4053
+          },
+          {
+            "strike": 60000,
+            "oi": 3416
           },
           {
             "strike": 48000,
@@ -1336,7 +1446,7 @@
         "top_calls": [
           {
             "strike": 50000,
-            "oi": 3990
+            "oi": 4550
           },
           {
             "strike": 65000,
@@ -1344,15 +1454,15 @@
           },
           {
             "strike": 30000,
-            "oi": 3090
+            "oi": 3650
+          },
+          {
+            "strike": 72000,
+            "oi": 1781
           },
           {
             "strike": 70000,
             "oi": 1755
-          },
-          {
-            "strike": 72000,
-            "oi": 1691
           }
         ]
       }
@@ -1360,76 +1470,90 @@
     "top_puts": [
       {
         "strike": 50000,
-        "oi": 13035
+        "oi": 14922
       },
       {
         "strike": 30000,
-        "oi": 8023
+        "oi": 8593
       },
       {
         "strike": 60000,
-        "oi": 7916
+        "oi": 7930
       },
       {
         "strike": 55000,
-        "oi": 7272
+        "oi": 7478
       },
       {
         "strike": 53000,
-        "oi": 6621
+        "oi": 6603
       }
     ],
     "top_calls": [
       {
         "strike": 72000,
-        "oi": 7272
+        "oi": 7860
       },
       {
         "strike": 65000,
         "oi": 6237
       },
       {
-        "strike": 69000,
-        "oi": 5217
-      },
-      {
         "strike": 70000,
-        "oi": 5033
+        "oi": 5026
       },
       {
-        "strike": 50000,
-        "oi": 3990
+        "strike": 69000,
+        "oi": 4801
+      },
+      {
+        "strike": 80000,
+        "oi": 4568
       }
     ]
   },
   "s07": [
     {
-      "product": "NIKKEI 225 OOP C2607-70000",
-      "participant": "東海東京証券",
-      "volume": 200.0,
-      "category": "domestic",
-      "is_pair": false
-    },
-    {
-      "product": "NIKKEI 225 OOP C2607-70000",
-      "participant": "ＢＮＰパリバ証券",
-      "volume": 140.0,
+      "product": "NIKKEI 225 OOP C2607-72000",
+      "participant": "ＡＢＮクリアリン証券",
+      "volume": 1040.0,
       "category": "hf",
       "is_pair": false
     },
     {
-      "product": "NIKKEI 225 OOP C2607-70000",
-      "participant": "ＪＰモルガン証券",
-      "volume": 100.0,
-      "category": "us",
-      "is_pair": true
+      "product": "NIKKEI 225 OOP C2607-72000",
+      "participant": "バークレイズ証券",
+      "volume": 940.0,
+      "category": "eu",
+      "is_pair": false
     },
     {
-      "product": "NIKKEI 225 OOP C2607-70000",
+      "product": "NIKKEI 225 OOP C2607-72000",
+      "participant": "みずほ証券",
+      "volume": 100.0,
+      "category": "domestic",
+      "is_pair": false
+    },
+    {
+      "product": "NIKKEI 225 OOP P2607-70000",
+      "participant": "ＵＢＳ証券",
+      "volume": 634.0,
+      "category": "eu",
+      "is_pair": false
+    },
+    {
+      "product": "NIKKEI 225 OOP P2607-70000",
+      "participant": "ＪＰモルガン証券",
+      "volume": 400.0,
+      "category": "us",
+      "is_pair": false
+    },
+    {
+      "product": "NIKKEI 225 OOP P2607-70000",
       "participant": "ビーオブエー証券",
       "volume": 100.0,
       "category": "us",
-      "is_pair": true
+      "is_pair": false
     }
   ],
   "s09": {
@@ -2589,9 +2713,9 @@
       }
     ],
     "source": "live",
-    "data_date": "20260617",
+    "data_date": "20260618",
     "strike_matrix": {
-      "atm": 70000,
+      "atm": 71500,
       "atm_round": 66000,
       "strikes": [
         65750,
@@ -3381,7 +3505,7 @@
           "call_total_delta": 0
         }
       ],
-      "prev_date": "20260616"
+      "prev_date": "20260617"
     }
   },
   "s10": {
@@ -3413,7 +3537,7 @@
       "oku_yen": -1491.5
     },
     "source": "live",
-    "data_date": "20260617"
+    "data_date": "20260618"
   },
   "s11": {
     "mini_oi": {
@@ -3421,15 +3545,15 @@
         "puts": {
           "56750": {
             "oi": 9626,
-            "change": 115
+            "change": 0
           },
           "56875": {
             "oi": 1052,
-            "change": 50
+            "change": 0
           },
           "57000": {
             "oi": 1693,
-            "change": 150
+            "change": 0
           },
           "57125": {
             "oi": 107,
@@ -3445,7 +3569,7 @@
           },
           "57500": {
             "oi": 591,
-            "change": -1
+            "change": 0
           },
           "57625": {
             "oi": 6,
@@ -3461,7 +3585,7 @@
           },
           "58000": {
             "oi": 530,
-            "change": -3
+            "change": 0
           },
           "58125": {
             "oi": 34,
@@ -3469,7 +3593,7 @@
           },
           "58250": {
             "oi": 32,
-            "change": 3
+            "change": 0
           },
           "58375": {
             "oi": 9,
@@ -3477,15 +3601,15 @@
           },
           "58500": {
             "oi": 251,
-            "change": 2
+            "change": 0
           },
           "58625": {
             "oi": 3,
-            "change": 1
+            "change": 0
           },
           "58750": {
             "oi": 14,
-            "change": 1
+            "change": 0
           },
           "58875": {
             "oi": 13,
@@ -3493,11 +3617,11 @@
           },
           "59000": {
             "oi": 1018,
-            "change": -11
+            "change": 0
           },
           "59125": {
             "oi": 33,
-            "change": 1
+            "change": 0
           },
           "59250": {
             "oi": 24,
@@ -3505,47 +3629,47 @@
           },
           "59375": {
             "oi": 24,
-            "change": 1
+            "change": 0
           },
           "59500": {
             "oi": 95,
-            "change": 1
+            "change": 0
           },
           "59625": {
             "oi": 106,
-            "change": 96
+            "change": 0
           },
           "59750": {
             "oi": 76,
-            "change": 1
+            "change": 0
           },
           "59875": {
             "oi": 56,
-            "change": 1
+            "change": 0
           },
           "60000": {
             "oi": 1717,
-            "change": -208
+            "change": 0
           },
           "60125": {
             "oi": 6,
-            "change": 1
+            "change": 0
           },
           "60250": {
             "oi": 32,
-            "change": 1
+            "change": 0
           },
           "60375": {
             "oi": 98,
-            "change": -14
+            "change": 0
           },
           "60500": {
             "oi": 390,
-            "change": 14
+            "change": 0
           },
           "60625": {
-            "oi": 20,
-            "change": 0
+            "oi": 6,
+            "change": -14
           },
           "60750": {
             "oi": 25,
@@ -3556,8 +3680,8 @@
             "change": 0
           },
           "61000": {
-            "oi": 573,
-            "change": 33
+            "oi": 570,
+            "change": -3
           },
           "61125": {
             "oi": 6,
@@ -3565,31 +3689,31 @@
           },
           "61250": {
             "oi": 15,
-            "change": 7
+            "change": 0
           },
           "61375": {
             "oi": 6,
-            "change": -1
+            "change": 0
           },
           "61500": {
-            "oi": 505,
-            "change": 205
+            "oi": 352,
+            "change": -153
           },
           "61625": {
             "oi": 8,
-            "change": 1
+            "change": 0
           },
           "61750": {
-            "oi": 106,
-            "change": 90
+            "oi": 141,
+            "change": 35
           },
           "61875": {
-            "oi": 25,
-            "change": 1
+            "oi": 16,
+            "change": -9
           },
           "62000": {
-            "oi": 795,
-            "change": -198
+            "oi": 834,
+            "change": 39
           },
           "62125": {
             "oi": 11,
@@ -3597,271 +3721,307 @@
           },
           "62250": {
             "oi": 7,
-            "change": -2
+            "change": 0
           },
           "62375": {
-            "oi": 20,
-            "change": 0
+            "oi": 21,
+            "change": 1
           },
           "62500": {
-            "oi": 1471,
-            "change": 645
+            "oi": 1371,
+            "change": -100
           },
           "62625": {
-            "oi": 21,
-            "change": 0
+            "oi": 18,
+            "change": -3
           },
           "62750": {
             "oi": 138,
-            "change": 11
+            "change": 0
           },
           "62875": {
-            "oi": 77,
-            "change": 0
+            "oi": 78,
+            "change": 1
           },
           "63000": {
-            "oi": 1749,
-            "change": -55
+            "oi": 1718,
+            "change": -31
           },
           "63125": {
-            "oi": 52,
-            "change": 0
+            "oi": 46,
+            "change": -6
           },
           "63250": {
-            "oi": 126,
-            "change": -3
+            "oi": 221,
+            "change": 95
           },
           "63375": {
-            "oi": 43,
-            "change": 0
+            "oi": 44,
+            "change": 1
           },
           "63500": {
-            "oi": 1104,
-            "change": 83
+            "oi": 1315,
+            "change": 211
           },
           "63625": {
             "oi": 67,
             "change": 0
           },
           "63750": {
-            "oi": 50,
-            "change": -67
+            "oi": 48,
+            "change": -2
           },
           "63875": {
-            "oi": 51,
-            "change": -21
+            "oi": 52,
+            "change": 1
           },
           "64000": {
-            "oi": 1835,
-            "change": 439
+            "oi": 1734,
+            "change": -101
           },
           "64125": {
-            "oi": 15,
-            "change": -85
+            "oi": 12,
+            "change": -3
           },
           "64250": {
-            "oi": 23,
-            "change": 15
+            "oi": 11,
+            "change": -12
           },
           "64375": {
-            "oi": 5,
-            "change": -4
+            "oi": 20,
+            "change": 15
           },
           "64500": {
-            "oi": 443,
-            "change": 206
+            "oi": 343,
+            "change": -100
           },
           "64625": {
             "oi": 11,
-            "change": -4
+            "change": 0
           },
           "64750": {
+            "oi": 28,
+            "change": 8
+          },
+          "64875": {
             "oi": 20,
             "change": 3
           },
-          "64875": {
-            "oi": 17,
-            "change": 8
-          },
           "65000": {
-            "oi": 1245,
-            "change": 93
+            "oi": 1695,
+            "change": 450
           },
           "65125": {
-            "oi": 100,
-            "change": 0
+            "oi": 176,
+            "change": 76
           },
           "65250": {
-            "oi": 48,
-            "change": 1
+            "oi": 233,
+            "change": 185
           },
           "65375": {
-            "oi": 34,
-            "change": -14
+            "oi": 40,
+            "change": 6
           },
           "65500": {
-            "oi": 1114,
-            "change": 12
+            "oi": 1459,
+            "change": 345
           },
           "65625": {
-            "oi": 45,
-            "change": -1
+            "oi": 46,
+            "change": 1
           },
           "65750": {
-            "oi": 64,
-            "change": -33
+            "oi": 124,
+            "change": 60
           },
           "65875": {
-            "oi": 51,
-            "change": 0
+            "oi": 52,
+            "change": 1
           },
           "66000": {
-            "oi": 1621,
-            "change": 263
+            "oi": 876,
+            "change": -745
           },
           "66125": {
             "oi": 39,
             "change": 0
           },
           "66250": {
-            "oi": 54,
-            "change": -23
+            "oi": 48,
+            "change": -6
           },
           "66375": {
-            "oi": 113,
-            "change": 5
+            "oi": 62,
+            "change": -51
           },
           "66500": {
-            "oi": 818,
-            "change": -85
+            "oi": 815,
+            "change": -3
           },
           "66625": {
-            "oi": 8,
-            "change": -1
+            "oi": 59,
+            "change": 51
           },
           "66750": {
-            "oi": 525,
-            "change": -50
+            "oi": 155,
+            "change": -370
           },
           "66875": {
-            "oi": 84,
-            "change": -45
-          },
-          "67000": {
-            "oi": 1020,
-            "change": 36
-          },
-          "67125": {
-            "oi": 10,
-            "change": -45
-          },
-          "67250": {
-            "oi": 1090,
-            "change": -61
-          },
-          "67375": {
-            "oi": 73,
-            "change": 0
-          },
-          "67500": {
-            "oi": 453,
-            "change": -71
-          },
-          "67625": {
-            "oi": 251,
-            "change": 199
-          },
-          "67750": {
-            "oi": 68,
-            "change": 14
-          },
-          "67875": {
-            "oi": 81,
-            "change": 20
-          },
-          "68000": {
-            "oi": 501,
-            "change": 69
-          },
-          "68125": {
-            "oi": 174,
-            "change": 123
-          },
-          "68250": {
-            "oi": 207,
-            "change": 123
-          },
-          "68375": {
-            "oi": 94,
-            "change": 42
-          },
-          "68500": {
-            "oi": 1237,
-            "change": 589
-          },
-          "68625": {
-            "oi": 303,
-            "change": -35
-          },
-          "68750": {
-            "oi": 84,
-            "change": 19
-          },
-          "68875": {
-            "oi": 57,
-            "change": 1
-          },
-          "69000": {
-            "oi": 377,
-            "change": 59
-          },
-          "69125": {
-            "oi": 65,
-            "change": 65
-          },
-          "69250": {
-            "oi": 160,
-            "change": 58
-          },
-          "69375": {
-            "oi": 93,
-            "change": 70
-          },
-          "69500": {
-            "oi": 179,
-            "change": 99
-          },
-          "69625": {
-            "oi": 53,
-            "change": 47
-          },
-          "69750": {
-            "oi": 97,
-            "change": 61
-          },
-          "69875": {
-            "oi": 102,
-            "change": 102
-          },
-          "70000": {
-            "oi": 69,
-            "change": 54
-          },
-          "70250": {
-            "oi": 5,
+            "oi": 89,
             "change": 5
           },
-          "70500": {
-            "oi": 1,
-            "change": 0
+          "67000": {
+            "oi": 1040,
+            "change": 20
           },
-          "71000": {
-            "oi": 5,
+          "67125": {
+            "oi": 12,
             "change": 2
           },
-          "71750": {
-            "oi": 10,
+          "67250": {
+            "oi": 1104,
+            "change": 14
+          },
+          "67375": {
+            "oi": 44,
+            "change": -29
+          },
+          "67500": {
+            "oi": 503,
+            "change": 50
+          },
+          "67625": {
+            "oi": 258,
+            "change": 7
+          },
+          "67750": {
+            "oi": 52,
+            "change": -16
+          },
+          "67875": {
+            "oi": 60,
+            "change": -21
+          },
+          "68000": {
+            "oi": 651,
+            "change": 150
+          },
+          "68125": {
+            "oi": 160,
+            "change": -14
+          },
+          "68250": {
+            "oi": 244,
+            "change": 37
+          },
+          "68375": {
+            "oi": 51,
+            "change": -43
+          },
+          "68500": {
+            "oi": 1260,
+            "change": 23
+          },
+          "68625": {
+            "oi": 313,
             "change": 10
+          },
+          "68750": {
+            "oi": 62,
+            "change": -22
+          },
+          "68875": {
+            "oi": 27,
+            "change": -30
+          },
+          "69000": {
+            "oi": 953,
+            "change": 576
+          },
+          "69125": {
+            "oi": 115,
+            "change": 50
+          },
+          "69250": {
+            "oi": 114,
+            "change": -46
+          },
+          "69375": {
+            "oi": 206,
+            "change": 113
+          },
+          "69500": {
+            "oi": 263,
+            "change": 84
+          },
+          "69625": {
+            "oi": 229,
+            "change": 176
+          },
+          "69750": {
+            "oi": 91,
+            "change": -6
+          },
+          "69875": {
+            "oi": 118,
+            "change": 16
+          },
+          "70000": {
+            "oi": 528,
+            "change": 459
+          },
+          "70125": {
+            "oi": 99,
+            "change": 99
+          },
+          "70250": {
+            "oi": 236,
+            "change": 231
+          },
+          "70375": {
+            "oi": 60,
+            "change": 60
+          },
+          "70500": {
+            "oi": 254,
+            "change": 253
+          },
+          "70625": {
+            "oi": 21,
+            "change": 21
+          },
+          "70750": {
+            "oi": 100,
+            "change": 100
+          },
+          "70875": {
+            "oi": 12,
+            "change": 12
+          },
+          "71000": {
+            "oi": 201,
+            "change": 196
+          },
+          "71125": {
+            "oi": 54,
+            "change": 54
+          },
+          "71250": {
+            "oi": 320,
+            "change": 320
+          },
+          "71375": {
+            "oi": 758,
+            "change": 758
+          },
+          "71500": {
+            "oi": 61,
+            "change": 61
+          },
+          "71750": {
+            "oi": 1,
+            "change": -9
           }
         },
         "calls": {
@@ -3895,7 +4055,7 @@
           },
           "64500": {
             "oi": 19,
-            "change": -1
+            "change": 0
           },
           "64625": {
             "oi": 104,
@@ -3922,8 +4082,8 @@
             "change": 0
           },
           "65500": {
-            "oi": 48,
-            "change": 0
+            "oi": 59,
+            "change": 11
           },
           "65750": {
             "oi": 6,
@@ -3934,44 +4094,44 @@
             "change": 0
           },
           "66000": {
-            "oi": 163,
-            "change": 0
+            "oi": 97,
+            "change": -66
           },
           "66250": {
-            "oi": 20,
-            "change": -50
+            "oi": 11,
+            "change": -9
           },
           "66375": {
             "oi": 1,
             "change": 0
           },
           "66500": {
-            "oi": 664,
-            "change": -5
+            "oi": 148,
+            "change": -516
           },
           "66750": {
-            "oi": 525,
-            "change": 0
+            "oi": 99,
+            "change": -426
           },
           "66875": {
             "oi": 1,
             "change": 0
           },
           "67000": {
-            "oi": 596,
-            "change": -8
+            "oi": 175,
+            "change": -421
           },
           "67125": {
-            "oi": 29,
-            "change": 0
+            "oi": 7,
+            "change": -22
           },
           "67250": {
-            "oi": 104,
-            "change": 0
+            "oi": 54,
+            "change": -50
           },
           "67500": {
             "oi": 223,
-            "change": -3
+            "change": 0
           },
           "67625": {
             "oi": 2,
@@ -3986,11 +4146,11 @@
             "change": 0
           },
           "68000": {
-            "oi": 211,
-            "change": 1
+            "oi": 208,
+            "change": -3
           },
           "68125": {
-            "oi": 4,
+            "oi": 2,
             "change": -2
           },
           "68250": {
@@ -4002,152 +4162,168 @@
             "change": 0
           },
           "68500": {
-            "oi": 98,
-            "change": -4
+            "oi": 81,
+            "change": -17
           },
           "68625": {
             "oi": 1,
             "change": 0
           },
           "68750": {
-            "oi": 11,
-            "change": -2
+            "oi": 6,
+            "change": -5
           },
           "68875": {
             "oi": 10,
             "change": 0
           },
           "69000": {
-            "oi": 262,
-            "change": 1
+            "oi": 176,
+            "change": -86
           },
           "69125": {
-            "oi": 10,
-            "change": 0
+            "oi": 5,
+            "change": -5
           },
           "69250": {
-            "oi": 57,
-            "change": -1
+            "oi": 25,
+            "change": -32
           },
           "69375": {
-            "oi": 3,
-            "change": -1
+            "oi": 1,
+            "change": -2
           },
           "69500": {
-            "oi": 227,
-            "change": 11
+            "oi": 171,
+            "change": -56
           },
           "69625": {
-            "oi": 6,
-            "change": -12
+            "oi": 5,
+            "change": -1
           },
           "69750": {
-            "oi": 69,
-            "change": 16
+            "oi": 45,
+            "change": -24
           },
           "69875": {
-            "oi": 4,
-            "change": 1
+            "oi": 1,
+            "change": -3
           },
           "70000": {
-            "oi": 989,
-            "change": 68
+            "oi": 808,
+            "change": -181
           },
           "70125": {
-            "oi": 14,
-            "change": -12
+            "oi": 19,
+            "change": 5
           },
           "70250": {
-            "oi": 152,
-            "change": -53
+            "oi": 151,
+            "change": -1
           },
           "70375": {
             "oi": 200,
-            "change": -24
+            "change": 0
           },
           "70500": {
-            "oi": 329,
+            "oi": 326,
             "change": -3
           },
           "70625": {
-            "oi": 30,
-            "change": 14
+            "oi": 25,
+            "change": -5
           },
           "70750": {
-            "oi": 75,
-            "change": -6
+            "oi": 109,
+            "change": 34
           },
           "70875": {
-            "oi": 23,
-            "change": 10
+            "oi": 22,
+            "change": -1
           },
           "71000": {
-            "oi": 929,
-            "change": 59
+            "oi": 460,
+            "change": -469
           },
           "71125": {
-            "oi": 33,
-            "change": -24
+            "oi": 50,
+            "change": 17
           },
           "71250": {
-            "oi": 205,
-            "change": 1
+            "oi": 471,
+            "change": 266
           },
           "71375": {
-            "oi": 407,
-            "change": -119
+            "oi": 933,
+            "change": 526
           },
           "71500": {
-            "oi": 241,
-            "change": -20
+            "oi": 333,
+            "change": 92
           },
           "71625": {
-            "oi": 46,
-            "change": 46
+            "oi": 41,
+            "change": -5
           },
           "71750": {
-            "oi": 59,
-            "change": -8
+            "oi": 310,
+            "change": 251
           },
           "71875": {
-            "oi": 4,
-            "change": 4
+            "oi": 53,
+            "change": 49
           },
           "72000": {
-            "oi": 700,
-            "change": 560
+            "oi": 517,
+            "change": -183
           },
           "72125": {
-            "oi": 19,
-            "change": -8
+            "oi": 78,
+            "change": 59
           },
           "72250": {
-            "oi": 69,
-            "change": 0
+            "oi": 459,
+            "change": 390
           },
           "72375": {
-            "oi": 571,
-            "change": 187
+            "oi": 492,
+            "change": -79
+          },
+          "72500": {
+            "oi": 147,
+            "change": 147
+          },
+          "72625": {
+            "oi": 129,
+            "change": 129
+          },
+          "72750": {
+            "oi": 128,
+            "change": 128
+          },
+          "72875": {
+            "oi": 250,
+            "change": 250
           }
         }
       },
       "260625": {
         "puts": {
           "58625": {
-            "oi": 84,
-            "change": 8
+            "oi": 686,
+            "change": 602
           },
           "58750": {
-            "oi": 5,
-            "change": 0
+            "oi": 6,
+            "change": 1
           },
           "58875": {
             "oi": 7,
             "change": 0
           },
           "59000": {
-            "oi": 47,
-            "change": 0
+            "oi": 28,
+            "change": -19
           },
           "59250": {
             "oi": 1,
@@ -4162,92 +4338,108 @@
             "change": 0
           },
           "60000": {
-            "oi": 123,
-            "change": 76
+            "oi": 168,
+            "change": 45
           },
           "60250": {
             "oi": 4,
-            "change": 4
+            "change": 0
           },
           "60500": {
-            "oi": 21,
-            "change": 6
+            "oi": 6,
+            "change": -15
           },
           "61000": {
-            "oi": 68,
-            "change": 54
+            "oi": 138,
+            "change": 70
           },
           "61500": {
-            "oi": 2,
-            "change": 0
+            "oi": 7,
+            "change": 5
           },
           "61625": {
             "oi": 12,
-            "change": 3
+            "change": 0
+          },
+          "61875": {
+            "oi": 6,
+            "change": 6
           },
           "62000": {
-            "oi": 1005,
-            "change": 1
+            "oi": 1041,
+            "change": 36
+          },
+          "62375": {
+            "oi": 3,
+            "change": 3
           },
           "62500": {
-            "oi": 12,
-            "change": 7
+            "oi": 16,
+            "change": 4
           },
           "62625": {
-            "oi": 1,
-            "change": 0
+            "oi": 3,
+            "change": 2
           },
           "62750": {
             "oi": 2,
             "change": 0
           },
+          "62875": {
+            "oi": 3,
+            "change": 3
+          },
           "63000": {
-            "oi": 20,
-            "change": 15
+            "oi": 48,
+            "change": 28
           },
           "63375": {
-            "oi": 4,
-            "change": 0
+            "oi": 9,
+            "change": 5
           },
           "63500": {
-            "oi": 27,
-            "change": 1
+            "oi": 11,
+            "change": -16
+          },
+          "63875": {
+            "oi": 6,
+            "change": 6
           },
           "64000": {
-            "oi": 12,
-            "change": 2
+            "oi": 33,
+            "change": 21
           },
           "64375": {
-            "oi": 50,
-            "change": 0
+            "oi": 51,
+            "change": 1
           },
           "64500": {
-            "oi": 208,
-            "change": 4
+            "oi": 209,
+            "change": 1
           },
           "64750": {
             "oi": 9,
             "change": 0
           },
           "65000": {
-            "oi": 1050,
-            "change": 29
+            "oi": 1122,
+            "change": 72
           },
           "65125": {
             "oi": 4,
             "change": 0
           },
           "65250": {
-            "oi": 22,
-            "change": 0
+            "oi": 0,
+            "change": -22
           },
           "65375": {
             "oi": 4,
             "change": 0
           },
           "65500": {
-            "oi": 2,
-            "change": -1
+            "oi": 6,
+            "change": 4
           },
           "65625": {
             "oi": 7,
@@ -4255,105 +4447,145 @@
           },
           "65750": {
             "oi": 51,
-            "change": 50
-          },
-          "65875": {
-            "oi": 3,
             "change": 0
           },
+          "65875": {
+            "oi": 4,
+            "change": 1
+          },
           "66000": {
-            "oi": 269,
-            "change": 201
+            "oi": 309,
+            "change": 40
           },
           "66125": {
             "oi": 3,
             "change": 0
           },
           "66250": {
-            "oi": 70,
-            "change": 64
+            "oi": 72,
+            "change": 2
           },
           "66500": {
-            "oi": 191,
-            "change": 140
+            "oi": 232,
+            "change": 41
           },
           "66750": {
             "oi": 59,
-            "change": 49
+            "change": 0
           },
           "66875": {
             "oi": 5,
-            "change": 5
+            "change": 0
           },
           "67000": {
-            "oi": 134,
-            "change": 83
+            "oi": 242,
+            "change": 108
           },
           "67125": {
-            "oi": 1,
-            "change": 1
+            "oi": 0,
+            "change": -1
           },
           "67500": {
-            "oi": 56,
-            "change": 52
+            "oi": 57,
+            "change": 1
           },
           "67625": {
             "oi": 100,
-            "change": 100
+            "change": 0
           },
           "67750": {
-            "oi": 5,
-            "change": 0
+            "oi": 8,
+            "change": 3
           },
           "68000": {
-            "oi": 61,
-            "change": 60
+            "oi": 86,
+            "change": 25
           },
           "68250": {
-            "oi": 16,
-            "change": 0
+            "oi": 66,
+            "change": 50
           },
           "68500": {
-            "oi": 60,
-            "change": 60
+            "oi": 88,
+            "change": 28
           },
           "69000": {
-            "oi": 17,
-            "change": 17
+            "oi": 594,
+            "change": 577
           },
           "69125": {
-            "oi": 2,
+            "oi": 4,
             "change": 2
           },
           "69250": {
-            "oi": 3,
-            "change": 0
+            "oi": 4,
+            "change": 1
           },
           "69500": {
-            "oi": 3,
-            "change": -2
+            "oi": 18,
+            "change": 15
           },
           "69875": {
+            "oi": 1,
+            "change": -1
+          },
+          "70000": {
+            "oi": 54,
+            "change": 54
+          },
+          "70250": {
             "oi": 2,
             "change": 2
+          },
+          "70500": {
+            "oi": 8,
+            "change": 8
+          },
+          "70750": {
+            "oi": 2,
+            "change": 2
+          },
+          "70875": {
+            "oi": 1,
+            "change": 1
+          },
+          "71000": {
+            "oi": 10,
+            "change": 10
+          },
+          "71250": {
+            "oi": 1,
+            "change": 1
+          },
+          "71500": {
+            "oi": 2,
+            "change": 2
+          },
+          "71750": {
+            "oi": 10,
+            "change": 10
           }
         },
         "calls": {
-          "65000": {
-            "oi": 0,
-            "change": -5
+          "61000": {
+            "oi": 5,
+            "change": 5
+          },
+          "62500": {
+            "oi": 10,
+            "change": 10
           },
           "65250": {
-            "oi": 22,
-            "change": 0
+            "oi": 0,
+            "change": -22
           },
           "66000": {
-            "oi": 11,
-            "change": 0
+            "oi": 8,
+            "change": -3
           },
           "66500": {
             "oi": 31,
-            "change": -1
+            "change": 0
           },
           "66625": {
             "oi": 5,
@@ -4380,32 +4612,32 @@
             "change": 0
           },
           "68000": {
-            "oi": 7,
-            "change": 5
+            "oi": 2,
+            "change": -5
           },
           "68125": {
-            "oi": 1,
-            "change": 0
+            "oi": 0,
+            "change": -1
           },
           "68250": {
             "oi": 16,
             "change": 0
           },
           "68500": {
-            "oi": 25,
-            "change": 25
+            "oi": 30,
+            "change": 5
           },
           "68750": {
-            "oi": 24,
-            "change": -2
+            "oi": 10,
+            "change": -14
           },
           "69000": {
             "oi": 2,
             "change": 0
           },
           "69250": {
-            "oi": 1,
-            "change": 0
+            "oi": 0,
+            "change": -1
           },
           "69375": {
             "oi": 1,
@@ -4413,71 +4645,87 @@
           },
           "69500": {
             "oi": 2,
-            "change": -5
+            "change": 0
           },
           "69750": {
             "oi": 1,
-            "change": -4
+            "change": 0
           },
           "69875": {
             "oi": 1,
-            "change": 1
+            "change": 0
           },
           "70000": {
-            "oi": 27,
-            "change": 12
+            "oi": 23,
+            "change": -4
           },
           "70250": {
             "oi": 2,
-            "change": 2
-          },
-          "70500": {
-            "oi": 12,
             "change": 0
           },
+          "70500": {
+            "oi": 13,
+            "change": 1
+          },
           "70750": {
-            "oi": 205,
-            "change": 3
+            "oi": 202,
+            "change": -3
           },
           "71000": {
-            "oi": 101,
-            "change": 89
+            "oi": 142,
+            "change": 41
+          },
+          "71125": {
+            "oi": 1,
+            "change": 1
           },
           "71250": {
-            "oi": 2,
-            "change": 1
+            "oi": 30,
+            "change": 28
           },
           "71375": {
             "oi": 13,
             "change": 0
           },
           "71500": {
-            "oi": 5,
-            "change": 0
+            "oi": 26,
+            "change": 21
           },
           "71875": {
             "oi": 8,
-            "change": 8
-          },
-          "72000": {
-            "oi": 20,
-            "change": 15
-          },
-          "72250": {
-            "oi": 1,
             "change": 0
           },
+          "72000": {
+            "oi": 58,
+            "change": 38
+          },
+          "72250": {
+            "oi": 7,
+            "change": 6
+          },
           "72375": {
-            "oi": 48,
-            "change": 29
+            "oi": 86,
+            "change": 38
+          },
+          "72500": {
+            "oi": 19,
+            "change": 19
+          },
+          "72750": {
+            "oi": 22,
+            "change": 22
+          },
+          "72875": {
+            "oi": 54,
+            "change": 54
           }
         }
       },
       "260702": {
         "puts": {
           "61000": {
-            "oi": 12,
-            "change": 6
+            "oi": 51,
+            "change": 39
           },
           "62000": {
             "oi": 1,
@@ -4504,8 +4752,12 @@
             "change": 0
           },
           "69750": {
-            "oi": 2,
-            "change": 0
+            "oi": 0,
+            "change": -2
+          },
+          "70000": {
+            "oi": 16,
+            "change": 16
           }
         },
         "calls": {
@@ -4526,8 +4778,12 @@
             "change": 0
           },
           "69750": {
-            "oi": 2,
-            "change": 0
+            "oi": 0,
+            "change": -2
+          },
+          "70000": {
+            "oi": 16,
+            "change": 16
           }
         }
       },
@@ -4547,409 +4803,104 @@
       },
       "260623": {
         "puts": {
+          "61000": {
+            "oi": 741,
+            "change": 741
+          },
+          "67500": {
+            "oi": 26,
+            "change": 26
+          },
           "69500": {
-            "oi": 1,
-            "change": 1
+            "oi": 4,
+            "change": 3
           }
         },
         "calls": {}
       }
-    },
-    "otm_table": [
-      {
-        "strike": 65000,
-        "type": "put",
-        "label": "Deep OTM P",
-        "otm_prob": {
-          "vi_minus10": 91.1,
-          "vi_current": 82.0,
-          "vi_plus10": 75.5
-        },
-        "bs_price": 534.9
-      },
-      {
-        "strike": 67000,
-        "type": "put",
-        "label": "OTM P",
-        "otm_prob": {
-          "vi_minus10": 78.7,
-          "vi_current": 70.6,
-          "vi_plus10": 65.9
-        },
-        "bs_price": 1030.3
-      },
-      {
-        "strike": 68000,
-        "type": "put",
-        "label": "OTM P",
-        "otm_prob": {
-          "vi_minus10": 70.1,
-          "vi_current": 64.0,
-          "vi_plus10": 60.7
-        },
-        "bs_price": 1372.1
-      },
-      {
-        "strike": 69000,
-        "type": "put",
-        "label": "Near OTM P",
-        "otm_prob": {
-          "vi_minus10": 60.3,
-          "vi_current": 57.0,
-          "vi_plus10": 55.3
-        },
-        "bs_price": 1782.5
-      },
-      {
-        "strike": 72000,
-        "type": "call",
-        "label": "OTM C",
-        "otm_prob": {
-          "vi_minus10": 69.6,
-          "vi_current": 63.6,
-          "vi_plus10": 60.4
-        },
-        "bs_price": 1432.9
-      },
-      {
-        "strike": 73000,
-        "type": "call",
-        "label": "OTM C",
-        "otm_prob": {
-          "vi_minus10": 77.7,
-          "vi_current": 69.8,
-          "vi_plus10": 65.2
-        },
-        "bs_price": 1114.7
-      },
-      {
-        "strike": 75000,
-        "type": "call",
-        "label": "Deep OTM C",
-        "otm_prob": {
-          "vi_minus10": 89.5,
-          "vi_current": 80.3,
-          "vi_plus10": 74.0
-        },
-        "bs_price": 644.5
-      }
-    ],
-    "edge_scores": [
-      {
-        "zone": "Deep OTM コール",
-        "type": "sell-c",
-        "range_low": 75000,
-        "range_high": 80000,
-        "wall_max_oi": 3252,
-        "wall_strike": 75000,
-        "wall_score": 0.447,
-        "otm_score": 0.606,
-        "flow_score": 0,
-        "participant_score": 0,
-        "total_score": 0.263,
-        "stars": 2
-      },
-      {
-        "zone": "OTM コール",
-        "type": "sell-c",
-        "range_low": 72000,
-        "range_high": 75000,
-        "wall_max_oi": 7272,
-        "wall_strike": 72000,
-        "wall_score": 1.0,
-        "otm_score": 0.606,
-        "flow_score": 0,
-        "participant_score": 0,
-        "total_score": 0.401,
-        "stars": 3
-      },
-      {
-        "zone": "ATM帯",
-        "type": "atm",
-        "range_low": 68000,
-        "range_high": 72000,
-        "wall_max_oi": 1094,
-        "wall_strike": 69000,
-        "wall_score": 0.15,
-        "otm_score": 0.28,
-        "flow_score": 0,
-        "participant_score": 0,
-        "total_score": 0.108,
-        "stars": 1
-      },
-      {
-        "zone": "OTM プット",
-        "type": "sell-p",
-        "range_low": 65000,
-        "range_high": 69000,
-        "wall_max_oi": 4118,
-        "wall_strike": 65000,
-        "wall_score": 0.566,
-        "otm_score": 0.64,
-        "flow_score": 0.5,
-        "participant_score": 0,
-        "total_score": 0.427,
-        "stars": 3
-      },
-      {
-        "zone": "Deep OTM プット",
-        "type": "sell-p",
-        "range_low": 60000,
-        "range_high": 65000,
-        "wall_max_oi": 4118,
-        "wall_strike": 65000,
-        "wall_score": 0.566,
-        "otm_score": 0.64,
-        "flow_score": 0.5,
-        "participant_score": 0,
-        "total_score": 0.427,
-        "stars": 3
-      }
-    ],
-    "presets": [
-      {
-        "name": "Iron Condor",
-        "legs": [
-          {
-            "type": "put",
-            "side": "short",
-            "strike": 68000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1372.1
-          },
-          {
-            "type": "put",
-            "side": "long",
-            "strike": 66000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 753.2
-          },
-          {
-            "type": "call",
-            "side": "short",
-            "strike": 72000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1432.9
-          },
-          {
-            "type": "call",
-            "side": "long",
-            "strike": 74000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 854.1
-          }
-        ]
-      },
-      {
-        "name": "Put Credit Spread",
-        "legs": [
-          {
-            "type": "put",
-            "side": "short",
-            "strike": 68000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1372.1
-          },
-          {
-            "type": "put",
-            "side": "long",
-            "strike": 66000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 753.2
-          }
-        ]
-      },
-      {
-        "name": "Call Credit Spread",
-        "legs": [
-          {
-            "type": "call",
-            "side": "short",
-            "strike": 72000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1432.9
-          },
-          {
-            "type": "call",
-            "side": "long",
-            "strike": 74000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 854.1
-          }
-        ]
-      },
-      {
-        "name": "Short Strangle + 先物ヘッジ",
-        "legs": [
-          {
-            "type": "put",
-            "side": "short",
-            "strike": 68000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1372.1
-          },
-          {
-            "type": "call",
-            "side": "short",
-            "strike": 72000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1432.9
-          },
-          {
-            "type": "futures",
-            "side": "short",
-            "entry": 70000,
-            "qty": 0,
-            "multiplier": 100
-          }
-        ]
-      },
-      {
-        "name": "P売り + mini先物ヘッジ",
-        "legs": [
-          {
-            "type": "put",
-            "side": "short",
-            "strike": 68000,
-            "qty": 1,
-            "multiplier": 1000,
-            "premium": 1372.1
-          },
-          {
-            "type": "futures",
-            "side": "short",
-            "entry": 68500,
-            "qty": 3,
-            "multiplier": 100
-          }
-        ]
-      },
-      {
-        "name": "ミニ週次θハーベスト",
-        "legs": [
-          {
-            "type": "put",
-            "side": "short",
-            "strike": 68500,
-            "qty": 10,
-            "multiplier": 100,
-            "premium": 619.8
-          },
-          {
-            "type": "call",
-            "side": "short",
-            "strike": 71500,
-            "qty": 10,
-            "multiplier": 100,
-            "premium": 643.4
-          }
-        ]
-      }
-    ]
+    }
   },
   "indicators": {
-    "pcr_volume": 1.51,
-    "pcr_oi": 1.97,
+    "pcr_volume": 1.59,
+    "pcr_oi": 1.95,
     "pcr_signal": "強い弱気（逆張り買いシグナル）",
-    "max_pain": 66000,
-    "max_pain_total": 18803500,
-    "max_pain_diff": -4000,
+    "max_pain": 68000,
+    "max_pain_total": 9182000,
+    "max_pain_diff": -3500,
     "basis": null,
     "basis_signal": null,
     "walls_reinforced": [
       {
-        "strike": 65000,
-        "type": "P",
-        "oi": 4118,
-        "change": 647
-      }
-    ],
-    "walls_weakened": [
-      {
         "strike": 75000,
         "type": "C",
-        "oi": 3252,
-        "change": -476
-      },
-      {
-        "strike": 70000,
-        "type": "C",
-        "oi": 5033,
-        "change": -333
+        "oi": 4457,
+        "change": 1205
       },
       {
         "strike": 72000,
         "type": "C",
-        "oi": 7272,
-        "change": -295
-      },
+        "oi": 7860,
+        "change": 588
+      }
+    ],
+    "walls_weakened": [
       {
-        "strike": 65000,
+        "strike": 69000,
         "type": "C",
-        "oi": 6237,
-        "change": -250
+        "oi": 4801,
+        "change": -416
       }
     ]
   },
   "technicals": {
     "pivot": {
-      "date": "2026-06-16",
-      "high": 70020.68,
-      "low": 69095.67,
-      "close": 69404.5,
-      "pp": 69507,
-      "r1": 69918.33,
-      "r2": 70432.01,
-      "r3": 70843.34,
-      "s1": 68993.32,
-      "s2": 68581.99,
-      "s3": 68068.31000000001
+      "date": "2026-06-17",
+      "high": 70125.75,
+      "low": 68985.63,
+      "close": 69902.25,
+      "pp": 69671,
+      "r1": 70356.37,
+      "r2": 70811.12,
+      "r3": 71496.48999999999,
+      "s1": 69216.25,
+      "s2": 68530.88,
+      "s3": 68076.13
     },
     "fibonacci": {
       "trend": "uptrend",
-      "high": 70126,
-      "low": 60282,
+      "high": 71399,
+      "low": 61843,
       "period": 20,
       "levels": {
-        "0%": 70126,
-        "23.6%": 67803,
-        "38.2%": 66366,
-        "50%": 65204,
-        "61.8%": 64043,
-        "78.6%": 62389,
-        "100%": 60282
+        "0%": 71399,
+        "23.6%": 69143,
+        "38.2%": 67748,
+        "50%": 66621,
+        "61.8%": 65493,
+        "78.6%": 63888,
+        "100%": 61843
       },
       "label": "押し目水準（上昇トレンド中の戻り）"
     },
     "bollinger": {
       "period": 20,
-      "mean": 65991,
-      "std": 2103,
-      "upper3": 72301,
-      "upper2": 70197,
-      "upper1": 68094,
-      "lower1": 63887,
-      "lower2": 61784,
-      "lower3": 59680,
-      "current_sigma": 1.86,
-      "bandwidth": 12.75
+      "mean": 66459,
+      "std": 2135,
+      "upper3": 72865,
+      "upper2": 70730,
+      "upper1": 68594,
+      "lower1": 64324,
+      "lower2": 62188,
+      "lower3": 60053,
+      "current_sigma": 2.15,
+      "bandwidth": 12.85
     },
     "rsi": {
       "period": 14,
-      "value": 65.5,
+      "value": 64.4,
       "signal": "やや過熱"
     }
   },
-  "s08_assessment": "■先物の方向性\n6/17は構成的な続伸。6/16終値69,404 → 6/17終値69,902（前日比＋約498、＋0.7%）で70,000の大台に接近。ボラはさらに沈静し7月限ATM IVは29.0→28.0%（34.1→31.8→29.0→28.0と4日続落）、スキューも+10.7→+9.5に低下、PCR(出来高)も1.85→1.51へ低下＝下方警戒が後退しやや楽観化。期間構造は7月28.0＜8月28.6＜9月29.0の順ザヤ継続で近月は最も穏やか。総じて「低ボラの中をジリ高で大台へ詰める」展開。\n\n■上値抵抗・下値支持（SQ着地イメージ）\n最大の変化は上値コール壁の剥落。C70,000（5,033、前日比−333）・C72,000（7,272、−295）・C75,000（3,252、−476）がいずれも減少。価格が70,000に近づく中で上値コールが解消され、抵抗帯が薄まり始めた。C72,000は依然OI最大の本丸だが、増勢から一転して減少。\n下値: P65,000がOI4,118（＋647）と一段と補強され、MaxPainも65,500→66,000へ切り上がり。レンジは概ね66,000〜72,000だが、上限が緩みつつある点が今日の肝。\n\n■OP売りのエッジ（IVで判別）\n全体OIはPUT＋6,569・CALL＋2,184と増勢鈍化。コール壁剥落の中身をIVで見ると：\n・C70,000はOI減（−333）＋IV上昇（28.0→28.2%）＝**ショートカバー（オーバーライターの買い戻し）**。70,000の抵抗が踏まれて薄まる、ややブル寄りのサイン。\n・C72,000はOI減（−295）＋IV横ばい（−0.2）＝中立的な解消。\n・下値プットはP65,000建増し（＋647）だがIVは低下（P65,000 34.0→33.4%）＝当日のフローはヘッジ買いより供給（プット売り）寄り。6/15に見られた必死の下方ヘッジ買いは後退。\n売り候補: C72,000はまだOIの壁だがIV26.7%と低くプレミアムは薄い＝コール売りの妙味は縮小、むしろ壁が薄まる中での上抜けリスクに注意。プット売りもIV低下で受取縮小、P64,000〜65,000（補強ゾーン）までに限定。\n\n■ガンマ・リスクシナリオとヘッジ\nガンマ視点: コール壁の買い戻し（ショートカバー）が進むと、ディーラーのショートガンマ寄りに傾き、70,000上抜けで加速余地。C72,000（7,272）が最後の重しで、ここを明確に抜ければ踏み上げ。J-NETはC70,000 540枚(4社)と分散・小口。\n上方リスク（本線寄りに変化）: 70,000上抜け→C72,000試し。壁が薄まりつつあり、上抜け加速の可能性が前日より高まった。\n下方リスク: 楽観化（IV28%・スキュー9.5・PCR1.51）とMaxPain66,000の下方マグネットの組み合わせ＝ジリ高が失速すると66,000への巻き戻しが出やすい。IVが安い今は、押し目に備えたプット買いヘッジのコストが低く、ヘッジの好機。\nヘッジ: 上値はC72,000近辺の戻り売り（ただしプレミアム薄）。下値警戒はP66,000〜67,000のプット買いが低コストで仕込める。\n\n■結論\n6/17は70,000接近の構成的続伸（69,902）。上値コール壁が短期筋の買い戻し（特にC70,000はショートカバー）で薄まり、IV28%・スキュー9.5・PCR1.51と楽観化。C72,000（7,272）が最後の壁で、上抜ければ踏み上げ加速の余地。一方、低ボラ・楽観・MaxPain66,000の下方マグネットから、ジリ高失速時の巻き戻しには注意。コール売りはIV低下で妙味縮小、プット売りはP64,000-65,000まで。IVが安いので押し目ヘッジ（プット買い）のコスト妙味あり。",
+  "s08_assessment": "■先物の方向性\n6/18は70,000を明確に上抜け。6/17終値69,902 → 6/18終値71,053（前日比＋約1,151、＋1.6%）。先日警戒した上抜けが実現し、モメンタム・ブレイク。注目はボラの反発で、7月限ATM IVは4日続落から28.0→28.8%へ小反発（上抜けを追うvol bid）。スキューは+9.5→+9.2と低めだが、今日は上下とも全面的にIVが上昇しており（後述）、「ブレイクを追いつつヘッジも厚くする」両建て的な動意。期間構造は順ザヤ継続。\n\n■上値抵抗・下値支持（SQ着地イメージ）\n抵抗帯が上方シフト。直上はC72,000（OI7,860、前日比＋588）、その上にC75,000（4,457、＋1,205の大幅増）が新規の重しとして台頭、さらにC80,000（4,568）にも建ち。価格71,053に対しMaxPainは66,000→67,500へ追随。C69,000は通過し−416で剥落。下値の近い支持はP68,000〜70,000帯（厚いプット壁P60,000以下は遠い）。レンジ上限が72,000→75,000へ切り上がる過程。\n\n■OP売りのエッジ（IVで判別）\n全体OIはCALL＋10,779・PUT＋16,262と両建てで急増、PCR(出来高)1.59。最大の変化はC72,000の中身：**OI増（＋588）＋IV上昇（26.7→29.0%、＋2.3）＝買い需要**。前日まで「売られて維持」だった上値壁が、ブレイクを追うコール買いに転換。J-NETもC72,000に2,080枚(3社)と整合。C73,000・C75,000・C80,000もIV上昇＝上値コール全般に買いが入った。\n・含意：C72,000近辺のコール売りは踏み上げリスクが高く危険。売るならC75,000以遠に退避（ただしそこも建玉急増中）。\n・下値プットも全面IV上昇（P66,000 32.0→34.4%、＋2.4）＝新高値圏のヘッジ買い。プット売りは受取が増えるが、ボラ上昇局面での売りは逆風になりうる点に注意。P68,000〜70,000を支持に限定。\n\n■ガンマ・リスクシナリオとヘッジ\nガンマ視点: C72,000が買われる＝ディーラーはショートガンマ寄りに傾き、72,000上抜けで加速余地が大きい。J-NETはC72,000 2,080枚(3社)に加えP70,000 1,134枚(3社)もあり、上下に大口。\n上方リスク（本線）: C72,000を明確に上抜けると踏み上げでC75,000試し。抵抗が上方へ逃げており、モメンタムが続けば伸びやすい地合い。\n下方リスク: 価格71,053とMaxPain67,500の乖離が約3,500に拡大＝ジリ高が失速すると67,500への巻き戻しが出やすい。両サイドvol bidで振れ幅も拡大しやすい。\nヘッジ: 上値追いはC75,000コール売りでのカバードか、ブレイク継続ならコール買いの押し目。下方はP68,000〜70,000のプット買いで新高値益を保護（IVは上がったがまだ28%台で過大ではない）。\n\n■結論\n6/18は70,000を明確に上抜け（71,053、＋1.6%）。C72,000が「売り壁」から「買い」へ転換（OI↑＋IV↑、J-NET2,080枚）し、抵抗はC75,000・C80,000へ上方シフト＝上抜け加速の地合い。ATM IVも反発（28.8%）。ただし上下とも全面的にvol bidで振れやすく、価格とMaxPain67,500の乖離拡大から失速時の巻き戻しリスクも併存。戦略はコール売りをC75,000以遠に退避し、ブレイク継続なら順張り、新高値益にはP68,000-70,000のヘッジを低コストで。",
   "s08_source": "manual"
 }
