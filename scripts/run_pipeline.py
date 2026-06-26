@@ -188,6 +188,18 @@ def main():
         print('[WARN] extract_iv_timeseries.py failed (IV推移 card may be stale)', file=sys.stderr)
         print(result.stderr, file=sys.stderr)
 
+    # Step 2.9: Per-strike greeks + GEX profile (グリークス/GEX card). Reads the
+    # current open_interest + ose<date>tp.csv (and prior day for the OI x IV
+    # sign of Convention B) and writes greeks.json. Non-fatal.
+    greeks_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_greeks.py'),
+                  '--data-dir', datadir,
+                  '--out', os.path.join(datadir, 'greeks.json')]
+    result = subprocess.run(greeks_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_greeks.py failed (グリークス/GEX card may be empty)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')
     render_cmd = [sys.executable, os.path.join(scripts_dir, 'render.py'),

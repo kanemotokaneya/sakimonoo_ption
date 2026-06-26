@@ -18,6 +18,11 @@ Dependencies: None (pure Python, no external libraries)
 import argparse
 import json
 import os
+
+try:
+    import render_greeks as _rg
+except Exception:
+    _rg = None
 import sys
 import copy
 
@@ -1515,7 +1520,7 @@ def _detail_ivtrend_js(ivts):
 
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None):
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1536,7 +1541,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None):
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS)
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1620,6 +1625,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None):
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
             ('iv', '📐', 'IVスマイル', _preview_iv(iv), _detail_iv_js(iv), DB),
             ('ivtrend', '📈', 'IV推移', _preview_ivtrend(ivts), _detail_ivtrend_js(ivts), DB),
+            ('greeks', '🧮', 'グリークス/GEX', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
         ]),
         ('参加者・手口', [
             ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
@@ -1660,6 +1666,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None):
     h += WEEKLY_TREND_JS
     h += IV_CARD_JS
     h += IV_TREND_JS
+    if _rg:
+        h += _rg.greeks_data_script(greeks)
+        h += _rg.GREEKS_CARD_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2601,6 +2610,16 @@ def run(args):
     wt = _load_weekly_trend(data_dir)
     iv = _load_iv(data_dir)
     ivts = _load_iv_ts(data_dir)
+    greeks = None
+    _gpath = os.path.join(data_dir, 'greeks.json')
+    if os.path.exists(_gpath):
+        try:
+            with open(_gpath, encoding='utf-8') as f:
+                greeks = json.load(f)
+            if greeks and not greeks.get('error'):
+                print('[render.py] Loaded greeks.json: %d expiries' % len(greeks.get('expiries', [])))
+        except Exception as e:
+            print('[render.py] greeks.json load error: %s' % e)
     if iv and not iv.get('error'):
         print('[render.py] Loaded iv.json: %d expiries' % len(iv.get('expiries', [])))
     else:
@@ -2624,7 +2643,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
