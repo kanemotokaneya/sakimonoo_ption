@@ -113,6 +113,10 @@ function gkBuildHTML(){
   h += '<button class="gk-cv'+(conv==='B'?' gk-on':'')+'" data-gk-cv="B">OI×IV B</button>';
   h += '<button class="gk-cv'+(conv==='B2'?' gk-on':'')+'" data-gk-cv="B2">相対IV B2</button>';
   h += '</div>';
+  // fallback banner: when prior-day data is missing, B and B2 == A
+  if((conv==='B'||conv==='B2') && G.prior_used===false){
+    h += '<div class="gk-note" style="color:#f59e0b;border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:8px;background:rgba(245,158,11,.08)">⚠️ 前日データが無いため B/B2 は慣例Aと同一（フォールバック中）。前日の open_interest.xlsx と ose…tp.csv を data/ に置いて再生成すると分岐します。</div>';
+  }
   // KPIs
   var signTxt = (zg && zg.sign_at_spot==='positive') ? '正（安定/ピン）' : '負（加速/不安定）';
   var signCls = (zg && zg.sign_at_spot==='positive') ? 'gk-pos' : 'gk-neg';

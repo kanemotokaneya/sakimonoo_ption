@@ -163,8 +163,8 @@ def _dealer_sign(oi_chg, iv_chg, side):
 # ----------------------------------------------------------------------------
 def build_greeks(data_dir, max_expiries=3):
     today = _today_from_dir(data_dir)
-    tps = _find(data_dir, r'ose\d{8}tp\.csv')
-    ois = _find(data_dir, r'\d{8}open_interest\.xlsx')
+    tps = _find(data_dir, r'ose\d{8}tp.*\.csv')
+    ois = _find(data_dir, r'\d{8}open_interest.*\.xlsx')
     if not tps or not ois:
         return {'error': 'need today ose tp.csv and open_interest.xlsx',
                 'have_tp': [d for d, _ in tps], 'have_oi': [d for d, _ in ois]}
@@ -191,6 +191,9 @@ def build_greeks(data_dir, max_expiries=3):
             iv_prior_atm[e['expiry']] = e.get('atm_iv')
 
     out = {'as_of': today, 'spot': spot, 'r': 0.0, 'mult': MULT,
+           'prior_used': bool(oi_prior) and bool(tp_prior),
+           'prior_oi': (ois[-2][0] if len(ois) >= 2 else None),
+           'prior_tp': (tps[-2][0] if len(tps) >= 2 else None),
            'conventions': {
                'A': 'standard: dealer long calls / short puts',
                'B': 'OI x IV inferred sign (fallback to A when ambiguous)',
@@ -267,7 +270,7 @@ def build_greeks(data_dir, max_expiries=3):
             net_A['gamma'] += (coi - poi) * g
             net_B['gamma'] += (sc * coi + sp_ * poi) * g
             net_B2['gamma'] += (sc2 * coi + sp2 * poi) * g
-            net_A['delta'] += coi * gc['delta'] + poi * gp['delta']
+            net_A['delta'] += coi * gc['delta'] - poi * gp['delta']
             net_B['delta'] += (sc * coi) * gc['delta'] + (sp_ * poi) * gp['delta']
             net_B2['delta'] += (sc2 * coi) * gc['delta'] + (sp2 * poi) * gp['delta']
             for kk in ('vega', 'theta'):
@@ -372,6 +375,15 @@ def main():
     else:
         print('[extract_greeks] wrote %s | spot=%.0f | %d expiries'
               % (a.out, res['spot'] or 0, len(res['expiries'])))
+        if not res.get('prior_used'):
+            print('[extract_greeks] WARNING: prior-day OI/IV not found -> '
+                  'Conventions B and B2 fall back to A (identical). '
+                  'Ensure the previous trading day\'s open_interest.xlsx AND '
+                  'ose<date>tp.csv are in the data dir (check for odd filenames '
+                  'like ose...tp__1_.csv).')
+        else:
+            print('[extract_greeks] prior day used: OI=%s IV=%s'
+                  % (res.get('prior_oi'), res.get('prior_tp')))
         for e in res['expiries']:
             za = (e['zero_gamma_A'] or {}).get('flip')
             zb = (e['zero_gamma_B'] or {}).get('flip')
