@@ -37,6 +37,16 @@ GREEKS_CARD_CSS = r"""
 .gk-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
 .gk-tbl td:first-child{text-align:left;font-family:'Noto Sans JP',sans-serif}
 .gk-atm td{background:rgba(99,102,241,.12)}
+.gk-banner{font-size:13px;border-radius:9px;padding:10px 11px;margin:2px 0 11px;line-height:1.65}
+.gk-banner b{font-weight:700}
+.gk-warn{color:#f59e0b;border:1px solid rgba(245,158,11,.45);background:rgba(245,158,11,.09)}
+.gk-tip{color:#c7d2fe;border:1px solid rgba(129,140,248,.45);background:rgba(129,140,248,.10)}
+.gk-plain{font-size:13px;color:var(--text);background:#1d2230;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin:2px 0 9px;line-height:1.6}
+.gk-plain b{font-weight:700}
+.gk-legend{display:flex;gap:8px 18px;flex-wrap:wrap;margin:0 2px 10px;font-size:12.5px;color:var(--sub);line-height:1.5}
+.gk-legend b{color:var(--text);font-weight:600}
+.gk-legend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+.gk-sw.gk-g{background:#22c55e}.gk-sw.gk-r{background:#ef4444}
 """
 
 
@@ -113,9 +123,16 @@ function gkBuildHTML(){
   h += '<button class="gk-cv'+(conv==='B'?' gk-on':'')+'" data-gk-cv="B">OI×IV B</button>';
   h += '<button class="gk-cv'+(conv==='B2'?' gk-on':'')+'" data-gk-cv="B2">相対IV B2</button>';
   h += '</div>';
-  // fallback banner: when prior-day data is missing, B and B2 == A
-  if((conv==='B'||conv==='B2') && G.prior_used===false){
-    h += '<div class="gk-note" style="color:#f59e0b;border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:8px;background:rgba(245,158,11,.08)">⚠️ 前日データが無いため B/B2 は慣例Aと同一（フォールバック中）。前日の open_interest.xlsx と ose…tp.csv を data/ に置いて再生成すると分岐します。</div>';
+  // guidance banner — always shown, tells the user which convention to trust
+  if(G.prior_used===false){
+    h += '<div class="gk-banner gk-warn">⚠️ 前日データが無いため <b>B/B2 は慣例Aと同一</b>（フォールバック中）。前日の open_interest.xlsx と ose…tp.csv を data/ に置いて再生成すると分岐します。</div>';
+  } else {
+    var aic = (e.atm_iv_chg!=null) ? e.atm_iv_chg*100 : null; // 市場全体IV変化(pt)
+    if(aic!=null && Math.abs(aic)>=2.0){
+      h += '<div class="gk-banner gk-tip">📌 <b>今日の見方</b>：IV(市場全体)が <b>'+(aic>0?'+':'')+aic.toFixed(1)+'pt</b> と大きく動いた日。<b>「相対IV B2」</b>を見てください。Bは市場全体のIV変動を「需要」と誤読しがちです。</div>';
+    } else if(aic!=null){
+      h += '<div class="gk-banner gk-tip">📌 <b>今日の見方</b>：IV(市場全体)の変動は小さめ（'+(aic>0?'+':'')+aic.toFixed(1)+'pt）。<b>B と B2 はほぼ一致</b>します。素直な「OI×IV B」でOK。</div>';
+    }
   }
   // KPIs
   var signTxt = (zg && zg.sign_at_spot==='positive') ? '正（安定/ピン）' : '負（加速/不安定）';
@@ -123,14 +140,24 @@ function gkBuildHTML(){
   h += '<div class="gk-kpis">';
   h += '<div class="gk-kpi"><div class="l">現値</div><div class="v">'+gkInt(e.spot)+'</div></div>';
   h += '<div class="gk-kpi"><div class="l">ゼロガンマ</div><div class="v" style="color:#f59e0b">'+gkInt(zg?zg.flip:null)+'</div></div>';
-  h += '<div class="gk-kpi"><div class="l">現値のΓ</div><div class="v '+signCls+'" style="font-size:11px">'+signTxt+'</div></div>';
+  h += '<div class="gk-kpi"><div class="l">今の地合い</div><div class="v '+signCls+'" style="font-size:12px">'+signTxt+'</div></div>';
   h += '<div class="gk-kpi"><div class="l">netΔ</div><div class="v">'+gkInt(net.delta)+'</div></div>';
   h += '<div class="gk-kpi"><div class="l">netVega</div><div class="v">'+gkInt(net.vega)+'</div></div>';
   h += '<div class="gk-kpi"><div class="l">netΘ/日</div><div class="v">'+gkInt(net.theta)+'</div></div>';
   h += '</div>';
+  // plain-language one-liner about the current regime
+  var regimePlain = (zg && zg.sign_at_spot==='positive')
+    ? '今は現値が<b>「止まりやすい」</b>ゾーン（緑優勢）。値動きは比較的落ち着きやすい地合いです。'
+    : '今は現値が<b>「滑りやすい」</b>ゾーン（赤優勢）。動き出すと速く、荒れやすい地合いです。';
+  h += '<div class="gk-plain">'+regimePlain+'</div>';
+  // color legend (plain words)
+  h += '<div class="gk-legend">'
+    + '<span><i class="gk-sw gk-g"></i>緑＝その価格帯は<b>止まりやすい</b>（ピン・支持/抵抗）</span>'
+    + '<span><i class="gk-sw gk-r"></i>赤＝その価格帯は<b>抜けると加速</b>（滑りやすい）</span>'
+    + '</div>';
   // GEX svg
   h += '<div class="gk-svg-wrap">'+gkDrawGEX(e, conv)+'</div>';
-  h += '<div class="gk-note">GEXプロファイル（'+e.label+'・残存'+e.T_days+'日）。緑=ディーラー正ガンマ（その水準で値動きを抑える＝ピン）、赤=負ガンマ（増幅＝加速）。橙線=ゼロガンマ転換点、白破線=現値。単位は億円/1%（相対値）。'
+  h += '<div class="gk-note">GEXプロファイル（'+e.label+'・残存'+e.T_days+'日）。橙線=ゼロガンマ転換点（地合いが切替わる価格）、白破線=現値。縦軸は各価格帯のガンマの強さ（億円/1%）。'
     + (conv==='B' ? ' ※B=各ストライクのOI×IV増減から売買方向を推定（不明時は慣例にフォールバック）。IV一斉急騰日は市場全体のIV上昇を需要と誤読しやすい。'
         : conv==='B2' ? ' ※B2=各ストライクのIV変化からATM（市場全体）のIV変化を引いた「相対IV」で符号付け。市場全体のvol変動を除き、そのストライク固有の需要だけを抽出（vol急騰日に強い）。'
         : ' ※A=ディーラー＝コール買い/プット売りの標準仮定（毎日同ルールの基準線）。') + '</div>';
