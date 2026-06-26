@@ -18,25 +18,25 @@ import json
 GREEKS_CARD_CSS = r"""
 .gk-wrap{font-family:'Noto Sans JP',sans-serif}
 .gk-tabs{display:flex;gap:0;margin:8px 0 6px;border-bottom:1px solid var(--border)}
-.gk-tab{flex:1;padding:7px 4px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer}
+.gk-tab{flex:1;padding:9px 4px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer}
 .gk-tab.gk-on{color:var(--accent);border-bottom-color:var(--accent)}
 .gk-conv{display:flex;gap:6px;margin:6px 0 10px}
-.gk-cv{flex:1;padding:6px 4px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--sub);font-family:'Noto Sans JP',sans-serif;font-size:11px;cursor:pointer;text-align:center}
+.gk-cv{flex:1;padding:8px 4px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--sub);font-family:'Noto Sans JP',sans-serif;font-size:12.5px;cursor:pointer;text-align:center}
 .gk-cv.gk-on{background:rgba(99,102,241,.18);border-color:var(--accent);color:#c7d2fe}
 .gk-kpis{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
-.gk-kpi{flex:1;min-width:84px;background:#1d2230;border:1px solid var(--border);border-radius:8px;padding:7px 8px}
-.gk-kpi .l{font-size:9px;color:var(--sub);font-family:Outfit}
-.gk-kpi .v{font-size:14px;font-family:'DM Mono',monospace;margin-top:2px}
+.gk-kpi{flex:1;min-width:96px;background:#1d2230;border:1px solid var(--border);border-radius:8px;padding:8px 9px}
+.gk-kpi .l{font-size:11px;color:var(--sub);font-family:Outfit}
+.gk-kpi .v{font-size:17px;font-family:'DM Mono',monospace;margin-top:3px}
 .gk-pos{color:#4ade80}.gk-neg{color:#f87171}
 .gk-svg-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:10px;background:#141821;padding:6px 2px}
-.gk-note{font-size:10px;color:var(--sub);margin:6px 2px;line-height:1.5}
+.gk-note{font-size:12px;color:var(--sub);margin:8px 2px;line-height:1.65}
 .gk-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px;margin-top:8px;-webkit-overflow-scrolling:touch}
-.gk-tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:11px}
-.gk-tbl th{position:sticky;top:0;background:#1d2230;color:var(--sub);font-weight:500;text-align:right;padding:6px 8px;font-size:10px;white-space:nowrap}
+.gk-tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px}
+.gk-tbl th{position:sticky;top:0;background:#1d2230;color:var(--sub);font-weight:500;text-align:right;padding:8px 10px;font-size:12px;white-space:nowrap}
 .gk-tbl th:first-child{text-align:left}
-.gk-tbl td{padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
+.gk-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
 .gk-tbl td:first-child{text-align:left;font-family:'Noto Sans JP',sans-serif}
-.gk-atm td{background:rgba(99,102,241,.10)}
+.gk-atm td{background:rgba(99,102,241,.12)}
 """
 
 
@@ -52,8 +52,8 @@ function gkDrawGEX(e, conv){
   if(!rows || !rows.length) return '<div class="gk-note">GEXデータなし</div>';
   // focus the strikes around spot for readability
   var spot = e.spot;
-  rows = rows.filter(function(r){ return Math.abs(r.strike-spot) <= spot*0.10; });
-  var W = Math.max(rows.length*26+40, 320), H=190, pad=24, midY=H/2;
+  rows = rows.filter(function(r){ return Math.abs(r.strike-spot) <= spot*0.07; });
+  var W = Math.max(rows.length*32+44, 320), H=210, pad=28, midY=H/2;
   var maxv = 0.0001;
   for(var i=0;i<rows.length;i++){ maxv=Math.max(maxv, Math.abs(rows[i].gex)); }
   var bw = (W-pad*2)/rows.length;
@@ -75,17 +75,17 @@ function gkDrawGEX(e, conv){
     var pos=r.gex>=0;
     var y=pos?(midY-h):midY;
     s+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+Math.max(h,0.5)+'" fill="'+(pos?'#22c55e':'#ef4444')+'" opacity="0.78"/>';
-    if(i%2===0){ s+='<text x="'+(x+w/2)+'" y="'+(H-6)+'" fill="#5a6276" font-size="8" text-anchor="middle">'+(r.strike/1000)+'k</text>'; }
+    s+='<text x="'+(x+w/2)+'" y="'+(H-7)+'" fill="#828ca0" font-size="10" text-anchor="middle">'+(r.strike/1000)+'k</text>';
   }
   // spot line
   var sx=xOf(spot);
   s+='<line x1="'+sx+'" y1="'+pad+'" x2="'+sx+'" y2="'+(H-16)+'" stroke="#e9ecf1" stroke-width="1" stroke-dasharray="3,3"/>';
-  s+='<text x="'+sx+'" y="'+(pad-4)+'" fill="#e9ecf1" font-size="8" text-anchor="middle">現値</text>';
+  s+='<text x="'+sx+'" y="'+(pad-4)+'" fill="#e9ecf1" font-size="10" text-anchor="middle">現値</text>';
   // zero-gamma flip line
   if(zg && zg.flip){
     var zx=xOf(zg.flip);
     s+='<line x1="'+zx+'" y1="'+pad+'" x2="'+zx+'" y2="'+(H-16)+'" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="2,2"/>';
-    s+='<text x="'+zx+'" y="'+(pad-4)+'" fill="#f59e0b" font-size="8" text-anchor="middle">0Γ</text>';
+    s+='<text x="'+zx+'" y="'+(pad-4)+'" fill="#f59e0b" font-size="10" text-anchor="middle">0Γ</text>';
   }
   s+='</svg>';
   return s;
@@ -131,7 +131,7 @@ function gkBuildHTML(){
         : conv==='B2' ? ' ※B2=各ストライクのIV変化からATM（市場全体）のIV変化を引いた「相対IV」で符号付け。市場全体のvol変動を除き、そのストライク固有の需要だけを抽出（vol急騰日に強い）。'
         : ' ※A=ディーラー＝コール買い/プット売りの標準仮定（毎日同ルールの基準線）。') + '</div>';
   // greeks table (strikes near spot)
-  var per = e.per_strike.filter(function(p){ return Math.abs(p.strike-e.spot)<=e.spot*0.06; });
+  var per = e.per_strike.filter(function(p){ return Math.abs(p.strike-e.spot)<=e.spot*0.035; });
   h += '<div class="gk-scroll"><table class="gk-tbl"><thead><tr><th>ストライク</th><th>IV</th><th>Δ</th><th>Γ(e-5)</th><th>Vega</th><th>Θ/日</th><th>C-OI</th><th>P-OI</th></tr></thead><tbody>';
   for(var i=0;i<per.length;i++){
     var p=per[i], cp=(p.strike>=e.spot)?'call':'put', g=p[cp];

@@ -220,8 +220,12 @@ def build_greeks(data_dir, max_expiries=3):
         net_B2 = {'gamma': 0.0, 'delta': 0.0, 'vega': 0.0, 'theta': 0.0}
         gex_A = []; gex_B = []; gex_B2 = []
         sign_meta = []
-        # union of strikes that have either IV or OI
-        strikes = sorted(set(smile) | set(oi_e))
+        # union of strikes that have either IV or OI, restricted to round
+        # (500-point) strikes within +/-15% of spot. OI exists only at 500-pt
+        # strikes; far strikes carry ~0 gamma, so this keeps the card lean
+        # without affecting the relevant walls. (zero_gamma uses the full smile.)
+        strikes = sorted(k for k in (set(smile) | set(oi_e))
+                         if k % 500 == 0 and (not spot or abs(k - spot) <= spot * 0.15))
         for K in strikes:
             sig = smile.get(K) or (smile[min(smile, key=lambda x: abs(x - K))]
                                    if smile else None)
