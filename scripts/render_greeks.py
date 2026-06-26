@@ -91,12 +91,10 @@ function gkDrawGEX(e, conv){
   return s;
 }
 
-function gkRender(card){
+function gkBuildHTML(){
   var G = window.GREEKS_DATA;
-  var host = card.querySelector('.card-detail');
   if(!G || G.error || !G.expiries || !G.expiries.length){
-    host.innerHTML = '<div class="gk-note">グリークスデータなし — extract_greeks.py を実行して greeks.json を生成してください（open_interest と ose tp.csv が必要）。</div>';
-    return;
+    return '<div class="gk-note">グリークスデータなし — extract_greeks.py を実行して greeks.json を生成してください（open_interest と ose tp.csv が必要）。</div>';
   }
   if(window.GK_STATE.ei >= G.expiries.length) window.GK_STATE.ei = 0;
   var e = G.expiries[window.GK_STATE.ei], conv = window.GK_STATE.conv;
@@ -149,7 +147,12 @@ function gkRender(card){
   }
   h += '</tbody></table></div>';
   h += '</div>';
-  host.innerHTML = h;
+  return h;
+}
+function gkRender(card){
+  if(!card) return;
+  var host = card.querySelector('.card-detail');
+  if(host) host.innerHTML = gkBuildHTML();
 }
 
 document.addEventListener('click', function(ev){
@@ -193,9 +196,9 @@ def preview_greeks(greeks):
 
 
 def detail_greeks_js(greeks):
-    # The card detail is rendered entirely client-side from window.GREEKS_DATA
-    # by gkRender(); just invoke it for this card.
-    return "gkRender(document.querySelector('.card[data-card=\"greeks\"]'));"
+    # The framework injects this card's detail via: detail.innerHTML = b_greeks().
+    # So b_greeks() must RETURN the HTML string (gkBuildHTML reads the globals).
+    return "return gkBuildHTML();"
 
 
 def greeks_data_script(greeks):
