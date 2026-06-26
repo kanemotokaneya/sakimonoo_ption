@@ -183,15 +183,19 @@ def build_greeks(data_dir, max_expiries=3):
     oi_was = parse_oi(oi_prior) if oi_prior else {}
 
     iv_prior_map = {}
+    iv_prior_atm = {}
     if tp_prior:
         for e in build(parse_tp_csv(tp_prior)):
             iv_prior_map[e['expiry']] = {int(p['strike']): p['iv']
                                          for p in e['smile'] if p.get('iv')}
+            iv_prior_atm[e['expiry']] = e.get('atm_iv')
 
     out = {'as_of': today, 'spot': spot, 'r': 0.0, 'mult': MULT,
            'conventions': {
                'A': 'standard: dealer long calls / short puts',
-               'B': 'OI x IV inferred sign (fallback to A when ambiguous)'},
+               'B': 'OI x IV inferred sign (fallback to A when ambiguous)',
+               'B2': 'OI x RELATIVE-IV (strike IV chg minus ATM IV chg) — '
+                     'isolates strike-specific demand from market-wide vol moves'},
            'expiries': []}
 
     liquid = [e for e in iv_expiries if len(e['expiry']) == 6][:max_expiries]
@@ -201,14 +205,20 @@ def build_greeks(data_dir, max_expiries=3):
         T_days = max((sq - date(int(today[:4]), int(today[4:6]), int(today[6:8]))).days, 0)
         T = max(T_days, 0.5) / 365.0
         smile = {int(p['strike']): p['iv'] for p in e['smile'] if p.get('iv')}
-        oi_e = oi_now.get(ecode, {})
-        oi_e_was = oi_was.get(ecode, {})
+        ec4 = ecode[2:]  # OI sheet uses YYMM (e.g. '2607'); iv uses YYYYMM
+        oi_e = oi_now.get(ec4, {})
+        oi_e_was = oi_was.get(ec4, {})
         iv_was_e = iv_prior_map.get(ecode, {})
+        # market-wide ATM IV change for this expiry (Convention B2 baseline)
+        atm_now = e.get('atm_iv')
+        atm_was = iv_prior_atm.get(ecode)
+        atm_iv_chg = (atm_now - atm_was) if (atm_now is not None and atm_was is not None) else None
 
         per = []
         net_A = {'gamma': 0.0, 'delta': 0.0, 'vega': 0.0, 'theta': 0.0}
         net_B = {'gamma': 0.0, 'delta': 0.0, 'vega': 0.0, 'theta': 0.0}
-        gex_A = []; gex_B = []
+        net_B2 = {'gamma': 0.0, 'delta': 0.0, 'vega': 0.0, 'theta': 0.0}
+        gex_A = []; gex_B = []; gex_B2 = []
         sign_meta = []
         # union of strikes that have either IV or OI
         strikes = sorted(set(smile) | set(oi_e))
@@ -224,6 +234,8 @@ def build_greeks(data_dir, max_expiries=3):
             coi_chg = coi - coi_w if oi_e_was else None
             poi_chg = poi - poi_w if oi_e_was else None
             iv_chg = (sig - iv_was_e[K]) if (K in iv_was_e) else None
+            # relative IV change = strike IV change minus market-wide ATM change
+            iv_chg_rel = (iv_chg - atm_iv_chg) if (iv_chg is not None and atm_iv_chg is not None) else None
 
             gc = greeks(spot, K, T, sig, 'C')
             gp = greeks(spot, K, T, sig, 'P')
@@ -233,24 +245,31 @@ def build_greeks(data_dir, max_expiries=3):
             unit = g * MULT * spot * spot * 0.01
             # Convention A
             a = (coi - poi) * unit
-            # Convention B
+            # Convention B (absolute IV change)
             sc, rc = _dealer_sign(coi_chg, iv_chg, 'C')
             sp_, rp = _dealer_sign(poi_chg, iv_chg, 'P')
             b = (sc * coi + sp_ * poi) * unit
+            # Convention B2 (relative IV change vs ATM)
+            sc2, rc2 = _dealer_sign(coi_chg, iv_chg_rel, 'C')
+            sp2, rp2 = _dealer_sign(poi_chg, iv_chg_rel, 'P')
+            b2 = (sc2 * coi + sp2 * poi) * unit
 
             gex_A.append({'strike': K, 'gex': a / 1e8})   # 億円/1%
             gex_B.append({'strike': K, 'gex': b / 1e8})
-            sign_meta.append({'strike': K, 'call': rc, 'put': rp})
+            gex_B2.append({'strike': K, 'gex': b2 / 1e8})
+            sign_meta.append({'strike': K, 'call': rc, 'put': rp,
+                              'call_b2': rc2, 'put_b2': rp2})
 
             net_A['gamma'] += (coi - poi) * g
             net_B['gamma'] += (sc * coi + sp_ * poi) * g
-            for kk, src in (('delta', None),):
-                pass
+            net_B2['gamma'] += (sc2 * coi + sp2 * poi) * g
             net_A['delta'] += coi * gc['delta'] + poi * gp['delta']
             net_B['delta'] += (sc * coi) * gc['delta'] + (sp_ * poi) * gp['delta']
+            net_B2['delta'] += (sc2 * coi) * gc['delta'] + (sp2 * poi) * gp['delta']
             for kk in ('vega', 'theta'):
                 net_A[kk] += (coi + poi) * gc[kk]
-                net_B[kk] += (abs(sc) * coi + abs(sp_) * poi) * gc[kk]
+                net_B[kk] += (coi + poi) * gc[kk]
+                net_B2[kk] += (coi + poi) * gc[kk]
 
             per.append({
                 'strike': K, 'iv': round(sig, 5),
@@ -258,12 +277,15 @@ def build_greeks(data_dir, max_expiries=3):
                 'call_oi_chg': (int(coi_chg) if coi_chg is not None else None),
                 'put_oi_chg': (int(poi_chg) if poi_chg is not None else None),
                 'iv_chg': (round(iv_chg, 5) if iv_chg is not None else None),
+                'iv_chg_rel': (round(iv_chg_rel, 5) if iv_chg_rel is not None else None),
                 'call': {k: round(v, 6) for k, v in gc.items()},
                 'put': {k: round(v, 6) for k, v in gp.items()},
             })
 
         zga = _zero_gamma(spot, T, smile, oi_e, oi_e_was, iv_was_e, 'A')
         zgb = _zero_gamma(spot, T, smile, oi_e, oi_e_was, iv_was_e, 'B')
+        zgb2 = _zero_gamma(spot, T, smile, oi_e, oi_e_was, iv_was_e, 'B2',
+                           atm_iv_chg=atm_iv_chg)
         top_gamma = sorted(
             [{'strike': p['strike'],
               'gamma_oi': round(p['call']['gamma'] * p['call_oi']
@@ -275,10 +297,12 @@ def build_greeks(data_dir, max_expiries=3):
             'expiry': ecode, 'label': '%d月限' % int(ecode[4:6]),
             'T_days': T_days, 'T': round(T, 5), 'spot': spot,
             'per_strike': per,
-            'gex_A': gex_A, 'gex_B': gex_B,
-            'zero_gamma_A': zga, 'zero_gamma_B': zgb,
+            'gex_A': gex_A, 'gex_B': gex_B, 'gex_B2': gex_B2,
+            'zero_gamma_A': zga, 'zero_gamma_B': zgb, 'zero_gamma_B2': zgb2,
             'net_A': {k: round(v, 4) for k, v in net_A.items()},
             'net_B': {k: round(v, 4) for k, v in net_B.items()},
+            'net_B2': {k: round(v, 4) for k, v in net_B2.items()},
+            'atm_iv_chg': (round(atm_iv_chg, 5) if atm_iv_chg is not None else None),
             'top_gamma': top_gamma,
             'sign_meta': sign_meta,
             'has_oi_change': bool(oi_e_was),
@@ -287,7 +311,7 @@ def build_greeks(data_dir, max_expiries=3):
     return out
 
 
-def _zero_gamma(spot, T, smile, oi_e, oi_e_was, iv_was_e, conv):
+def _zero_gamma(spot, T, smile, oi_e, oi_e_was, iv_was_e, conv, atm_iv_chg=None):
     """Find dealer gamma flip level by re-evaluating total GEX on a spot grid."""
     if not smile or not oi_e:
         return None
@@ -307,6 +331,8 @@ def _zero_gamma(spot, T, smile, oi_e, oi_e_was, iv_was_e, conv):
                 coi_w = (oi_e_was.get(K, {}) or {}).get('call_oi', 0.0)
                 poi_w = (oi_e_was.get(K, {}) or {}).get('put_oi', 0.0)
                 ivc = (sig - iv_was_e[K]) if (K in iv_was_e) else None
+                if conv == 'B2' and ivc is not None and atm_iv_chg is not None:
+                    ivc = ivc - atm_iv_chg
                 sc, _ = _dealer_sign(coi - coi_w if oi_e_was else None, ivc, 'C')
                 sp_, _ = _dealer_sign(poi - poi_w if oi_e_was else None, ivc, 'P')
                 tot += (sc * coi + sp_ * poi) * g
@@ -345,9 +371,10 @@ def main():
         for e in res['expiries']:
             za = (e['zero_gamma_A'] or {}).get('flip')
             zb = (e['zero_gamma_B'] or {}).get('flip')
-            print('  %s T=%dd  zeroGamma A=%s B=%s  netGammaA=%.1f netGammaB=%.1f'
-                  % (e['label'], e['T_days'], za, zb,
-                     e['net_A']['gamma'], e['net_B']['gamma']))
+            zb2 = (e['zero_gamma_B2'] or {}).get('flip')
+            print('  %s T=%dd  zeroGamma A=%s B=%s B2=%s  netGamma A=%.1f B=%.1f B2=%.1f'
+                  % (e['label'], e['T_days'], za, zb, zb2,
+                     e['net_A']['gamma'], e['net_B']['gamma'], e['net_B2']['gamma']))
 
 
 if __name__ == '__main__':

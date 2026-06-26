@@ -48,7 +48,7 @@ function gkFmt(n){ if(n===null||n===undefined) return '—'; var a=Math.abs(n);
 function gkInt(n){ return (n===null||n===undefined)?'—':Math.round(n).toLocaleString(); }
 
 function gkDrawGEX(e, conv){
-  var rows = (conv==='A') ? e.gex_A : e.gex_B;
+  var rows = e['gex_'+conv] || e.gex_A;
   if(!rows || !rows.length) return '<div class="gk-note">GEXデータなし</div>';
   // focus the strikes around spot for readability
   var spot = e.spot;
@@ -57,7 +57,7 @@ function gkDrawGEX(e, conv){
   var maxv = 0.0001;
   for(var i=0;i<rows.length;i++){ maxv=Math.max(maxv, Math.abs(rows[i].gex)); }
   var bw = (W-pad*2)/rows.length;
-  var zg = (conv==='A') ? e.zero_gamma_A : e.zero_gamma_B;
+  var zg = e['zero_gamma_'+conv] || e.zero_gamma_A;
   var s = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
   s += '<line x1="'+pad+'" y1="'+midY+'" x2="'+(W-pad)+'" y2="'+midY+'" stroke="#3a4156" stroke-width="1"/>';
   // spot x-position (interpolate by strike order)
@@ -100,8 +100,8 @@ function gkRender(card){
   }
   if(window.GK_STATE.ei >= G.expiries.length) window.GK_STATE.ei = 0;
   var e = G.expiries[window.GK_STATE.ei], conv = window.GK_STATE.conv;
-  var net = (conv==='A') ? e.net_A : e.net_B;
-  var zg  = (conv==='A') ? e.zero_gamma_A : e.zero_gamma_B;
+  var net = e['net_'+conv] || e.net_A;
+  var zg  = e['zero_gamma_'+conv] || e.zero_gamma_A;
   var h = '<div class="gk-wrap">';
   // expiry tabs
   h += '<div class="gk-tabs">';
@@ -111,8 +111,9 @@ function gkRender(card){
   h += '</div>';
   // convention toggle
   h += '<div class="gk-conv">';
-  h += '<button class="gk-cv'+(conv==='A'?' gk-on':'')+'" data-gk-cv="A">慣例（C買い/P売り）</button>';
-  h += '<button class="gk-cv'+(conv==='B'?' gk-on':'')+'" data-gk-cv="B">OI×IV推定</button>';
+  h += '<button class="gk-cv'+(conv==='A'?' gk-on':'')+'" data-gk-cv="A">慣例A</button>';
+  h += '<button class="gk-cv'+(conv==='B'?' gk-on':'')+'" data-gk-cv="B">OI×IV B</button>';
+  h += '<button class="gk-cv'+(conv==='B2'?' gk-on':'')+'" data-gk-cv="B2">相対IV B2</button>';
   h += '</div>';
   // KPIs
   var signTxt = (zg && zg.sign_at_spot==='positive') ? '正（安定/ピン）' : '負（加速/不安定）';
@@ -128,7 +129,9 @@ function gkRender(card){
   // GEX svg
   h += '<div class="gk-svg-wrap">'+gkDrawGEX(e, conv)+'</div>';
   h += '<div class="gk-note">GEXプロファイル（'+e.label+'・残存'+e.T_days+'日）。緑=ディーラー正ガンマ（その水準で値動きを抑える＝ピン）、赤=負ガンマ（増幅＝加速）。橙線=ゼロガンマ転換点、白破線=現値。単位は億円/1%（相対値）。'
-    + (conv==='B' ? ' ※B=各ストライクのOI×IV増減から売買方向を推定し符号付け（不明時は慣例にフォールバック）。' : ' ※A=ディーラー＝コール買い/プット売りの標準仮定。') + '</div>';
+    + (conv==='B' ? ' ※B=各ストライクのOI×IV増減から売買方向を推定（不明時は慣例にフォールバック）。IV一斉急騰日は市場全体のIV上昇を需要と誤読しやすい。'
+        : conv==='B2' ? ' ※B2=各ストライクのIV変化からATM（市場全体）のIV変化を引いた「相対IV」で符号付け。市場全体のvol変動を除き、そのストライク固有の需要だけを抽出（vol急騰日に強い）。'
+        : ' ※A=ディーラー＝コール買い/プット売りの標準仮定（毎日同ルールの基準線）。') + '</div>';
   // greeks table (strikes near spot)
   var per = e.per_strike.filter(function(p){ return Math.abs(p.strike-e.spot)<=e.spot*0.06; });
   h += '<div class="gk-scroll"><table class="gk-tbl"><thead><tr><th>ストライク</th><th>IV</th><th>Δ</th><th>Γ(e-5)</th><th>Vega</th><th>Θ/日</th><th>C-OI</th><th>P-OI</th></tr></thead><tbody>';
