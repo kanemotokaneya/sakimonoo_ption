@@ -159,6 +159,46 @@ def _dealer_sign(oi_chg, iv_chg, side):
 
 
 # ----------------------------------------------------------------------------
+# Snapshot history — lets B/B2 work even when the raw prior-day files are gone
+# ----------------------------------------------------------------------------
+def _load_history(path):
+    try:
+        with open(path, encoding='utf-8') as f:
+            h = json.load(f)
+        return h if isinstance(h, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_history(path, history, keep=15):
+    # keep only the most recent `keep` dates to bound file size
+    dates = sorted(history.keys())
+    for d in dates[:-keep]:
+        history.pop(d, None)
+    try:
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=False, separators=(',', ':'))
+    except Exception as e:
+        print('[extract_greeks] WARNING: could not write history: %s' % e)
+
+
+def _snapshot(oi_now, iv_expiries):
+    """Compact per-day snapshot: OI (YYMM-keyed) + IV/ATM (YYYYMM-keyed)."""
+    snap = {'oi': {}, 'iv': {}, 'atm_iv': {}}
+    for ec4, strikes in (oi_now or {}).items():
+        snap['oi'][ec4] = {str(int(k)): {'call_oi': (v or {}).get('call_oi', 0),
+                                         'put_oi': (v or {}).get('put_oi', 0)}
+                           for k, v in strikes.items()}
+    for e in iv_expiries:
+        if len(e['expiry']) == 6:
+            snap['iv'][e['expiry']] = {str(int(p['strike'])): p['iv']
+                                       for p in e['smile'] if p.get('iv')}
+            if e.get('atm_iv') is not None:
+                snap['atm_iv'][e['expiry']] = e['atm_iv']
+    return snap
+
+
+# ----------------------------------------------------------------------------
 # Core build
 # ----------------------------------------------------------------------------
 def build_greeks(data_dir, max_expiries=3):
@@ -190,8 +230,29 @@ def build_greeks(data_dir, max_expiries=3):
                                          for p in e['smile'] if p.get('iv')}
             iv_prior_atm[e['expiry']] = e.get('atm_iv')
 
+    # --- Robust prior: fall back to the accumulated snapshot history when the
+    # raw previous-day files are not in data/, so B/B2 keep working even if the
+    # prior day's open_interest.xlsx / ose tp.csv were cleaned up. ---
+    hist_path = os.path.join(data_dir, 'greeks_history.json')
+    history = _load_history(hist_path)
+    prior_src = 'raw' if (oi_prior and tp_prior) else None
+    if not (oi_was and iv_prior_map):
+        pdays = sorted(d for d in history if d < today)
+        if pdays:
+            ph = history[pdays[-1]]
+            if not oi_was and ph.get('oi'):
+                oi_was = {ec: {int(k): v for k, v in s.items()}
+                          for ec, s in ph['oi'].items()}
+            if not iv_prior_map and ph.get('iv'):
+                iv_prior_map = {ec: {int(k): v for k, v in s.items()}
+                                for ec, s in ph['iv'].items()}
+                iv_prior_atm = dict(ph.get('atm_iv', {}))
+            prior_src = 'history:' + pdays[-1]
+
+    prior_ok = bool(oi_was) and bool(iv_prior_map)
     out = {'as_of': today, 'spot': spot, 'r': 0.0, 'mult': MULT,
-           'prior_used': bool(oi_prior) and bool(tp_prior),
+           'prior_used': prior_ok,
+           'prior_src': prior_src,
            'prior_oi': (ois[-2][0] if len(ois) >= 2 else None),
            'prior_tp': (tps[-2][0] if len(tps) >= 2 else None),
            'conventions': {
@@ -315,6 +376,23 @@ def build_greeks(data_dir, max_expiries=3):
             'has_oi_change': bool(oi_e_was),
             'has_iv_change': bool(iv_was_e),
         })
+
+    # --- persist snapshots so future runs can recover the prior day without
+    # the raw files. Save today, and (bootstrap) the raw prior if we had it. ---
+    history[today] = _snapshot(oi_now, iv_expiries)
+    if oi_prior and tp_prior:
+        prior_date = ois[-2][0]
+        if prior_date not in history and oi_was and iv_prior_map:
+            ps = {'oi': {}, 'iv': {}, 'atm_iv': {}}
+            for ec4, strikes in oi_was.items():
+                ps['oi'][ec4] = {str(int(k)): {'call_oi': (v or {}).get('call_oi', 0),
+                                               'put_oi': (v or {}).get('put_oi', 0)}
+                                 for k, v in strikes.items()}
+            for ec, sm in iv_prior_map.items():
+                ps['iv'][ec] = {str(int(k)): v for k, v in sm.items()}
+            ps['atm_iv'] = {ec: a for ec, a in iv_prior_atm.items() if a is not None}
+            history[prior_date] = ps
+    _save_history(hist_path, history)
     return out
 
 
@@ -376,14 +454,11 @@ def main():
         print('[extract_greeks] wrote %s | spot=%.0f | %d expiries'
               % (a.out, res['spot'] or 0, len(res['expiries'])))
         if not res.get('prior_used'):
-            print('[extract_greeks] WARNING: prior-day OI/IV not found -> '
-                  'Conventions B and B2 fall back to A (identical). '
-                  'Ensure the previous trading day\'s open_interest.xlsx AND '
-                  'ose<date>tp.csv are in the data dir (check for odd filenames '
-                  'like ose...tp__1_.csv).')
+            print('[extract_greeks] WARNING: no prior day available (raw files '
+                  'or history) -> B and B2 fall back to A. This self-heals once '
+                  'greeks_history.json has accumulated a prior day.')
         else:
-            print('[extract_greeks] prior day used: OI=%s IV=%s'
-                  % (res.get('prior_oi'), res.get('prior_tp')))
+            print('[extract_greeks] prior source: %s' % res.get('prior_src'))
         for e in res['expiries']:
             za = (e['zero_gamma_A'] or {}).get('flip')
             zb = (e['zero_gamma_B'] or {}).get('flip')
