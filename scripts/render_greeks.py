@@ -51,9 +51,9 @@ GREEKS_CARD_CSS = r"""
 .gk-legend b{color:var(--text);font-weight:600}
 .gk-legend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:6px;vertical-align:-2px}
 .gk-sw.gk-g{background:#22c55e}.gk-sw.gk-r{background:#ef4444}
-.gk-abc{display:flex;gap:6px;margin:0 0 10px}
-.gk-abc-it{flex:1;text-align:center;background:#1d2230;border:1px solid var(--border);border-radius:8px;padding:7px 4px;font-size:12px;color:var(--sub)}
-.gk-abc-it b{display:block;font-family:'DM Mono',monospace;font-size:13px;margin-top:3px}
+.gk-agree{border-radius:8px;padding:9px 11px;margin:0 0 10px;font-size:13px;font-weight:600}
+.gk-agree-ok{background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.35);color:#86efac}
+.gk-agree-warn{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.40);color:#fca5a5}
 .gk-sec2{font-family:Outfit;font-weight:600;color:var(--sub);font-size:12px;margin:14px 2px 6px}
 .gk-gl-btn{width:100%;margin-top:12px;padding:11px;border:1px dashed var(--border);border-radius:9px;background:transparent;color:var(--accent);font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer}
 .gk-gl{margin-top:8px;border:1px solid var(--border);border-radius:9px;padding:2px 12px 12px;background:#141821}
@@ -167,16 +167,16 @@ function gkBuildHTML(){
     + '<span class="gk-su-sep">｜</span>'
     + '<span class="gk-su-it">今日は <b>'+suReco+'</b></span>'
     + '</div>';
-  // A/B/B2 net-gamma at a glance (see divergence without toggling)
-  var abc = [['A', e.net_A], ['B', e.net_B], ['B2', e.net_B2]];
-  h += '<div class="gk-abc">';
-  for(var ai=0; ai<abc.length; ai++){
-    var av = (abc[ai][1]||{}).gamma || 0;
-    var acl = av>=0 ? 'gk-pos' : 'gk-neg';
-    var amk = av>=0 ? '🟩' : '🟥';
-    h += '<span class="gk-abc-it">'+abc[ai][0]+' <b class="'+acl+'">'+amk+' '+(av>=0?'+':'')+av.toFixed(1)+'</b></span>';
+  // 3-lens agreement in plain words (no raw numbers)
+  var gA = (e.net_A||{}).gamma>=0, gB = (e.net_B||{}).gamma>=0, gB2 = (e.net_B2||{}).gamma>=0;
+  var agree = (gA===gB && gB===gB2);
+  if(agree){
+    var word = gA ? '安定（🟩）' : '荒れ（🟥）';
+    h += '<div class="gk-agree gk-agree-ok">3つの見方は一致：'+word+'</div>';
+  } else {
+    var mk = function(b){ return b?'🟩':'🟥'; };
+    h += '<div class="gk-agree gk-agree-warn">⚠️ 3つの見方が割れています（要注意）　A'+mk(gA)+'・B'+mk(gB)+'・B2'+mk(gB2)+'</div>';
   }
-  h += '</div>';
   // expiry tabs
   h += '<div class="gk-tabs">';
   for(var i=0;i<G.expiries.length;i++){
@@ -207,9 +207,6 @@ function gkBuildHTML(){
   h += '<div class="gk-kpi"><div class="l">現値</div><div class="v">'+gkInt(e.spot)+'</div></div>';
   h += '<div class="gk-kpi"><div class="l">ゼロガンマ</div><div class="v" style="color:#f59e0b">'+gkInt(zg?zg.flip:null)+'</div></div>';
   h += '<div class="gk-kpi"><div class="l">今の地合い</div><div class="v '+signCls+'" style="font-size:12px">'+signTxt+'</div></div>';
-  h += '<div class="gk-kpi"><div class="l">netΔ</div><div class="v">'+gkInt(net.delta)+'</div></div>';
-  h += '<div class="gk-kpi"><div class="l">netVega</div><div class="v">'+gkInt(net.vega)+'</div></div>';
-  h += '<div class="gk-kpi"><div class="l">netΘ/日</div><div class="v">'+gkInt(net.theta)+'</div></div>';
   h += '</div>';
   // plain-language one-liner about the current regime
   var regimePlain = (zg && zg.sign_at_spot==='positive')
@@ -225,7 +222,7 @@ function gkBuildHTML(){
   h += '<div class="gk-svg-wrap">'+gkDrawGEX(e, conv)+'</div>';
   // regime history timeline
   if((G.regime_history||[]).length >= 2){
-    h += '<div class="gk-sec2">地合いの推移（各日の netΓ・B2基準　🟩正＝安定／🟥負＝加速）</div>';
+    h += '<div class="gk-sec2">地合いの推移（日ごとに 🟩安定／🟥荒れ）</div>';
     h += '<div class="gk-svg-wrap">'+gkRegimeChart(G)+'</div>';
     h += '<div class="gk-note">日ごとの地合いの移り変わり。棒が上（緑）＝その日はディーラー正ガンマで安定、下（赤）＝負ガンマで荒れやすい。</div>';
   }
