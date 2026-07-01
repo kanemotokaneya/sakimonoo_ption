@@ -17,6 +17,10 @@ import json
 
 GREEKS_CARD_CSS = r"""
 .gk-wrap{font-family:'Noto Sans JP',sans-serif}
+.gk-summary{display:flex;flex-wrap:wrap;align-items:center;gap:4px 2px;background:linear-gradient(180deg,#1f2433,#1a1f2b);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:13px;color:var(--sub)}
+.gk-su-it{white-space:nowrap}
+.gk-su-it b{color:var(--text);font-weight:700;margin-left:2px}
+.gk-su-sep{color:var(--border);margin:0 6px}
 .gk-tabs{display:flex;gap:0;margin:8px 0 6px;border-bottom:1px solid var(--border)}
 .gk-tab{flex:1;padding:9px 4px;background:transparent;color:var(--sub);border:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer}
 .gk-tab.gk-on{color:var(--accent);border-bottom-color:var(--accent)}
@@ -47,11 +51,20 @@ GREEKS_CARD_CSS = r"""
 .gk-legend b{color:var(--text);font-weight:600}
 .gk-legend i{display:inline-block;width:13px;height:13px;border-radius:3px;margin-right:6px;vertical-align:-2px}
 .gk-sw.gk-g{background:#22c55e}.gk-sw.gk-r{background:#ef4444}
+.gk-abc{display:flex;gap:6px;margin:0 0 10px}
+.gk-abc-it{flex:1;text-align:center;background:#1d2230;border:1px solid var(--border);border-radius:8px;padding:7px 4px;font-size:12px;color:var(--sub)}
+.gk-abc-it b{display:block;font-family:'DM Mono',monospace;font-size:13px;margin-top:3px}
+.gk-sec2{font-family:Outfit;font-weight:600;color:var(--sub);font-size:12px;margin:14px 2px 6px}
+.gk-gl-btn{width:100%;margin-top:12px;padding:11px;border:1px dashed var(--border);border-radius:9px;background:transparent;color:var(--accent);font-family:'Noto Sans JP',sans-serif;font-size:13px;cursor:pointer}
+.gk-gl{margin-top:8px;border:1px solid var(--border);border-radius:9px;padding:2px 12px 12px;background:#141821}
+.gk-gl-sec{font-family:Outfit;font-weight:600;color:var(--accent);font-size:12.5px;margin:14px 0 4px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.gk-gl-row{font-size:12.5px;color:var(--sub);line-height:1.6;margin:9px 0}
+.gk-gl-row b{display:block;color:var(--text);font-weight:700;font-size:13px;margin-bottom:2px}
 """
 
 
 GREEKS_CARD_JS = r"""
-window.GK_STATE = {ei: 0, conv: 'A'};
+window.GK_STATE = {ei: 0, conv: 'A', gl: false};
 function gkFmt(n){ if(n===null||n===undefined) return '—'; var a=Math.abs(n);
   if(a>=1000) return Math.round(n).toLocaleString(); if(a>=10) return n.toFixed(1);
   if(a>=1) return n.toFixed(2); return n.toFixed(3); }
@@ -101,6 +114,29 @@ function gkDrawGEX(e, conv){
   return s;
 }
 
+function gkRegimeChart(G){
+  var rh = G.regime_history || [];
+  if(rh.length < 2) return '';
+  var W = Math.max(rh.length*46+40, 280), H=126, pad=22, midY=H/2;
+  var maxv = 0.5;
+  for(var i=0;i<rh.length;i++){ maxv = Math.max(maxv, Math.abs(rh[i].B2)); }
+  var bw = (W-pad*2)/rh.length;
+  var s = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  s += '<line x1="'+pad+'" y1="'+midY+'" x2="'+(W-pad)+'" y2="'+midY+'" stroke="#3a4152" stroke-width="1"/>';
+  for(var i=0;i<rh.length;i++){
+    var v = rh[i].B2;
+    var bh = (H/2-pad)*Math.min(Math.abs(v)/maxv, 1);
+    var up = v>=0;
+    var x = pad+i*bw+bw*0.22, w = bw*0.56;
+    var y = up ? midY-bh : midY;
+    var col = up ? '#22c55e' : '#ef4444';
+    s += '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+Math.max(bh,1)+'" fill="'+col+'" rx="2"/>';
+    s += '<text x="'+(x+w/2)+'" y="'+(up?y-3:y+bh+11)+'" fill="'+col+'" font-size="9" text-anchor="middle">'+(v>=0?'+':'')+v.toFixed(1)+'</text>';
+    s += '<text x="'+(pad+i*bw+bw/2)+'" y="'+(H-5)+'" fill="#828ca0" font-size="9" text-anchor="middle">'+rh[i].date.slice(4,6)+'/'+rh[i].date.slice(6,8)+'</text>';
+  }
+  s += '</svg>';
+  return s;
+}
 function gkBuildHTML(){
   var G = window.GREEKS_DATA;
   if(!G || G.error || !G.expiries || !G.expiries.length){
@@ -111,6 +147,36 @@ function gkBuildHTML(){
   var net = e['net_'+conv] || e.net_A;
   var zg  = e['zero_gamma_'+conv] || e.zero_gamma_A;
   var h = '<div class="gk-wrap">';
+  // one-glance summary line (top of card)
+  var suReg = (zg && zg.sign_at_spot==='positive') ? '🟩 安定' : '🟥 加速';
+  var suFlip;
+  if(zg && zg.flip){
+    var suRel = (zg.flip < e.spot) ? '現値の下' : ((zg.flip > e.spot) ? '現値の上' : '現値付近');
+    suFlip = zg.flip.toLocaleString('ja-JP') + '（' + suRel + '）';
+  } else { suFlip = '圏内になし'; }
+  var suReco;
+  if(G.prior_used===false){ suReco = '前日待ち'; }
+  else {
+    var suAic = (e.atm_iv_chg!=null) ? e.atm_iv_chg*100 : null;
+    suReco = (suAic!=null && Math.abs(suAic)>=2.0) ? 'B2' : 'B';
+  }
+  h += '<div class="gk-summary">'
+    + '<span class="gk-su-it">地合い <b>'+suReg+'</b></span>'
+    + '<span class="gk-su-sep">｜</span>'
+    + '<span class="gk-su-it">転換点 <b>'+suFlip+'</b></span>'
+    + '<span class="gk-su-sep">｜</span>'
+    + '<span class="gk-su-it">今日は <b>'+suReco+'</b></span>'
+    + '</div>';
+  // A/B/B2 net-gamma at a glance (see divergence without toggling)
+  var abc = [['A', e.net_A], ['B', e.net_B], ['B2', e.net_B2]];
+  h += '<div class="gk-abc">';
+  for(var ai=0; ai<abc.length; ai++){
+    var av = (abc[ai][1]||{}).gamma || 0;
+    var acl = av>=0 ? 'gk-pos' : 'gk-neg';
+    var amk = av>=0 ? '🟩' : '🟥';
+    h += '<span class="gk-abc-it">'+abc[ai][0]+' <b class="'+acl+'">'+amk+' '+(av>=0?'+':'')+av.toFixed(1)+'</b></span>';
+  }
+  h += '</div>';
   // expiry tabs
   h += '<div class="gk-tabs">';
   for(var i=0;i<G.expiries.length;i++){
@@ -157,6 +223,12 @@ function gkBuildHTML(){
     + '</div>';
   // GEX svg
   h += '<div class="gk-svg-wrap">'+gkDrawGEX(e, conv)+'</div>';
+  // regime history timeline
+  if((G.regime_history||[]).length >= 2){
+    h += '<div class="gk-sec2">地合いの推移（各日の netΓ・B2基準　🟩正＝安定／🟥負＝加速）</div>';
+    h += '<div class="gk-svg-wrap">'+gkRegimeChart(G)+'</div>';
+    h += '<div class="gk-note">日ごとの地合いの移り変わり。棒が上（緑）＝その日はディーラー正ガンマで安定、下（赤）＝負ガンマで荒れやすい。</div>';
+  }
   h += '<div class="gk-note">GEXプロファイル（'+e.label+'・残存'+e.T_days+'日）。橙線=ゼロガンマ転換点（地合いが切替わる価格）、白破線=現値。縦軸は各価格帯のガンマの強さ（億円/1%）。'
     + (conv==='B' ? ' ※B=各ストライクのOI×IV増減から売買方向を推定（不明時は慣例にフォールバック）。IV一斉急騰日は市場全体のIV上昇を需要と誤読しやすい。'
         : conv==='B2' ? ' ※B2=各ストライクのIV変化からATM（市場全体）のIV変化を引いた「相対IV」で符号付け。市場全体のvol変動を除き、そのストライク固有の需要だけを抽出（vol急騰日に強い）。'
@@ -178,6 +250,28 @@ function gkBuildHTML(){
   }
   h += '</tbody></table></div>';
   h += '</div>';
+  // collapsible glossary
+  h += '<button class="gk-gl-btn" data-gk-gl="1">📖 用語の意味を'+(window.GK_STATE.gl?'閉じる ▲':'ひらく ▼')+'</button>';
+  if(window.GK_STATE.gl){ h += '<div class="gk-gl">'+gkGlossaryHTML()+'</div>'; }
+  return h;
+}
+function gkGlossaryHTML(){
+  var h = '';
+  h += '<div class="gk-gl-sec">グリークス（オプションの感応度）</div>';
+  h += '<div class="gk-gl-row"><b>Δ デルタ＝方向の感応度</b>原資産（日経）が動いたとき、オプション価格がどっち向きに・どれだけ動くか。コールは＋、プットは−。</div>';
+  h += '<div class="gk-gl-row"><b>Γ ガンマ＝変化の起きやすさ（加速度）</b>そのΔ自体がどれだけ変わりやすいか。大きいほど、価格が動くと一気に効いて荒れやすい。</div>';
+  h += '<div class="gk-gl-row"><b>Vega ベガ＝ボラへの感応度</b>IV（予想変動率）が1%上がると、オプション価格がどれだけ動くか。</div>';
+  h += '<div class="gk-gl-row"><b>Θ シータ＝時間の目減り</b>1日経つだけでオプション価格がどれだけ減るか。買い手にはコスト、売り手には収益。</div>';
+  h += '<div class="gk-gl-sec">このカードの指標</div>';
+  h += '<div class="gk-gl-row"><b>ゼロガンマ</b>ディーラーの地合いが「安定⇄加速」に切り替わる価格。ここを境に値動きの質が変わる目安。</div>';
+  h += '<div class="gk-gl-row"><b>GEX 緑/赤</b>緑＝その価格帯は止まりやすい（ピン・支持/抵抗）。赤＝抜けると加速（滑りやすい）。棒の高さ＝効きの強さ。</div>';
+  h += '<div class="gk-gl-row"><b>今の地合い</b>現値の位置が、いま緑（安定）寄りか赤（加速）寄りか。</div>';
+  h += '<div class="gk-gl-row"><b>netΔ / netVega / netΘ</b>全建玉を合計した、ディーラー想定ポジション全体のΔ・Vega・Θ。市場全体の傾きの目安。</div>';
+  h += '<div class="gk-gl-row"><b>C-OI / P-OI</b>コール／プットの建玉（未決済の量）。多い価格帯ほど節目になりやすい。</div>';
+  h += '<div class="gk-gl-sec">A / B / B2（符号の置き方）</div>';
+  h += '<div class="gk-gl-row"><b>A 慣例</b>ディーラー＝コール買い・プット売りと決め打ちする標準ルール。毎日ブレない基準線。</div>';
+  h += '<div class="gk-gl-row"><b>B OI×IV</b>各価格のOIとIVの増減から、買われたか売られたかを推定して符号を置く。穏やかな日向き。</div>';
+  h += '<div class="gk-gl-row"><b>B2 相対IV</b>市場全体のIV変動を差し引いた「相対IV」で推定。vol一斉急騰/急落の日に強い（荒れた日はこれ）。</div>';
   return h;
 }
 function gkRender(card){
@@ -191,12 +285,14 @@ document.addEventListener('click', function(ev){
   if(!t || !t.getAttribute) return;
   var ei = t.getAttribute('data-gk-ei');
   var cv = t.getAttribute('data-gk-cv');
-  if(ei===null && cv===null) return;
+  var gl = t.getAttribute('data-gk-gl');
+  if(ei===null && cv===null && gl===null) return;
   ev.stopPropagation();
   var card = t.closest ? t.closest('.card') : null;
   if(!card) return;
   if(ei!==null) window.GK_STATE.ei = parseInt(ei,10);
   if(cv!==null) window.GK_STATE.conv = cv;
+  if(gl!==null) window.GK_STATE.gl = !window.GK_STATE.gl;
   gkRender(card);
 }, true);
 """

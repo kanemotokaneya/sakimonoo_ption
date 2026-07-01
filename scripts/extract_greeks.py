@@ -198,6 +198,68 @@ def _snapshot(oi_now, iv_expiries):
     return snap
 
 
+def _regime_timeline(history, keep=10):
+    """Recompute front-month net gamma (A/B/B2) per day from the snapshot
+    history, so the card can show how the stability regime evolved over time."""
+    dates = sorted(history.keys())
+    out = []
+    for i, d in enumerate(dates):
+        snap = history[d] or {}
+        iv = snap.get('iv') or {}
+        oi = snap.get('oi') or {}
+        atm = snap.get('atm_iv') or {}
+        spot = snap.get('spot')
+        if not iv or not oi:
+            continue
+        ecode = min(iv.keys())            # front expiry (YYYYMM)
+        ec4 = ecode[2:]
+        smile = iv.get(ecode) or {}
+        oi_e = oi.get(ec4) or {}
+        if not smile or not oi_e:
+            continue
+        if not spot:
+            # estimate from the smile (min-IV strike sits near ATM/spot)
+            cand = [(v, int(k)) for k, v in smile.items() if v]
+            if not cand:
+                continue
+            spot = min(cand)[1]
+        try:
+            dd = date(int(d[:4]), int(d[4:6]), int(d[6:8]))
+            T = max((_sq_date(ecode) - dd).days, 1) / 365.0
+        except Exception:
+            continue
+        prior = history[dates[i - 1]] if i > 0 else None
+        piv = ((prior or {}).get('iv', {}) or {}).get(ecode, {})
+        poi_map = ((prior or {}).get('oi', {}) or {}).get(ec4, {})
+        patm = ((prior or {}).get('atm_iv', {}) or {}).get(ecode)
+        tatm = atm.get(ecode)
+        atm_chg = (tatm - patm) if (tatm is not None and patm is not None) else None
+        nA = nB = nB2 = 0.0
+        for ks, sig in smile.items():
+            K = int(ks)
+            if K % 500 != 0 or abs(K - spot) > spot * 0.15:
+                continue
+            rec = oi_e.get(ks) or {}
+            coi = rec.get('call_oi', 0) or 0
+            poi_v = rec.get('put_oi', 0) or 0
+            g = _gamma_at(spot, K, T, sig)
+            nA += (coi - poi_v) * g
+            prec = poi_map.get(ks) or {}
+            coi_chg = (coi - (prec.get('call_oi', 0) or 0)) if prior else None
+            poi_chg = (poi_v - (prec.get('put_oi', 0) or 0)) if prior else None
+            iv_chg = (sig - piv[ks]) if (ks in piv) else None
+            iv_rel = (iv_chg - atm_chg) if (iv_chg is not None and atm_chg is not None) else None
+            scB, _ = _dealer_sign(coi_chg, iv_chg, 'C')
+            spB, _ = _dealer_sign(poi_chg, iv_chg, 'P')
+            nB += (scB * coi + spB * poi_v) * g
+            scB2, _ = _dealer_sign(coi_chg, iv_rel, 'C')
+            spB2, _ = _dealer_sign(poi_chg, iv_rel, 'P')
+            nB2 += (scB2 * coi + spB2 * poi_v) * g
+        out.append({'date': d, 'spot': spot,
+                    'A': round(nA, 2), 'B': round(nB, 2), 'B2': round(nB2, 2)})
+    return out[-keep:]
+
+
 # ----------------------------------------------------------------------------
 # Core build
 # ----------------------------------------------------------------------------
@@ -380,6 +442,7 @@ def build_greeks(data_dir, max_expiries=3):
     # --- persist snapshots so future runs can recover the prior day without
     # the raw files. Save today, and (bootstrap) the raw prior if we had it. ---
     history[today] = _snapshot(oi_now, iv_expiries)
+    history[today]['spot'] = spot
     if oi_prior and tp_prior:
         prior_date = ois[-2][0]
         if prior_date not in history and oi_was and iv_prior_map:
@@ -393,6 +456,7 @@ def build_greeks(data_dir, max_expiries=3):
             ps['atm_iv'] = {ec: a for ec, a in iv_prior_atm.items() if a is not None}
             history[prior_date] = ps
     _save_history(hist_path, history)
+    out['regime_history'] = _regime_timeline(history)
     return out
 
 
