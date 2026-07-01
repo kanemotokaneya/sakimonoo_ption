@@ -23,6 +23,10 @@ try:
     import render_greeks as _rg
 except Exception:
     _rg = None
+try:
+    import render_jnet as _rj
+except Exception:
+    _rj = None
 import sys
 import copy
 
@@ -1520,7 +1524,7 @@ def _detail_ivtrend_js(ivts):
 
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None):
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1541,7 +1545,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1630,7 +1634,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
         ('参加者・手口', [
             ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
             ('weekly_trend', '📅', '週次手口推移', _preview_weekly_trend(wt), _detail_weekly_trend_js(wt), WB),
-            ('jnet', '🏛', '大口手口（J-NET）', _preview_jnet(s07), _detail_jnet_js(s07), DB),
+            ('jnet', '🏛', '大口手口（J-NET）', (_rj.preview_jnet(jnet) if (_rj and jnet) else _preview_jnet(s07)), (_rj.detail_jnet_js(jnet) if (_rj and jnet) else _detail_jnet_js(s07)), DB),
         ]),
         ('総合', [
             ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data), DB),
@@ -1669,6 +1673,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     if _rg:
         h += _rg.greeks_data_script(greeks)
         h += _rg.GREEKS_CARD_JS
+    if _rj and jnet:
+        h += _rj.jnet_data_script(jnet, jnet.get('history'))
+        h += _rj.JNET_CARD_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2160,13 +2167,14 @@ def _preview_gemini(data):
     if not assessment:
         return '<span class="mm-label">生成待ち</span>'
     badge = '👤 手動' if source == 'manual' else '🤖 AI'
-    # Extract first ■ header as preview
-    parts = assessment.split('■')
-    for part in parts[1:2]:
-        lines = part.strip().split('\n', 1)
-        header = lines[0].strip()[:20]
-        return '<div class="mini-metrics"><div class="mini-metric"><div class="mm-label">%s</div><div class="mm-value" style="font-size:12px;color:var(--accent)">■ %s…</div></div></div>' % (badge, esc(header))
-    return '<span class="mm-label">%s 生成済み</span>' % badge
+    if '■' in assessment:
+        parts = assessment.split('■')
+        for part in parts[1:2]:
+            lines = part.strip().split('\n', 1)
+            header = lines[0].strip()[:20]
+            return '<div class="mini-metrics"><div class="mini-metric"><div class="mm-label">%s</div><div class="mm-value" style="font-size:12px;color:var(--accent)">■ %s…</div></div></div>' % (badge, esc(header))
+    first = assessment.replace('\r', '').split('\n\n', 1)[0].strip().replace('\n', ' ')[:22]
+    return '<div class="mini-metrics"><div class="mini-metric"><div class="mm-label">%s</div><div class="mm-value" style="font-size:12px;color:var(--accent)">%s…</div></div></div>' % (badge, esc(first))
 
 
 def _detail_gemini_js(data):
@@ -2180,16 +2188,33 @@ def _detail_gemini_js(data):
         js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">👤 手動分析(Claude等で作成)</div>';"
     else:
         js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">🤖 AI自動生成(Gemini)</div>';"
-    js += "h+='<div class=\"insight\" style=\"white-space:pre-wrap;line-height:1.8\">';"
-    parts = assessment.split('■')
-    for i, part in enumerate(parts):
-        part = part.strip()
-        if not part:
-            continue
-        lines = part.split('\n', 1)
-        header = lines[0].strip()
-        body = lines[1].strip() if len(lines) > 1 else ''
-        js += "h+='<div style=\"margin-top:%dpx\"><strong style=\"color:var(--accent)\">■ %s</strong><br>%s</div>';" % (0 if i <= 1 else 10, _js_str(esc(header)), _js_str(esc(body)))
+    js += "h+='<div class=\"insight\" style=\"line-height:1.85\">';"
+    if '■' in assessment:
+        parts = assessment.split('■')
+        for i, part in enumerate(parts):
+            part = part.strip()
+            if not part:
+                continue
+            lines = part.split('\n', 1)
+            header = lines[0].strip()
+            body = lines[1].strip() if len(lines) > 1 else ''
+            js += "h+='<div style=\"margin-top:%dpx\"><strong style=\"color:var(--accent)\">■ %s</strong><br>%s</div>';" % (0 if i <= 1 else 10, _js_str(esc(header)), _js_str(esc(body)))
+    else:
+        # paragraph format (blank-line separated). _js_str strips newlines, so
+        # render each paragraph as its own block and bold a leading "ラベル：".
+        paras = [p.strip() for p in assessment.replace('\r', '').split('\n\n') if p.strip()]
+        for i, para in enumerate(paras):
+            para = para.replace('\n', ' ').strip()
+            if i == 0:
+                js += "h+='<div style=\"margin:0 0 11px\"><strong style=\"color:var(--accent)\">%s</strong></div>';" % _js_str(esc(para))
+                continue
+            ci = para.find('：')
+            if 0 < ci <= 24:
+                label = para[:ci + 1]
+                body = para[ci + 1:].strip()
+                js += "h+='<div style=\"margin:13px 0 0\"><strong style=\"color:var(--accent)\">%s</strong>%s</div>';" % (_js_str(esc(label)), _js_str(esc(body)))
+            else:
+                js += "h+='<div style=\"margin:13px 0 0\">%s</div>';" % _js_str(esc(para))
     js += "h+='</div>';"
     js += "return h;"
     return js
@@ -2620,6 +2645,21 @@ def run(args):
                 print('[render.py] Loaded greeks.json: %d expiries' % len(greeks.get('expiries', [])))
         except Exception as e:
             print('[render.py] greeks.json load error: %s' % e)
+    jnet = None
+    _jpath = os.path.join(data_dir, 'jnet.json')
+    if os.path.exists(_jpath):
+        try:
+            with open(_jpath, encoding='utf-8') as f:
+                jnet = json.load(f)
+            _jhist = os.path.join(data_dir, 'jnet_history.json')
+            if os.path.exists(_jhist):
+                with open(_jhist, encoding='utf-8') as f:
+                    jnet['history'] = json.load(f)
+            if jnet and not jnet.get('error'):
+                print('[render.py] Loaded jnet.json: %d brokers, %d history days'
+                      % (len(jnet.get('brokers', [])), len(jnet.get('history', {}))))
+        except Exception as e:
+            print('[render.py] jnet.json load error: %s' % e)
     if iv and not iv.get('error'):
         print('[render.py] Loaded iv.json: %d expiries' % len(iv.get('expiries', [])))
     else:
@@ -2643,7 +2683,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
