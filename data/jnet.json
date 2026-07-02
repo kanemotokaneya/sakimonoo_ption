@@ -1,0 +1,338 @@
+{
+  "date": "20260702",
+  "spot": 68733.0,
+  "brokers": [
+    {
+      "broker": "ＳＢＩ証券",
+      "large": 1917.0,
+      "mini": 41788.0,
+      "topix": 216.0,
+      "option": 88.0,
+      "fut": 43705.0
+    },
+    {
+      "broker": "楽天証券",
+      "large": 376.0,
+      "mini": 27506.0,
+      "topix": 0.0,
+      "option": 32.0,
+      "fut": 27882.0
+    },
+    {
+      "broker": "野村証券",
+      "large": 2398.0,
+      "mini": 13920.0,
+      "topix": 978.0,
+      "option": 50.0,
+      "fut": 16318.0
+    },
+    {
+      "broker": "ＪＰモルガン証券",
+      "large": 1768.0,
+      "mini": 6000.0,
+      "topix": 4376.0,
+      "option": 600.0,
+      "fut": 7768.0
+    },
+    {
+      "broker": "三菱ＵＦＪｅスマート",
+      "large": 104.0,
+      "mini": 7576.0,
+      "topix": 30.0,
+      "option": 0.0,
+      "fut": 7680.0
+    },
+    {
+      "broker": "ＡＢＮクリアリン証券",
+      "large": 1445.0,
+      "mini": 6001.0,
+      "topix": 746.0,
+      "option": 1275.0,
+      "fut": 7446.0
+    },
+    {
+      "broker": "ＢＮＰパリバ証券",
+      "large": 886.0,
+      "mini": 2500.0,
+      "topix": 0.0,
+      "option": 300.0,
+      "fut": 3386.0
+    },
+    {
+      "broker": "みずほ証券",
+      "large": 328.0,
+      "mini": 1615.0,
+      "topix": 1150.0,
+      "option": 0.0,
+      "fut": 1943.0
+    },
+    {
+      "broker": "ＵＢＳ証券",
+      "large": 475.0,
+      "mini": 1000.0,
+      "topix": 2.0,
+      "option": 1050.0,
+      "fut": 1475.0
+    },
+    {
+      "broker": "三菱ＵＦＪ証券",
+      "large": 818.0,
+      "mini": 0.0,
+      "topix": 0.0,
+      "option": 0.0,
+      "fut": 818.0
+    },
+    {
+      "broker": "ＳＭＢＣ日興証券",
+      "large": 725.0,
+      "mini": 0.0,
+      "topix": 222.0,
+      "option": 0.0,
+      "fut": 725.0
+    },
+    {
+      "broker": "ゴールドマン証券",
+      "large": 634.0,
+      "mini": 62.0,
+      "topix": 1848.0,
+      "option": 0.0,
+      "fut": 696.0
+    },
+    {
+      "broker": "シティグループ証券",
+      "large": 573.0,
+      "mini": 0.0,
+      "topix": 377.0,
+      "option": 0.0,
+      "fut": 573.0
+    },
+    {
+      "broker": "ビーオブエー証券",
+      "large": 328.0,
+      "mini": 0.0,
+      "topix": 32.0,
+      "option": 300.0,
+      "fut": 328.0
+    },
+    {
+      "broker": "大和証券",
+      "large": 228.0,
+      "mini": 0.0,
+      "topix": 28.0,
+      "option": 0.0,
+      "fut": 228.0
+    },
+    {
+      "broker": "日産証券",
+      "large": 202.0,
+      "mini": 0.0,
+      "topix": 0.0,
+      "option": 0.0,
+      "fut": 202.0
+    },
+    {
+      "broker": "ソシエテＧ証券",
+      "large": 193.0,
+      "mini": 1.0,
+      "topix": 673.0,
+      "option": 0.0,
+      "fut": 194.0
+    },
+    {
+      "broker": "モルガンＭＵＦＧ証券",
+      "large": 35.0,
+      "mini": 39.0,
+      "topix": 280.0,
+      "option": 0.0,
+      "fut": 74.0
+    },
+    {
+      "broker": "バークレイズ証券",
+      "large": 42.0,
+      "mini": 0.0,
+      "topix": 176.0,
+      "option": 225.0,
+      "fut": 42.0
+    },
+    {
+      "broker": "ＨＳＢＣ証券",
+      "large": 40.0,
+      "mini": 0.0,
+      "topix": 0.0,
+      "option": 0.0,
+      "fut": 40.0
+    },
+    {
+      "broker": "サスケハナ・ホンコン",
+      "large": 0.0,
+      "mini": 0.0,
+      "topix": 0.0,
+      "option": 400.0,
+      "fut": 0.0
+    }
+  ],
+  "option_crosses": [
+    {
+      "side": "P",
+      "strike": 68250,
+      "size": 100,
+      "is_cross": false,
+      "domestic_vs_overseas": true,
+      "legs": [
+        {
+          "broker": "バークレイズ証券",
+          "vol": 100.0,
+          "cat": "eu",
+          "cat_label": "欧系"
+        },
+        {
+          "broker": "野村証券",
+          "vol": 50.0,
+          "cat": "domestic",
+          "cat_label": "国内"
+        },
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 50.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    },
+    {
+      "side": "P",
+      "strike": 69000,
+      "size": 500,
+      "is_cross": true,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "ＪＰモルガン証券",
+          "vol": 500.0,
+          "cat": "us",
+          "cat_label": "米系"
+        },
+        {
+          "broker": "サスケハナ・ホンコン",
+          "vol": 400.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "ビーオブエー証券",
+          "vol": 300.0,
+          "cat": "us",
+          "cat_label": "米系"
+        },
+        {
+          "broker": "ＵＢＳ証券",
+          "vol": 250.0,
+          "cat": "eu",
+          "cat_label": "欧系"
+        }
+      ]
+    },
+    {
+      "side": "P",
+      "strike": 67750,
+      "size": 400,
+      "is_cross": true,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "ＵＢＳ証券",
+          "vol": 400.0,
+          "cat": "eu",
+          "cat_label": "欧系"
+        },
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 400.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    },
+    {
+      "side": "P",
+      "strike": 68000,
+      "size": 400,
+      "is_cross": true,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "ＵＢＳ証券",
+          "vol": 400.0,
+          "cat": "eu",
+          "cat_label": "欧系"
+        },
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 400.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "ＪＰモルガン証券",
+          "vol": 100.0,
+          "cat": "us",
+          "cat_label": "米系"
+        },
+        {
+          "broker": "ＢＮＰパリバ証券",
+          "vol": 100.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    },
+    {
+      "side": "C",
+      "strike": 69500,
+      "size": 125,
+      "is_cross": true,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "バークレイズ証券",
+          "vol": 125.0,
+          "cat": "eu",
+          "cat_label": "欧系"
+        },
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 125.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    },
+    {
+      "side": "P",
+      "strike": 68750,
+      "size": 100,
+      "is_cross": true,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "ＢＮＰパリバ証券",
+          "vol": 100.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 100.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    }
+  ],
+  "history_dates": [
+    "20260629",
+    "20260630",
+    "20260701",
+    "20260702"
+  ]
+}
