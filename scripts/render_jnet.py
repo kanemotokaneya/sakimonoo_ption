@@ -24,6 +24,11 @@ JNET_CARD_CSS = r"""
 .jn-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;white-space:nowrap}
 .jn-tbl td:first-child{text-align:left;font-family:'Noto Sans JP',sans-serif}
 .jn-ubs td{background:rgba(245,158,11,.14)}
+.jn-ocbig td{background:rgba(129,140,248,.12)}
+.jn-leg{display:inline-block;padding:1px 6px;border-radius:6px;font-size:11px;margin:1px}
+.jn-dom{background:rgba(248,113,113,.16);color:#fca5a5}
+.jn-ovs{background:rgba(96,165,250,.16);color:#93c5fd}
+.jn-x{color:var(--sub);margin:0 2px;font-size:10px}
 .jn-note{font-size:12px;color:var(--sub);margin:8px 2px;line-height:1.6}
 """
 
@@ -103,6 +108,27 @@ function jnBuildHTML(){
   }
   h += '</tbody></table></div>';
   h += '<div class="jn-note">ラージ＝機関のブロック/クロスが中心。ミニはリテール（SBI・楽天等）が大半。「蓋」を読むならラージ側のクロスに注目。</div>';
+
+  // notable option cross blocks by strike (dynamic — whoever moved big today)
+  var oc = J.option_crosses || [];
+  if(oc.length){
+    h += '<div class="jn-sec">本日の大口オプション立会外クロス（ストライク別）</div>';
+    h += '<div class="jn-scroll"><table class="jn-tbl"><thead><tr>'
+       + '<th>ストライク</th><th>枚数</th><th>当事者</th></tr></thead><tbody>';
+    for(var i=0;i<oc.length;i++){
+      var c = oc[i];
+      var star = c.domestic_vs_overseas ? '★ ' : '';
+      var legs = (c.legs||[]).map(function(l){
+        var cc = l.cat==='domestic' ? 'jn-dom' : 'jn-ovs';
+        return '<span class="jn-leg '+cc+'">'+l.broker.replace('証券','').replace('クリアリン','')+' '+jnNum(l.vol)+'</span>';
+      }).join('<span class="jn-x">⟷</span>');
+      h += '<tr class="'+(c.domestic_vs_overseas?'jn-ocbig':'')+'">'
+         + '<td>'+star+c.side+jnNum(c.strike)+'</td>'
+         + '<td>'+jnNum(c.size)+'</td><td>'+legs+'</td></tr>';
+    }
+    h += '</tbody></table></div>';
+    h += '<div class="jn-note">★＝国内⟷海外の大口ブロック。<b>売買区分なし</b>なので「国内が買った/売った」は断定不可。今日のみずほ⟷ＡＢＮのような形は、当日のOI増減（我々のグリークスカード）と<b>翌日の値動き</b>で「保険買いか・売り抜けか」を事後判定してください。</div>';
+  }
   h += '</div>';
   return h;
 }
@@ -118,8 +144,10 @@ def jnet_data_script(jnet, history=None):
     data = dict(jnet or {})
     if history is not None:
         data['history'] = history
-    return ('<script>window.JNET_DATA = '
-            + json.dumps(data, ensure_ascii=False) + ';</script>\n')
+    # Concatenated INSIDE the dashboard's single <script> block — must NOT wrap
+    # itself in <script> tags (nesting would close the outer script early and
+    # break every card toggle). Return raw JS, like greeks_data_script.
+    return 'window.JNET_DATA = ' + json.dumps(data, ensure_ascii=False) + ';\n'
 
 
 def preview_jnet(jnet):
