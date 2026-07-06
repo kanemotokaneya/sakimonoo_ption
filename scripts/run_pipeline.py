@@ -32,6 +32,15 @@ def main():
     datadir = os.path.join(repo_root, args.datadir) if not os.path.isabs(args.datadir) else args.datadir
     outdir = os.path.join(repo_root, args.outdir) if not os.path.isabs(args.outdir) else args.outdir
 
+    # Step 0: unpack the single carry-over state.json into the 4 history files
+    # so the extractors run unchanged. (See state_bundle.py.)
+    try:
+        import state_bundle
+        state_path = os.path.join(datadir, 'state.json')
+        state_bundle.unpack(state_path, datadir)
+    except Exception as _e:
+        print('[state] unpack skipped: %s' % _e)
+
     nikkei = args.nikkei
     vi = args.vi
     basis = None
@@ -200,6 +209,29 @@ def main():
         print('[WARN] extract_greeks.py failed (グリークス/GEX card may be empty)', file=sys.stderr)
         print(result.stderr, file=sys.stderr)
 
+    # Step 2.95: Per-broker J-NET (cross) volume + history (大口手口 card).
+    # Accumulates jnet_history.json so broker cross activity (e.g. UBS) can be
+    # tracked vs price over time. Non-fatal.
+    jnet_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_jnet.py'),
+                '--data-dir', datadir,
+                '--out', os.path.join(datadir, 'jnet.json')]
+    result = subprocess.run(jnet_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_jnet.py failed (大口手口 card may be empty)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+
+    # Step 2.97: Weekly option OI by participant (参加者別OP建玉 card). Only runs
+    # when a *nk225op_oi_by_tp*.xlsx is present (published Mondays). Non-fatal.
+    ow_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_opt_weekly.py'),
+              '--data-dir', datadir,
+              '--out', os.path.join(datadir, 'opt_weekly.json')]
+    result = subprocess.run(ow_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_opt_weekly.py failed (参加者別OP建玉 card may be empty)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')
     render_cmd = [sys.executable, os.path.join(scripts_dir, 'render.py'),
@@ -211,6 +243,13 @@ def main():
         print('ERROR: render.py failed', file=sys.stderr)
         print(result.stderr, file=sys.stderr)
         sys.exit(1)
+
+    # Step 4: re-pack the 4 history files into the single carry-over state.json
+    try:
+        import state_bundle
+        state_bundle.pack(datadir, os.path.join(datadir, 'state.json'))
+    except Exception as _e:
+        print('[state] pack skipped: %s' % _e)
 
     # Summary
     print('\n=== Pipeline Complete ===')

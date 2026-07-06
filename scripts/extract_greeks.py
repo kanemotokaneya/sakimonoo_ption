@@ -170,7 +170,7 @@ def _load_history(path):
         return {}
 
 
-def _save_history(path, history, keep=15):
+def _save_history(path, history, keep=10):
     # keep only the most recent `keep` dates to bound file size
     dates = sorted(history.keys())
     for d in dates[:-keep]:
@@ -182,19 +182,28 @@ def _save_history(path, history, keep=15):
         print('[extract_greeks] WARNING: could not write history: %s' % e)
 
 
-def _snapshot(oi_now, iv_expiries):
-    """Compact per-day snapshot: OI (YYMM-keyed) + IV/ATM (YYYYMM-keyed)."""
+def _snapshot(oi_now, iv_expiries, spot=None, pct=0.12):
+    """Compact per-day snapshot: OI (YYMM-keyed) + IV/ATM (YYYYMM-keyed).
+    Kept small: only the analysed front expiries, strikes within ±pct of spot,
+    integer OI and rounded IV. This keeps greeks_history.json lean."""
+    def near(k):
+        return spot is None or abs(int(k) - spot) <= spot * pct
     snap = {'oi': {}, 'iv': {}, 'atm_iv': {}}
-    for ec4, strikes in (oi_now or {}).items():
-        snap['oi'][ec4] = {str(int(k)): {'call_oi': (v or {}).get('call_oi', 0),
-                                         'put_oi': (v or {}).get('put_oi', 0)}
-                           for k, v in strikes.items()}
+    fronts = set()
     for e in iv_expiries:
         if len(e['expiry']) == 6:
-            snap['iv'][e['expiry']] = {str(int(p['strike'])): p['iv']
-                                       for p in e['smile'] if p.get('iv')}
+            fronts.add(e['expiry'][2:])  # YYMM, to match OI keys
+            snap['iv'][e['expiry']] = {str(int(p['strike'])): round(p['iv'], 4)
+                                       for p in e['smile']
+                                       if p.get('iv') and near(p['strike'])}
             if e.get('atm_iv') is not None:
-                snap['atm_iv'][e['expiry']] = e['atm_iv']
+                snap['atm_iv'][e['expiry']] = round(e['atm_iv'], 4)
+    for ec4, strikes in (oi_now or {}).items():
+        if fronts and ec4 not in fronts:
+            continue  # keep only the front expiries we actually analyse
+        snap['oi'][ec4] = {str(int(k)): {'call_oi': int((v or {}).get('call_oi', 0) or 0),
+                                         'put_oi': int((v or {}).get('put_oi', 0) or 0)}
+                           for k, v in strikes.items() if near(k)}
     return snap
 
 
@@ -441,7 +450,7 @@ def build_greeks(data_dir, max_expiries=3):
 
     # --- persist snapshots so future runs can recover the prior day without
     # the raw files. Save today, and (bootstrap) the raw prior if we had it. ---
-    history[today] = _snapshot(oi_now, iv_expiries)
+    history[today] = _snapshot(oi_now, iv_expiries, spot)
     history[today]['spot'] = spot
     if oi_prior and tp_prior:
         prior_date = ois[-2][0]
