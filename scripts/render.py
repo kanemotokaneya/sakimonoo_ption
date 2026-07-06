@@ -25,8 +25,10 @@ except Exception:
     _rg = None
 try:
     import render_jnet as _rj
+    import render_opt_weekly as _ow
 except Exception:
     _rj = None
+    _ow = None
 import sys
 import copy
 
@@ -1524,7 +1526,7 @@ def _detail_ivtrend_js(ivts):
 
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None):
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None, optw=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1545,7 +1547,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1638,6 +1640,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
         ]),
         ('総合', [
             ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data), DB),
+            ('optw', '🧑‍💼', '参加者別OP建玉（週次）', (_ow.preview_opt_weekly(optw) if (_ow and optw) else '<span class="mm-label">週次OP建玉 未取込</span>'), (_ow.detail_opt_weekly_js(optw) if (_ow and optw) else "return '<div class=\\'insight\\'>週次OP建玉ファイル未取込</div>';"), DB),
             ('gemini', '🤖', 'AI予想', _preview_gemini(data), _detail_gemini_js(data), DB),
         ]),
     ]
@@ -1676,6 +1679,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     if _rj and jnet:
         h += _rj.jnet_data_script(jnet, jnet.get('history'))
         h += _rj.JNET_CARD_JS
+    if _ow and optw:
+        h += _ow.optw_data_script(optw)
+        h += _ow.OPTW_CARD_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2660,6 +2666,16 @@ def run(args):
                       % (len(jnet.get('brokers', [])), len(jnet.get('history', {}))))
         except Exception as e:
             print('[render.py] jnet.json load error: %s' % e)
+    optw = None
+    _opath = os.path.join(data_dir, 'opt_weekly.json')
+    if os.path.exists(_opath):
+        try:
+            with open(_opath, encoding='utf-8') as f:
+                optw = json.load(f)
+            if optw:
+                print('[render.py] Loaded opt_weekly.json: %d strikes' % len(optw.get('strikes', {})))
+        except Exception as e:
+            print('[render.py] opt_weekly.json load error: %s' % e)
     if iv and not iv.get('error'):
         print('[render.py] Loaded iv.json: %d expiries' % len(iv.get('expiries', [])))
     else:
@@ -2683,7 +2699,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet, optw=optw)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))
