@@ -1,6 +1,6 @@
 {
   "date": "20260706",
-  "spot": 69738.0,
+  "spot": 69737.69,
   "brokers": [
     {
       "broker": "ＳＢＩ証券",
@@ -169,41 +169,6 @@
       "topix": 2.0,
       "option": 0.0,
       "fut": 0.0
-    }
-  ],
-  "option_crosses": [
-    {
-      "side": "C",
-      "strike": 70000,
-      "size": 200,
-      "is_cross": true,
-      "domestic_vs_overseas": true,
-      "legs": [
-        {
-          "broker": "三菱ＵＦＪ証券",
-          "vol": 200.0,
-          "cat": "domestic",
-          "cat_label": "国内"
-        },
-        {
-          "broker": "ＡＢＮクリアリン証券",
-          "vol": 200.0,
-          "cat": "hf",
-          "cat_label": "HF代理"
-        },
-        {
-          "broker": "野村証券",
-          "vol": 100.0,
-          "cat": "domestic",
-          "cat_label": "国内"
-        },
-        {
-          "broker": "ビーオブエー証券",
-          "vol": 100.0,
-          "cat": "us",
-          "cat_label": "米系"
-        }
-      ]
     }
   ],
   "history_dates": [
