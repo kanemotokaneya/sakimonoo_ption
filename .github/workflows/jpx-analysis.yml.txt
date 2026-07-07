@@ -1,0 +1,111 @@
+# .github/workflows/jpx-analysis.yml
+# JPX Market Analysis - Automated Pipeline
+#
+# Triggers:
+#   1. Push Excel/CSV files to data/  (busy days: just drop the raw files)
+#   2. Manual dispatch (optional Nikkei/VI override)
+#
+# Flow: unpack state.json -> parse raw data -> (manual ⑧ if present, else
+#       deterministic 定型⑧) -> render index.html -> pack state.json ->
+#       tidy data/ -> commit & deploy (GitHub Pages serves index.html).
+#
+# No GEMINI_API_KEY needed: the ⑧ is either your manual_assessment_<date>.md
+# or a deterministic template built from the real numbers.
+
+name: JPX Daily Analysis
+
+on:
+  push:
+    paths:
+      - 'data/*.xlsx'
+      - 'data/*.xls'
+      - 'data/*.csv'
+  workflow_dispatch:
+    inputs:
+      nikkei:
+        description: 'Nikkei 225 close (leave empty for auto-fetch)'
+        required: false
+        type: string
+      vi:
+        description: 'Nikkei VI close (leave empty for auto-fetch)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install openpyxl xlrd
+
+      - name: List data files
+        run: |
+          echo "=== Files in data/ ==="
+          ls -la data/ || echo "No data/ directory"
+
+      - name: Run pipeline
+        run: |
+          ARGS="--datadir data --outdir ."
+          if [ -n "${{ github.event.inputs.nikkei }}" ]; then
+            ARGS="$ARGS --nikkei ${{ github.event.inputs.nikkei }}"
+          fi
+          if [ -n "${{ github.event.inputs.vi }}" ]; then
+            ARGS="$ARGS --vi ${{ github.event.inputs.vi }}"
+          fi
+          python scripts/run_pipeline.py $ARGS
+
+      - name: Cleanup old raw files in data/ (keep latest of each type)
+        run: |
+          cd data
+          for pattern in "open_interest" "derivatives_market_data" "volume_by_participant" "tp.csv" "indexfut_oi_by_tp" "nk225op_oi_by_tp"; do
+            files=$(ls -1 *${pattern}* 2>/dev/null | sort -r)
+            count=0
+            for f in $files; do
+              count=$((count + 1))
+              if [ $count -gt 1 ]; then
+                echo "Removing old: $f"; rm -f "$f"
+              else
+                echo "Keeping latest: $f"
+              fi
+            done
+          done
+
+      - name: Tidy generated JSON in data/ (keep state.json only)
+        run: |
+          # removes scratch JSON (greeks/jnet/iv/weekly_trend/opt_weekly/positions/data),
+          # drops the 4 history files now bundled inside state.json, archives old ⑧ md.
+          python scripts/cleanup.py --dir data --apply --drop-unbundled --keep-md 7 || true
+
+      - name: List generated files
+        run: |
+          echo "=== Generated ==="
+          ls -la index.html data/state.json 2>/dev/null || true
+
+      - name: Commit and push
+        run: |
+          git config user.name "JPX Analysis Bot"
+          git config user.email "bot@jpx-analysis.local"
+          # deploy artifact + carry-over state + inputs/archive; -A also stages deletions
+          git add index.html
+          git add -A data/
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            DATE=$(date +%Y%m%d)
+            git commit -m "${DATE} analysis update [automated]"
+            git push
+          fi
