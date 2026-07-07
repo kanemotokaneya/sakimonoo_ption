@@ -134,17 +134,15 @@ def main():
                   % (data_date, os.path.basename(manual_path)))
 
     if not manual_used:
-        gemini_key = os.environ.get('GEMINI_API_KEY', '')
-        if gemini_key:
-            print('[assessment] falling back to Gemini')
-            assess_cmd = [sys.executable, os.path.join(scripts_dir, 'generate_assessment.py'),
-                          '--data', data_json, '--key', gemini_key]
-            result = subprocess.run(assess_cmd, capture_output=True, text=True)
-            print(result.stdout)
-            if result.stderr:
-                print(result.stderr)
-        else:
-            print('[SKIP] No manual file and no GEMINI_API_KEY -- assessment uses placeholder')
+        # No manual ⑧ → deterministic template assessment from real numbers.
+        # (Accurate, no API key. Replaces the old Gemini fallback.)
+        print('[assessment] no manual file → deterministic 定型⑧')
+        assess_cmd = [sys.executable, os.path.join(scripts_dir, 'generate_assessment.py'),
+                      '--data', data_json]
+        result = subprocess.run(assess_cmd, capture_output=True, text=True)
+        print(result.stdout)
+        if result.stderr:
+            print(result.stderr)
 
     # Step 2.6: Build time-series cards (建玉推移 / 週次手口推移)
     # These regenerate oi_timeseries.json and weekly_trend.json which render.py
@@ -231,6 +229,13 @@ def main():
     if result.returncode != 0:
         print('[WARN] extract_opt_weekly.py failed (参加者別OP建玉 card may be empty)', file=sys.stderr)
         print(result.stderr, file=sys.stderr)
+
+    # Step 2.98: merge weekly futures + weekly options per participant.
+    pos_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_positions.py'),
+               '--data-dir', datadir,
+               '--out', os.path.join(datadir, 'positions.json')]
+    result = subprocess.run(pos_cmd, capture_output=True, text=True)
+    print(result.stdout)
 
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')

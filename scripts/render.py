@@ -26,9 +26,11 @@ except Exception:
 try:
     import render_jnet as _rj
     import render_opt_weekly as _ow
+    import render_positions as _ps
 except Exception:
     _rj = None
     _ow = None
+    _ps = None
 import sys
 import copy
 
@@ -1526,7 +1528,7 @@ def _detail_ivtrend_js(ivts):
 
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None, optw=None):
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None, optw=None, positions=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1547,7 +1549,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1640,8 +1642,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
         ]),
         ('総合', [
             ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data), DB),
+            ('positions', '🧩', '大口ポジション統合（週次 先物＋OP）', (_ps.preview_positions(positions) if (_ps and positions) else '<span class="mm-label">統合ポジション 未取込</span>'), (_ps.detail_positions_js(positions) if (_ps and positions) else "return '<div class=\\'insight\\'>週次データ未取込</div>';"), DB),
             ('optw', '🧑‍💼', '参加者別OP建玉（週次）', (_ow.preview_opt_weekly(optw) if (_ow and optw) else '<span class="mm-label">週次OP建玉 未取込</span>'), (_ow.detail_opt_weekly_js(optw) if (_ow and optw) else "return '<div class=\\'insight\\'>週次OP建玉ファイル未取込</div>';"), DB),
-            ('gemini', '🤖', 'AI予想', _preview_gemini(data), _detail_gemini_js(data), DB),
+            ('gemini', '📝', '市況評価（⑧）', _preview_gemini(data), _detail_gemini_js(data), DB),
         ]),
     ]
     # Flat list for the JS function registration below
@@ -1682,6 +1685,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     if _ow and optw:
         h += _ow.optw_data_script(optw)
         h += _ow.OPTW_CARD_JS
+    if _ps and positions:
+        h += _ps.pos_data_script(positions)
+        h += _ps.POS_CARD_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2192,8 +2198,10 @@ def _detail_gemini_js(data):
     # Source badge line
     if source == 'manual':
         js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">👤 手動分析(Claude等で作成)</div>';"
+    elif source == 'auto':
+        js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">🧮 自動生成(定型・データ由来／手動分析が無い日)</div>';"
     else:
-        js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">🤖 AI自動生成(Gemini)</div>';"
+        js += "h+='<div style=\"font-size:11px;color:var(--sub);margin-bottom:8px\">🤖 自動生成</div>';"
     js += "h+='<div class=\"insight\" style=\"line-height:1.85\">';"
     if '■' in assessment:
         parts = assessment.split('■')
@@ -2676,6 +2684,16 @@ def run(args):
                 print('[render.py] Loaded opt_weekly.json: %d strikes' % len(optw.get('strikes', {})))
         except Exception as e:
             print('[render.py] opt_weekly.json load error: %s' % e)
+    positions = None
+    _ppath = os.path.join(data_dir, 'positions.json')
+    if os.path.exists(_ppath):
+        try:
+            with open(_ppath, encoding='utf-8') as f:
+                positions = json.load(f)
+            if positions:
+                print('[render.py] Loaded positions.json: %d participants' % len(positions.get('rows', [])))
+        except Exception as e:
+            print('[render.py] positions.json load error: %s' % e)
     if iv and not iv.get('error'):
         print('[render.py] Loaded iv.json: %d expiries' % len(iv.get('expiries', [])))
     else:
@@ -2699,7 +2717,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet, optw=optw)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet, optw=optw, positions=positions)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))

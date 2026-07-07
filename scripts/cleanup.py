@@ -20,7 +20,7 @@ import os
 import shutil
 
 SCRATCH = ['greeks.json', 'jnet.json', 'iv.json', 'weekly_trend.json',
-           'opt_weekly.json', 'data.json']
+           'opt_weekly.json', 'positions.json', 'data.json']
 STATE_FILES = ['greeks_history.json', 'jnet_history.json',
                'iv_timeseries.json', 'oi_timeseries.json']
 JUNK_GLOBS = ['*_DEMO.json', 'cache_*.json', '*_DEMO*.json']
