@@ -27,10 +27,12 @@ try:
     import render_jnet as _rj
     import render_opt_weekly as _ow
     import render_positions as _ps
+    import render_opcross as _oc
 except Exception:
     _rj = None
     _ow = None
     _ps = None
+    _oc = None
 import sys
 import copy
 
@@ -1549,7 +1551,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1636,14 +1638,15 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
             ('greeks', '🧮', 'グリークス/GEX', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
         ]),
         ('参加者・手口', [
-            ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
-            ('weekly_trend', '📅', '週次手口推移', _preview_weekly_trend(wt), _detail_weekly_trend_js(wt), WB),
             ('jnet', '🏛', '大口手口（J-NET）', (_rj.preview_jnet(jnet) if (_rj and jnet) else _preview_jnet(s07)), (_rj.detail_jnet_js(jnet) if (_rj and jnet) else _detail_jnet_js(s07)), DB),
+            ('opcross', '🔀', '大口オプションクロス（日次）', (_oc.preview_opcross(jnet) if (_oc and jnet) else '<span class="mm-label">OPクロス 未取込</span>'), (_oc.detail_opcross_js(jnet) if (_oc and jnet) else "return '<div class=\\'insight\\'>J-NETデータ未取込</div>';"), DB),
+            ('positions', '🧩', '大口ポジション統合（週次 先物＋OP）', (_ps.preview_positions(positions) if (_ps and positions) else '<span class="mm-label">統合ポジション 未取込</span>'), (_ps.detail_positions_js(positions) if (_ps and positions) else "return '<div class=\\'insight\\'>週次データ未取込</div>';"), DB),
+            ('optw', '🧑‍💼', '参加者別OP建玉（週次）', (_ow.preview_opt_weekly(optw) if (_ow and optw) else '<span class="mm-label">週次OP建玉 未取込</span>'), (_ow.detail_opt_weekly_js(optw) if (_ow and optw) else "return '<div class=\\'insight\\'>週次OP建玉ファイル未取込</div>';"), DB),
+            ('weekly_trend', '📅', '週次手口推移', _preview_weekly_trend(wt), _detail_weekly_trend_js(wt), WB),
+            ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
         ]),
         ('総合', [
             ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data), DB),
-            ('positions', '🧩', '大口ポジション統合（週次 先物＋OP）', (_ps.preview_positions(positions) if (_ps and positions) else '<span class="mm-label">統合ポジション 未取込</span>'), (_ps.detail_positions_js(positions) if (_ps and positions) else "return '<div class=\\'insight\\'>週次データ未取込</div>';"), DB),
-            ('optw', '🧑‍💼', '参加者別OP建玉（週次）', (_ow.preview_opt_weekly(optw) if (_ow and optw) else '<span class="mm-label">週次OP建玉 未取込</span>'), (_ow.detail_opt_weekly_js(optw) if (_ow and optw) else "return '<div class=\\'insight\\'>週次OP建玉ファイル未取込</div>';"), DB),
             ('gemini', '📝', '市況評価（⑧）', _preview_gemini(data), _detail_gemini_js(data), DB),
         ]),
     ]
@@ -1688,6 +1691,8 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     if _ps and positions:
         h += _ps.pos_data_script(positions)
         h += _ps.POS_CARD_JS
+    if _oc and jnet:
+        h += _oc.OPCROSS_CARD_JS
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js

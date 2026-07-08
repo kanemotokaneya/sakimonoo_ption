@@ -84,51 +84,20 @@ function jnBuildHTML(){
     return '<div class="jn-note">J-NETデータなし — extract_jnet.py を実行して jnet.json を生成してください。</div>';
   }
   var h = '<div class="jn-wrap">';
-  h += '<div class="jn-banner">J-NET＝立会外（クロス）取引。<b>売買区分なし＝出来高のみ</b>です。UBS等のクロスが「蓋」になるかは、出来高スパイクと<b>翌日以降の値動き</b>を照合して事後に確認してください（手口だけで売り＝蓋とは断定できません）。</div>';
+  h += '<div class="jn-banner">J-NET＝立会外（クロス）取引。<b>売買区分なし＝出来高のみ</b>です。手口だけで「売り＝蓋」とは断定できないため、翌日以降の値動きと併せて事後確認してください。</div>';
 
-  // UBS focus + history
-  var hist = J.history || {};
-  var nd = Object.keys(hist).length;
-  h += '<div class="jn-sec">UBSのJ-NET先物クロス推移（橙）と現値（水色）</div>';
-  if(nd >= 1){
-    h += '<div class="jn-svg-wrap">'+jnHistChart(J)+'</div>';
-    if(nd < 3){ h += '<div class="jn-note">※ まだ'+nd+'日分。数日貯まると「UBSの出来高が膨らんだ翌日に、現値がそこで止まったか」が見えてきます。</div>'; }
-  }
-
-  // today's table
+  // today's futures ranking table
   h += '<div class="jn-sec">本日のJ-NET先物 出来高ランキング（'+J.date.slice(4,6)+'/'+J.date.slice(6,8)+'）</div>';
   h += '<div class="jn-scroll"><table class="jn-tbl"><thead><tr>'
      + '<th>参加者</th><th>ラージ</th><th>ミニ</th><th>先物計</th></tr></thead><tbody>';
   var rows = J.brokers.slice(0, 12);
   for(var i=0;i<rows.length;i++){
     var r = rows[i];
-    var isU = (r.broker.indexOf('ＵＢＳ')>=0 || r.broker.indexOf('UBS')>=0);
-    h += '<tr class="'+(isU?'jn-ubs':'')+'"><td>'+(isU?'★ ':'')+r.broker+'</td>'
+    h += '<tr><td>'+r.broker+'</td>'
        + '<td>'+jnNum(r.large)+'</td><td>'+jnNum(r.mini)+'</td><td>'+jnNum(r.fut)+'</td></tr>';
   }
   h += '</tbody></table></div>';
-  h += '<div class="jn-note">ラージ＝機関のブロック/クロスが中心。ミニはリテール（SBI・楽天等）が大半。「蓋」を読むならラージ側のクロスに注目。</div>';
-
-  // notable option cross blocks by strike (dynamic — whoever moved big today)
-  var oc = J.option_crosses || [];
-  if(oc.length){
-    h += '<div class="jn-sec">本日の大口オプション立会外クロス（ストライク別）</div>';
-    h += '<div class="jn-scroll"><table class="jn-tbl"><thead><tr>'
-       + '<th>ストライク</th><th>枚数</th><th>当事者</th></tr></thead><tbody>';
-    for(var i=0;i<oc.length;i++){
-      var c = oc[i];
-      var star = c.domestic_vs_overseas ? '★ ' : '';
-      var legs = (c.legs||[]).map(function(l){
-        var cc = l.cat==='domestic' ? 'jn-dom' : 'jn-ovs';
-        return '<span class="jn-leg '+cc+'">'+l.broker.replace('証券','').replace('クリアリン','')+' '+jnNum(l.vol)+'</span>';
-      }).join('<span class="jn-x">⟷</span>');
-      h += '<tr class="'+(c.domestic_vs_overseas?'jn-ocbig':'')+'">'
-         + '<td>'+star+c.side+jnNum(c.strike)+'</td>'
-         + '<td>'+jnNum(c.size)+'</td><td>'+legs+'</td></tr>';
-    }
-    h += '</tbody></table></div>';
-    h += '<div class="jn-note">★＝国内⟷海外の大口ブロック。<b>売買区分なし</b>なので「国内が買った/売った」は断定不可。今日のみずほ⟷ＡＢＮのような形は、当日のOI増減（我々のグリークスカード）と<b>翌日の値動き</b>で「保険買いか・売り抜けか」を事後判定してください。</div>';
-  }
+  h += '<div class="jn-note">ラージ＝機関のブロック/クロスが中心。ミニはリテール（SBI・楽天等）が大半。オプションの大口クロスは別カード「大口オプションクロス（日次）」を参照。</div>';
   h += '</div>';
   return h;
 }
@@ -154,18 +123,17 @@ def preview_jnet(jnet):
     if not jnet or jnet.get('error') or not jnet.get('brokers'):
         return ('<div class="card-stat"><span class="label">J-NET</span>'
                 '<span class="value">—</span></div>')
-    ubs = next((r for r in jnet['brokers']
-                if 'ＵＢＳ' in r['broker'] or 'UBS' in r['broker']), None)
     top = jnet['brokers'][0]
-    ubs_v = ('%s枚' % format(int(ubs['fut']), ',')) if ubs else '—'
+    top_large = next((r for r in jnet['brokers'] if r.get('large')),
+                     jnet['brokers'][0])
     return (
-        '<div class="card-stat"><span class="label">UBS先物クロス</span>'
-        '<span class="value">%s</span></div>'
-        '<div class="card-stat"><span class="label">首位</span>'
+        '<div class="card-stat"><span class="label">首位(出来高)</span>'
+        '<span class="value" style="font-size:13px">%s</span></div>'
+        '<div class="card-stat"><span class="label">ラージ首位</span>'
         '<span class="value" style="font-size:13px">%s</span></div>'
         '<div class="card-stat"><span class="label">参加者</span>'
         '<span class="value">%d社</span></div>'
-        % (ubs_v, top['broker'], len(jnet['brokers'])))
+        % (top['broker'], top_large['broker'], len(jnet['brokers'])))
 
 
 def detail_jnet_js(jnet):
