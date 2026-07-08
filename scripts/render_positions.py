@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
-"""Render the merged per-participant weekly positioning card
-(futures direction + option put/call in one place, with a plain read)."""
+"""Render the merged per-participant大口 card: weekly futures + weekly options
+(建玉/stock) and today's J-NET futures + option crosses (出来高/flow), in one
+place, with a plain read of each player's stance."""
 import json
 
 POS_CARD_CSS = r"""
-.ps-intro{font-size:12px;color:var(--sub);line-height:1.6;margin:2px 2px 10px}
-.ps-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.ps-tbl th{color:var(--sub);font-weight:600;text-align:right;padding:6px 5px;border-bottom:1px solid var(--border);font-size:11px}
-.ps-tbl th:first-child{text-align:left}
-.ps-tbl td{padding:7px 5px;border-bottom:1px solid rgba(38,44,58,.5);text-align:right;font-family:'DM Mono',monospace}
-.ps-tbl td:first-child{text-align:left;font-family:'Noto Sans JP',sans-serif}
+.ps-intro{font-size:12px;color:var(--sub);line-height:1.6;margin:2px 2px 12px}
+.ps-p{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin:7px 0;background:#141822}
+.ps-nm{font-family:Outfit;font-weight:600;font-size:13.5px;margin-bottom:5px}
+.ps-nm .ps-cat{font-size:10px;color:var(--sub);font-weight:400;margin-left:6px}
+.ps-line{display:flex;gap:6px;font-size:11.5px;line-height:1.7;flex-wrap:wrap}
+.ps-tag{color:var(--sub);font-family:'DM Mono',monospace;min-width:74px}
+.ps-v{font-family:'DM Mono',monospace}
 .ps-pos{color:#86efac}.ps-neg{color:#fca5a5}.ps-zero{color:var(--sub)}
-.ps-read{font-size:10.5px;color:var(--sub);font-family:'Noto Sans JP',sans-serif;line-height:1.4}
-.ps-cat{font-size:10px;color:var(--sub)}
+.ps-flow{color:#93c5fd}
+.ps-read{font-size:10.5px;color:#cbd5e1;line-height:1.45;margin-top:5px;border-top:1px solid rgba(38,44,58,.6);padding-top:5px}
 .ps-note{font-size:11px;color:var(--sub);line-height:1.55;margin:10px 2px 2px}
 """
 
@@ -25,51 +27,65 @@ def preview_positions(p):
     if not p or not p.get('rows'):
         return '<span class="mm-label">統合ポジション 未取込</span>'
     return ('<div class="mini-metrics"><div class="mini-metric">'
-            '<div class="mm-label">大口の先物＋OPを一括（%s）</div>'
+            '<div class="mm-label">大口の週次(建玉)＋本日(出来高)を集約</div>'
             '<div class="mm-value" style="font-size:12px;color:var(--accent)">'
-            '先物の向き × OPの向き ▼</div></div></div>' % (p.get('opt_as_of', '')))
+            '先物×OP×週次×日次 ▼</div></div></div>')
 
 
 POS_CARD_JS = r"""
-function psNum(x){
+function psSigned(x){
   if(x===0||x===null||x===undefined) return '<span class="ps-zero">0</span>';
-  var c = x>0 ? 'ps-pos' : 'ps-neg';
-  return '<span class="'+c+'">'+(x>0?'+':'')+x.toLocaleString()+'</span>';
+  return '<span class="'+(x>0?'ps-pos':'ps-neg')+'">'+(x>0?'+':'')+x.toLocaleString()+'</span>';
 }
-function psRead(f,p,c){
-  var FB=3000, OB=200;  // "big" thresholds
-  var fl = f>=FB, fs = f<=-FB;
-  var pl = p>=OB, psh = p<=-OB, cl = c>=OB, csh = c<=-OB;
-  if(fl && csh && !pl) return 'ロング＋コール売り＝カバードコール（上値でプレミアム収受）';
-  if(fl && pl) return 'ロング＋プット買い＝保険付きロング（ヘッジ）';
-  if(fs && pl) return 'ショート＋プット買い＝一貫して弱気（下方）';
-  if(fs && csh) return 'ショート＋コール売り＝弱気（戻り売り）';
-  if(psh && cl) return 'プット売り×コール買い＝書き手/在庫（強気寄り）';
-  if(psh && Math.abs(p)>=Math.abs(c)) return 'プット書き手（プレミアム収受・下値の受け皿）';
-  if(pl && csh) return 'プット買い×コール売り＝下方カラー（防御的）';
-  if(fl) return '先物ロング中心';
-  if(fs) return '先物ショート中心';
-  if(cl) return 'コール買い（上値取り）';
-  return '—';
+function psRead(r){
+  var FB=3000, OB=200, f=r.fut, p=r.put, c=r.call;
+  var fl=f>=FB, fs=f<=-FB, pl=p>=OB, psh=p<=-OB, cl=c>=OB, csh=c<=-OB;
+  var base='';
+  if(fl && csh && !pl) base='週次: ロング＋コール売り＝カバードコール';
+  else if(fl && pl) base='週次: ロング＋プット買い＝保険付きロング';
+  else if(fs && pl) base='週次: ショート＋プット買い＝一貫して弱気';
+  else if(fs && csh) base='週次: ショート＋コール売り＝戻り売り';
+  else if(psh && cl) base='週次: プット売り×コール買い＝書き手/在庫';
+  else if(psh && Math.abs(p)>=Math.abs(c)) base='週次: プット書き手（下値の受け皿）';
+  else if(pl && csh) base='週次: 下方カラー（防御的）';
+  else if(fl) base='週次: 先物ロング中心';
+  else if(fs) base='週次: 先物ショート中心';
+  else base='週次: 中立〜小口';
+  // flag divergence with today's option flow
+  if(r.day_opt_top){
+    var isPut = r.day_opt_top.charAt(0)==='P';
+    if(fl && isPut) base += ' ／ 本日はプットを大量クロス＝週次ロングにヘッジ or 反対の動き（要事後確認）';
+    else if(fs && isPut) base += ' ／ 本日もプット関与＝下方目線と整合的';
+    else base += ' ／ 本日 '+r.day_opt_top+' に関与';
+  }
+  return base;
 }
 function psBuildHTML(){
   var P = window.POS_DATA || {};
   var rows = P.rows || [];
   if(!rows.length) return '<div class="insight">週次データ（先物・OP）が揃うと表示されます。</div>';
   var h = '';
-  h += '<div class="ps-intro">大口ごとに<b>先物の向き（'+(P.fut_limgetsu||'')+'・N225ラージ）</b>と<b>オプションのネット建玉（'+(P.opt_as_of||'')+'・P/C）</b>を1か所に。両者が同じ向き＝方向性、逆向き＝ヘッジ/カラー、と読めます。<span class="ps-pos">緑=買い越し/ロング</span> <span class="ps-neg">赤=売り越し/ショート</span>。</div>';
-  h += '<table class="ps-tbl"><thead><tr><th>参加者</th><th>先物</th><th>P</th><th>C</th></tr></thead><tbody>';
+  h += '<div class="ps-intro">大口ごとに<b>週次の建玉（ストック）</b>と<b>本日のJ-NET出来高（フロー）</b>を1か所に。'
+     + '週次先物='+(P.fut_limgetsu||'')+'・週次OP='+(P.opt_as_of||'')+'・本日='+(P.day_date||'')+'。'
+     + '<span class="ps-pos">緑=買い越し/ロング</span> <span class="ps-neg">赤=売り越し/ショート</span> <span class="ps-flow">青=本日フロー</span>。</div>';
   for(var i=0;i<rows.length;i++){
     var r = rows[i];
     var nm = String(r.broker).replace('證券','').replace('証券','').replace('クリアリン','クリア');
-    h += '<tr>'
-       + '<td>'+nm+'<div class="ps-cat">'+(r.cat||'')+'</div></td>'
-       + '<td>'+psNum(r.fut)+'</td><td>'+psNum(r.put)+'</td><td>'+psNum(r.call)+'</td>'
-       + '</tr>';
-    h += '<tr><td colspan="4" class="ps-read">↳ '+psRead(r.fut,r.put,r.call)+'</td></tr>';
+    h += '<div class="ps-p">';
+    h += '<div class="ps-nm">'+nm+'<span class="ps-cat">'+(r.cat||'')+'</span></div>';
+    // weekly (stock)
+    h += '<div class="ps-line"><span class="ps-tag">週次·先物</span>'+psSigned(r.fut)
+       + '<span class="ps-tag" style="min-width:44px">P</span>'+psSigned(r.put)
+       + '<span class="ps-tag" style="min-width:44px">C</span>'+psSigned(r.call)+'</div>';
+    // today (flow)
+    var dopt = r.day_opt_lots ? ('<span class="ps-flow ps-v">'+r.day_opt_lots.toLocaleString()+'枚</span>'
+              + (r.day_opt_top?' <span class="ps-flow ps-v" style="font-size:10.5px">('+r.day_opt_top+')</span>':'')) : '<span class="ps-zero">0</span>';
+    h += '<div class="ps-line"><span class="ps-tag">本日·ラージ</span><span class="ps-flow ps-v">'+(r.day_fut||0).toLocaleString()+'</span>'
+       + '<span class="ps-tag" style="min-width:44px">OP</span>'+dopt+'</div>';
+    h += '<div class="ps-read">↳ '+psRead(r)+'</div>';
+    h += '</div>';
   }
-  h += '</tbody></table>';
-  h += '<div class="ps-note">先物は9月限・OPは7月限と限月が異なるため、水準の単純比較でなく「向きの組み合わせ」を読むのが要点。OPは売買区分のある確報建玉、先物は投資部門別建玉（いずれも週次・'+(P.opt_as_of||'')+'時点）。</div>';
+  h += '<div class="ps-note">週次＝売買区分のある確報建玉（ストック）。本日＝J-NET立会外の出来高（フロー・売買区分なし）。ラージ＝機関のブロック/クロス。両者の向きが揃うほど方向性、ズレるほどヘッジ/転換の可能性。方向は翌日の値動きで事後確認。</div>';
   return h;
 }
 function posRender(card){
