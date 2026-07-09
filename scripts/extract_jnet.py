@@ -23,6 +23,78 @@ import openpyxl
 PRODUCTS = {'NK225F': 'large', 'NK225MF': 'mini',
             'TOPIXF': 'topix', 'NK225E': 'option'}
 
+# Broker classification (mirrors extract.py PARTICIPANT_RULES)
+_PART_RULES = [
+    ('us', ['ゴールドマン', 'ＪＰモルガン', 'シティ', 'ビーオブエー', 'モルガン']),
+    ('eu', ['ＵＢＳ', 'ソシエテ', 'バークレイズ', 'ＨＳＢＣ', 'ドイツ', 'ナティクシス']),
+    ('hf', ['ＡＢＮ', 'ＢＮＰ', 'サスケハナ', 'インタラクティブ', 'フィリップ']),
+    ('domestic', ['野村', '大和', 'みずほ', '三菱', 'ＳＭＢＣ', 'ＳＢＩ', '楽天',
+                  '松井', '岩井', '豊証券', '立花', 'むさし', '日産', '岡三',
+                  '安藤', '光世', '東海東京', '広田', '三田', 'マネックス']),
+]
+_CAT_LABEL = {'us': '米系', 'eu': '欧系', 'hf': 'HF代理', 'domestic': '国内', 'other': 'その他'}
+
+
+def _classify(name):
+    s = str(name or '')
+    for cat, kws in _PART_RULES:
+        for kw in kws:
+            if kw in s:
+                return cat
+    return 'other'
+
+
+def _parse_opt_name(prod):
+    """'NIKKEI 225 OOP C2607-70500' -> ('C', 70500). Returns (None,None) if n/a."""
+    m = re.search(r'([CP])\d{4}-(\d+)', str(prod or ''))
+    if not m:
+        return None, None
+    return m.group(1), int(m.group(2))
+
+
+def parse_option_crosses(path, min_vol=100, keep=8):
+    """Detect notable J-NET option cross blocks by strike.
+
+    A "cross" shows up as two brokers with large, near-equal volume at the same
+    strike (e.g. みずほ600 / ＡＢＮ600). We surface these dynamically — whoever
+    the counterparties are that day — and flag the domestic<->overseas blocks,
+    which is the 'today's Mizuho'-type move worth watching.
+    """
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    ws = wb['手口上位一覧'] if '手口上位一覧' in wb.sheetnames else wb.worksheets[0]
+    groups = {}   # (side, strike) -> list[(broker, vol)]
+    for r in ws.iter_rows(values_only=True):
+        if not r or str(r[0]).strip() != 'NK225E':
+            continue
+        side, strike = _parse_opt_name(r[2] if len(r) > 2 else None)
+        if side is None:
+            continue
+        broker = str(r[5]).strip() if len(r) > 5 and r[5] else None
+        vol = r[7] if len(r) > 7 and isinstance(r[7], (int, float)) else None
+        if broker and vol:
+            groups.setdefault((side, strike), []).append((broker, float(vol)))
+    crosses = []
+    for (side, strike), legs in groups.items():
+        legs.sort(key=lambda x: -x[1])
+        top = legs[0][1]
+        if top < min_vol:
+            continue
+        # counterparty = second broker within 30% of the top volume
+        matched = len(legs) > 1 and legs[1][1] >= top * 0.7
+        named = [{'broker': b, 'vol': v, 'cat': _classify(b),
+                  'cat_label': _CAT_LABEL[_classify(b)]}
+                 for b, v in legs if v >= min_vol * 0.5][:4]
+        cats = {l['cat'] for l in named}
+        dom_vs_ovs = ('domestic' in cats) and bool(cats & {'us', 'eu', 'hf'})
+        crosses.append({
+            'side': side, 'strike': strike, 'size': round(top),
+            'is_cross': matched, 'domestic_vs_overseas': dom_vs_ovs,
+            'legs': named,
+        })
+    # rank: domestic<->overseas crosses first, then by size
+    crosses.sort(key=lambda c: (not c['domestic_vs_overseas'], not c['is_cross'], -c['size']))
+    return crosses[:keep]
+
 
 def _digits(s):
     return re.sub(r'\D', '', str(s or ''))
@@ -106,6 +178,12 @@ def build_jnet(data_dir, spot=None):
 
     out = {'date': date, 'spot': spot, 'brokers': rows}
 
+    # notable option cross blocks by strike (dynamic — whoever moved big today)
+    try:
+        out['option_crosses'] = parse_option_crosses(files[-1])
+    except Exception:
+        out['option_crosses'] = []
+
     # accumulate history (compact: broker -> fut/large/mini/option)
     hist_path = os.path.join(data_dir, 'jnet_history.json')
     history = _load(hist_path)
@@ -114,6 +192,11 @@ def build_jnet(data_dir, spot=None):
         'brokers': {r['broker']: {'fut': r['fut'], 'large': r['large'],
                                   'mini': r['mini'], 'opt': r['option']}
                     for r in rows},
+        'opt_crosses': [{'side': c['side'], 'strike': c['strike'],
+                         'size': c['size'],
+                         'top': (c['legs'][0]['broker'] if c['legs'] else ''),
+                         'dvo': c['domestic_vs_overseas']}
+                        for c in out['option_crosses'][:5]],
     }
     _save(hist_path, history)
     out['history_dates'] = sorted(history.keys())
