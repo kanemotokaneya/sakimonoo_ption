@@ -171,6 +171,119 @@
       "fut": 156.0
     }
   ],
+  "option_crosses": [
+    {
+      "side": "P",
+      "strike": 68000,
+      "size": 546,
+      "is_cross": false,
+      "domestic_vs_overseas": true,
+      "legs": [
+        {
+          "broker": "野村証券",
+          "vol": 546.0,
+          "cat": "domestic",
+          "cat_label": "国内"
+        },
+        {
+          "broker": "ＢＮＰパリバ証券",
+          "vol": 300.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    },
+    {
+      "side": "P",
+      "strike": 67000,
+      "size": 200,
+      "is_cross": false,
+      "domestic_vs_overseas": true,
+      "legs": [
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 200.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "三菱ＵＦＪ証券",
+          "vol": 100.0,
+          "cat": "domestic",
+          "cat_label": "国内"
+        },
+        {
+          "broker": "ＢＮＰパリバ証券",
+          "vol": 100.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "ＳＢＩ証券",
+          "vol": 68.0,
+          "cat": "domestic",
+          "cat_label": "国内"
+        }
+      ]
+    },
+    {
+      "side": "C",
+      "strike": 68000,
+      "size": 300,
+      "is_cross": false,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "ＢＮＰパリバ証券",
+          "vol": 300.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        }
+      ]
+    },
+    {
+      "side": "C",
+      "strike": 68250,
+      "size": 160,
+      "is_cross": false,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "ＡＢＮクリアリン証券",
+          "vol": 160.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "ＢＮＰパリバ証券",
+          "vol": 100.0,
+          "cat": "hf",
+          "cat_label": "HF代理"
+        },
+        {
+          "broker": "ＪＰモルガン証券",
+          "vol": 60.0,
+          "cat": "us",
+          "cat_label": "米系"
+        }
+      ]
+    },
+    {
+      "side": "C",
+      "strike": 67500,
+      "size": 154,
+      "is_cross": false,
+      "domestic_vs_overseas": false,
+      "legs": [
+        {
+          "broker": "野村証券",
+          "vol": 154.0,
+          "cat": "domestic",
+          "cat_label": "国内"
+        }
+      ]
+    }
+  ],
   "history_dates": [
     "20260629",
     "20260630",
