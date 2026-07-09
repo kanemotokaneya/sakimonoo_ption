@@ -16,6 +16,13 @@ POS_CARD_CSS = r"""
 .ps-flow{color:#93c5fd}
 .ps-read{font-size:10.5px;color:#cbd5e1;line-height:1.45;margin-top:5px;border-top:1px solid rgba(38,44,58,.6);padding-top:5px}
 .ps-note{font-size:11px;color:var(--sub);line-height:1.55;margin:10px 2px 2px}
+.ps-det{margin-top:12px;border:1px solid var(--border);border-radius:10px;padding:8px 11px;background:#141822}
+.ps-det summary{font-size:12px;font-weight:600;color:var(--accent);cursor:pointer}
+.ps-k{font-family:Outfit;font-weight:600;font-size:12.5px;margin:10px 0 4px}
+.ps-t{display:inline-block;padding:1px 6px;border-radius:6px;font-size:11px;margin:1px}
+.ps-tb{background:rgba(34,197,94,.14);color:#86efac}
+.ps-ts{background:rgba(248,113,113,.14);color:#fca5a5}
+.ps-td{outline:1px solid rgba(248,113,113,.5)}
 """
 
 
@@ -86,6 +93,32 @@ function psBuildHTML(){
     h += '</div>';
   }
   h += '<div class="ps-note">週次＝売買区分のある確報建玉（ストック）。本日＝J-NET立会外の出来高（フロー・売買区分なし）。ラージ＝機関のブロック/クロス。両者の向きが揃うほど方向性、ズレるほどヘッジ/転換の可能性。方向は翌日の値動きで事後確認。</div>';
+  // strike-level weekly option holdings (absorbed from the old OP建玉 card)
+  var OW = window.OPTW_DATA || {};
+  var st = OW.strikes || {};
+  var ks = Object.keys(st).map(Number).sort(function(a,b){return b-a;});
+  if(ks.length){
+    h += '<details class="ps-det"><summary>ストライク別：誰がどの行使価格を持つか（週次OP・'+(OW.as_of||'')+'）</summary>';
+    for(var i2=0;i2<ks.length;i2++){
+      var k2 = ks[i2]; var sd = st[String(k2)];
+      var cell = function(list, buy){
+        if(!list||!list.length) return '<span class="ps-t">—</span>';
+        return list.slice(0,3).map(function(x){
+          var cls = buy ? 'ps-t ps-tb' : 'ps-t ps-ts';
+          if(x[2]==='domestic') cls += ' ps-td';
+          var nm2 = String(x[0]).replace('証券','').replace('クリアリン','クリア'); if(nm2.length>6) nm2=nm2.slice(0,6);
+          return '<span class="'+cls+'">'+nm2+' '+Math.round(x[1])+'</span>';
+        }).join('');
+      };
+      h += '<div class="ps-k">行使価格 '+k2.toLocaleString()+'</div>';
+      h += '<div class="ps-line"><span class="ps-tag" style="min-width:44px">P買</span><span>'+cell(sd.put.buyers,true)+'</span></div>';
+      h += '<div class="ps-line"><span class="ps-tag" style="min-width:44px">P売</span><span>'+cell(sd.put.sellers,false)+'</span></div>';
+      h += '<div class="ps-line"><span class="ps-tag" style="min-width:44px">C買</span><span>'+cell(sd.call.buyers,true)+'</span></div>';
+      h += '<div class="ps-line"><span class="ps-tag" style="min-width:44px">C売</span><span>'+cell(sd.call.sellers,false)+'</span></div>';
+    }
+    h += '<div class="ps-note">緑=買い持ち（買超）／赤=売り持ち（売超）、赤枠=国内勢。売買区分のある確報値なので、日次の方向推定の答え合わせに使えます。</div>';
+    h += '</details>';
+  }
   return h;
 }
 function posRender(card){

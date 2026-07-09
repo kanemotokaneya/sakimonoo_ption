@@ -1625,7 +1625,6 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     card_groups = [
         ('先物', [
             ('futures', '📈', '先物建玉増減', _preview_futures(s02), _detail_futures_js(s02), DB),
-            ('oi_timeseries', '📈', '建玉推移', _preview_oi_timeseries(oi_ts), _detail_oi_timeseries_js(oi_ts), DB),
         ]),
         ('オプション', [
             ('opval', '💰', 'OP取引代金', _preview_opval(s03), _detail_opval_js(s03), DB),
@@ -1633,17 +1632,14 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
             ('op_oi_timeseries', '📉', 'OP建玉推移', _preview_op_oi_timeseries(oi_ts), _detail_op_oi_timeseries_js(oi_ts), DB),
             ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
-            ('iv', '📐', 'IVスマイル', _preview_iv(iv), _detail_iv_js(iv), DB),
             ('ivtrend', '📈', 'IV推移', _preview_ivtrend(ivts), _detail_ivtrend_js(ivts), DB),
-            ('greeks', '🧮', 'グリークス/GEX', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
+            ('greeks', '🧮', '相場の地合い（GEX）', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
         ]),
         ('参加者・手口', [
-            ('jnet', '🏛', '大口手口（J-NET）', (_rj.preview_jnet(jnet) if (_rj and jnet) else _preview_jnet(s07)), (_rj.detail_jnet_js(jnet) if (_rj and jnet) else _detail_jnet_js(s07)), DB),
+            ('jnet', '🏛', '大口先物クロス（日次）', (_rj.preview_jnet(jnet) if (_rj and jnet) else _preview_jnet(s07)), (_rj.detail_jnet_js(jnet) if (_rj and jnet) else _detail_jnet_js(s07)), DB),
             ('opcross', '🔀', '大口オプションクロス（日次）', (_oc.preview_opcross(jnet) if (_oc and jnet) else '<span class="mm-label">OPクロス 未取込</span>'), (_oc.detail_opcross_js(jnet) if (_oc and jnet) else "return '<div class=\\'insight\\'>J-NETデータ未取込</div>';"), DB),
-            ('positions', '🧩', '大口ポジション統合（週次 先物＋OP）', (_ps.preview_positions(positions) if (_ps and positions) else '<span class="mm-label">統合ポジション 未取込</span>'), (_ps.detail_positions_js(positions) if (_ps and positions) else "return '<div class=\\'insight\\'>週次データ未取込</div>';"), DB),
-            ('optw', '🧑‍💼', '参加者別OP建玉（週次）', (_ow.preview_opt_weekly(optw) if (_ow and optw) else '<span class="mm-label">週次OP建玉 未取込</span>'), (_ow.detail_opt_weekly_js(optw) if (_ow and optw) else "return '<div class=\\'insight\\'>週次OP建玉ファイル未取込</div>';"), DB),
-            ('weekly_trend', '📅', '週次手口推移', _preview_weekly_trend(wt), _detail_weekly_trend_js(wt), WB),
-            ('participants', '🌏', '参加者別建玉分析', _preview_participants(s09), _detail_participants_js(s09), WB),
+            ('positions', '🧩', '大口ポジション統合（週次 先物＋OP建玉）', (_ps.preview_positions(positions) if (_ps and positions) else '<span class="mm-label">統合ポジション 未取込</span>'), (_ps.detail_positions_js(positions) if (_ps and positions) else "return '<div class=\\'insight\\'>週次データ未取込</div>';"), DB),
+            ('weekly_trend', '📅', '週次手口推移（先物）', _preview_weekly_trend(wt), _detail_weekly_trend_js(wt), WB),
         ]),
         ('総合', [
             ('assess', '🎯', '総合評価', _preview_assess(s01, ind), _detail_assess_js(data), DB),

@@ -104,10 +104,7 @@ def build_assessment(data_dir, data_json_path):
     if walls_r:
         wbits.append('前日比で建玉が増えた主な行使価格は '
                      + '・'.join('%s%s(+%d)' % (w['type'], _fmt(w['strike']), w['change']) for w in walls_r))
-    if ind.get('max_pain') is not None:
-        wbits.append('MaxPainは%s' % _fmt(ind['max_pain']))
-    if ind.get('pcr') is not None:
-        wbits.append('PCRは%.2f' % ind['pcr'])
+    # MaxPain/PCR は総合評価カードに表示されるため、ここでは重複記載しない
     if wbits:
         P.append('OI・壁：' + '。'.join(wbits) + '。OI増加は新規/手仕舞い両方を含むため出来高と併せて解釈する。')
 
