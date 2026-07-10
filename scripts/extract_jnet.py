@@ -52,6 +52,23 @@ def _parse_opt_name(prod):
     return m.group(1), int(m.group(2))
 
 
+def _broker_opt_pc(path):
+    """Per-broker put/call option-cross lots today, from all NK225E rows."""
+    import collections
+    wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    ws = wb['手口上位一覧'] if '手口上位一覧' in wb.sheetnames else wb.worksheets[0]
+    out = collections.defaultdict(lambda: {'p': 0, 'c': 0})
+    for r in ws.iter_rows(values_only=True):
+        if not r or str(r[0]).strip() != 'NK225E':
+            continue
+        side, _ = _parse_opt_name(r[2] if len(r) > 2 else None)
+        broker = str(r[5]).strip() if len(r) > 5 and r[5] else None
+        vol = r[7] if len(r) > 7 and isinstance(r[7], (int, float)) else None
+        if side and broker and vol:
+            out[broker]['p' if side == 'P' else 'c'] += int(vol)
+    return dict(out)
+
+
 def parse_option_crosses(path, min_vol=100, keep=8):
     """Detect notable J-NET option cross blocks by strike.
 
@@ -169,11 +186,16 @@ def build_jnet(data_dir, spot=None):
     if spot is None:
         spot = _spot_from_dir(data_dir)
 
+    # per-broker put/call option-cross lots today (from NK225E rows)
+    opt_pc = _broker_opt_pc(files[-1])
+
     rows = []
     for b, d in brokers.items():
         fut = d['large'] + d['mini']
+        pc = opt_pc.get(b, {'p': 0, 'c': 0})
         rows.append({'broker': b, 'large': d['large'], 'mini': d['mini'],
-                     'topix': d['topix'], 'option': d['option'], 'fut': fut})
+                     'topix': d['topix'], 'option': d['option'], 'fut': fut,
+                     'opt_p': pc['p'], 'opt_c': pc['c']})
     rows.sort(key=lambda x: -x['fut'])
 
     out = {'date': date, 'spot': spot, 'brokers': rows}
@@ -184,13 +206,14 @@ def build_jnet(data_dir, spot=None):
     except Exception:
         out['option_crosses'] = []
 
-    # accumulate history (compact: broker -> fut/large/mini/option)
+    # accumulate history (compact: broker -> fut/large/mini/option + put/call flow)
     hist_path = os.path.join(data_dir, 'jnet_history.json')
     history = _load(hist_path)
     history[date] = {
         'spot': spot,
         'brokers': {r['broker']: {'fut': r['fut'], 'large': r['large'],
-                                  'mini': r['mini'], 'opt': r['option']}
+                                  'mini': r['mini'], 'opt': r['option'],
+                                  'opt_p': r['opt_p'], 'opt_c': r['opt_c']}
                     for r in rows},
         'opt_crosses': [{'side': c['side'], 'strike': c['strike'],
                          'size': c['size'],

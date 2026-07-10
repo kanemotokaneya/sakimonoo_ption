@@ -15,6 +15,7 @@ POS_CARD_CSS = r"""
 .ps-pos{color:#86efac}.ps-neg{color:#fca5a5}.ps-zero{color:var(--sub)}
 .ps-flow{color:#93c5fd}
 .ps-read{font-size:10.5px;color:#cbd5e1;line-height:1.45;margin-top:5px;border-top:1px solid rgba(38,44,58,.6);padding-top:5px}
+.ps-ac{font-size:10.5px;color:#fcd34d;line-height:1.45;margin-top:4px;background:rgba(251,191,36,.08);border-radius:6px;padding:4px 7px}
 .ps-note{font-size:11px;color:var(--sub);line-height:1.55;margin:10px 2px 2px}
 .ps-det{margin-top:12px;border:1px solid var(--border);border-radius:10px;padding:8px 11px;background:#141822}
 .ps-det summary{font-size:12px;font-weight:600;color:var(--accent);cursor:pointer}
@@ -90,6 +91,13 @@ function psBuildHTML(){
     h += '<div class="ps-line"><span class="ps-tag">本日·ラージ</span><span class="ps-flow ps-v">'+(r.day_fut||0).toLocaleString()+'</span>'
        + '<span class="ps-tag" style="min-width:44px">OP</span>'+dopt+'</div>';
     h += '<div class="ps-read">↳ '+psRead(r)+'</div>';
+    // answer-check: week-cumulative option flow vs weekly net role
+    if(r.wk_p>=100 || r.wk_c>=100){
+      var ac = [];
+      if(r.wk_p>=100 && r.verdict_p) ac.push('プット'+r.wk_p.toLocaleString()+'枚→'+r.verdict_p);
+      if(r.wk_c>=100 && r.verdict_c) ac.push('コール'+r.wk_c.toLocaleString()+'枚→'+r.verdict_c);
+      if(ac.length) h += '<div class="ps-ac">🔎 答え合わせ（週内フロー×週末建玉）：'+ac.join(' ／ ')+'</div>';
+    }
     h += '</div>';
   }
   h += '<div class="ps-note">週次＝売買区分のある確報建玉（ストック）。本日＝J-NET立会外の出来高（フロー・売買区分なし）。ラージ＝機関のブロック/クロス。両者の向きが揃うほど方向性、ズレるほどヘッジ/転換の可能性。方向は翌日の値動きで事後確認。</div>';

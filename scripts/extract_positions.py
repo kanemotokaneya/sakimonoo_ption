@@ -44,8 +44,8 @@ def build(data_dir):
                              'call': d.get('call', 0), 'cat': d.get('cat', '')}
 
     # today's J-NET flow (futures volume + option cross involvement)
-    day_fut = {}   # norm -> futures volume today
-    day_opt = {}   # norm -> {'lots': total option-cross lots, 'top': 'P66000×2194'}
+    day_fut = {}   # norm -> futures LARGE today
+    day_opt = {}   # norm -> {'lots','top','top_v'}
     day_date = ''
     jn_path = os.path.join(data_dir, 'jnet.json')
     if os.path.exists(jn_path):
@@ -63,8 +63,24 @@ def build(data_dir):
                     e['top_v'] = leg.get('vol', 0) or 0
                     e['top'] = '%s%s×%d' % (side, format(int(strike), ','), int(leg.get('vol', 0)))
 
+    # week-cumulative option cross flow per broker (P/C), from jnet_history —
+    # this is the "answer-check": weekly net (opt_weekly) gives the ROLE
+    # (writer/buyer), the accumulated daily flow gives the VOLUME.
+    wk_flow = {}   # norm -> {'p':lots,'c':lots,'days':n}
+    jh_path = os.path.join(data_dir, 'jnet_history.json')
+    if os.path.exists(jh_path):
+        jh = json.load(open(jh_path, encoding='utf-8'))
+        dates = sorted(jh.keys())[-5:]  # last up to 5 trading days
+        for d in dates:
+            for b, bd in (jh[d].get('brokers') or {}).items():
+                n = _norm(b)
+                e = wk_flow.setdefault(n, {'p': 0, 'c': 0, 'days': 0})
+                e['p'] += bd.get('opt_p', 0) or 0
+                e['c'] += bd.get('opt_c', 0) or 0
+                if bd.get('opt_p') or bd.get('opt_c'):
+                    e['days'] += 1
+
     keys = set(fut) | set(opt) | set(day_opt)
-    # include big daily-futures players too
     for k, v in day_fut.items():
         if abs(v) >= 1000:
             keys.add(k)
@@ -73,18 +89,30 @@ def build(data_dir):
         f = fut.get(k, {})
         o = opt.get(k, {})
         do = day_opt.get(k, {})
+        wf = wk_flow.get(k, {'p': 0, 'c': 0, 'days': 0})
         broker = f.get('broker') or o.get('broker') or k
+        np_, nc_ = round(o.get('put', 0)), round(o.get('call', 0))
+        # answer-check verdict from weekly net sign
+        def _verdict(flow, net):
+            if flow < 100:
+                return ''
+            if net < 0:
+                return '書き手(売り持ち)側'
+            if net > 0:
+                return '買い手(買い持ち)側'
+            return '中立'
         rows.append({
             'broker': broker,
             'cat': f.get('cat') or o.get('cat') or '',
             'fut': round(f.get('fut', 0)),
-            'put': round(o.get('put', 0)),
-            'call': round(o.get('call', 0)),
+            'put': np_, 'call': nc_,
             'day_fut': round(day_fut.get(k, 0)),
             'day_opt_lots': round(do.get('lots', 0)),
             'day_opt_top': do.get('top', ''),
+            'wk_p': round(wf['p']), 'wk_c': round(wf['c']),
+            'verdict_p': _verdict(wf['p'], np_),
+            'verdict_c': _verdict(wf['c'], nc_),
         })
-    # footprint: weekly futures + 20*(weekly options) + daily flow
     rows.sort(key=lambda r: -(abs(r['fut']) + 20 * (abs(r['put']) + abs(r['call']))
                               + abs(r['day_fut']) + 20 * abs(r['day_opt_lots'])))
     return {'fut_limgetsu': fut_lim, 'opt_as_of': opt_as_of, 'day_date': day_date,
