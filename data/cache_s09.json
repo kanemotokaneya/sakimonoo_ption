@@ -933,15 +933,14 @@
     }
   ],
   "source": "live",
-  "data_date": "20260715",
+  "data_date": "20260716",
   "strike_matrix": {
-    "atm": 68500,
-    "atm_round": 68500,
+    "atm": 66000,
+    "atm_round": 66000,
     "strikes": [
       68250,
       68375,
-      68500,
-      68750
+      68500
     ],
     "participants": [
       {
@@ -969,19 +968,15 @@
           "68500": {
             "put": -223.0,
             "call": -2.0
-          },
-          "68750": {
-            "put": 0,
-            "call": 84.0
           }
         },
         "put_total": -254.0,
-        "call_total": 330.0,
-        "significance": 584.0,
+        "call_total": 246.0,
+        "significance": 500.0,
         "is_new": false,
         "deltas": {},
         "put_total_delta": 0.0,
-        "call_total_delta": 0.0
+        "call_total_delta": -84.0
       },
       {
         "name": "ＪＰモルガン証券",
@@ -1007,10 +1002,6 @@
           },
           "68500": {
             "put": 200.0,
-            "call": 0
-          },
-          "68750": {
-            "put": 0,
             "call": 0
           }
         },
@@ -1045,10 +1036,6 @@
             "call": 0
           },
           "68500": {
-            "put": 0,
-            "call": 0
-          },
-          "68750": {
             "put": 0,
             "call": 0
           }
@@ -1086,58 +1073,15 @@
           "68500": {
             "put": 3.0,
             "call": -1.0
-          },
-          "68750": {
-            "put": 0,
-            "call": -17.0
           }
         },
         "put_total": -102.0,
-        "call_total": -38.0,
-        "significance": 140.0,
+        "call_total": -21.0,
+        "significance": 123.0,
         "is_new": false,
         "deltas": {},
         "put_total_delta": 0.0,
-        "call_total_delta": 0.0
-      },
-      {
-        "name": "ソシエテＧ証券",
-        "category": "eu",
-        "category_label": "欧系",
-        "customer_type": "アービトラージ（裁定取引）",
-        "futures": {
-          "nk225_large": 8382.0,
-          "nk225_mini": 670.0,
-          "topix": 12701.0,
-          "direction": "ロング",
-          "summary": "N225 +8382 / mini +670 / TOPIX +12701",
-          "nk225_large_delta": 0.0
-        },
-        "positions": {
-          "68250": {
-            "put": 0,
-            "call": 0
-          },
-          "68375": {
-            "put": 0,
-            "call": 0
-          },
-          "68500": {
-            "put": 0,
-            "call": 0
-          },
-          "68750": {
-            "put": 0,
-            "call": -60.0
-          }
-        },
-        "put_total": 0,
-        "call_total": -60.0,
-        "significance": 60.0,
-        "is_new": false,
-        "deltas": {},
-        "put_total_delta": 0,
-        "call_total_delta": 0.0
+        "call_total_delta": 17.0
       },
       {
         "name": "野村証券",
@@ -1163,10 +1107,6 @@
           },
           "68500": {
             "put": 25.0,
-            "call": 0
-          },
-          "68750": {
-            "put": 0,
             "call": 0
           }
         },
@@ -1203,10 +1143,6 @@
           "68500": {
             "put": -8.0,
             "call": 1.0
-          },
-          "68750": {
-            "put": 0,
-            "call": 0
           }
         },
         "put_total": -8.0,
@@ -1242,10 +1178,6 @@
           "68500": {
             "put": 0,
             "call": 0
-          },
-          "68750": {
-            "put": 0,
-            "call": 0
           }
         },
         "put_total": 7.0,
@@ -1255,84 +1187,6 @@
         "deltas": {},
         "put_total_delta": 0.0,
         "call_total_delta": 0
-      },
-      {
-        "name": "ビーオブエー証券",
-        "category": "us",
-        "category_label": "米系",
-        "customer_type": "長期投資志向",
-        "futures": {
-          "nk225_large": 3061.0,
-          "nk225_mini": -250.0,
-          "topix": 7465.0,
-          "direction": "ロング",
-          "summary": "N225 +3061 / mini -250 / TOPIX +7465",
-          "nk225_large_delta": 0.0
-        },
-        "positions": {
-          "68250": {
-            "put": 0,
-            "call": 0
-          },
-          "68375": {
-            "put": 0,
-            "call": 0
-          },
-          "68500": {
-            "put": 3.0,
-            "call": 0
-          },
-          "68750": {
-            "put": 0,
-            "call": -3.0
-          }
-        },
-        "put_total": 3.0,
-        "call_total": -3.0,
-        "significance": 6.0,
-        "is_new": false,
-        "deltas": {},
-        "put_total_delta": 0.0,
-        "call_total_delta": 0.0
-      },
-      {
-        "name": "ドイツ証券",
-        "category": "eu",
-        "category_label": "欧系",
-        "customer_type": "ー",
-        "futures": {
-          "nk225_large": 1921.0,
-          "nk225_mini": -4.0,
-          "topix": 2667.0,
-          "direction": "ロング",
-          "summary": "N225 +1921 / mini -4 / TOPIX +2667",
-          "nk225_large_delta": 0.0
-        },
-        "positions": {
-          "68250": {
-            "put": 0,
-            "call": -2.0
-          },
-          "68375": {
-            "put": 0,
-            "call": 0
-          },
-          "68500": {
-            "put": 0,
-            "call": 0
-          },
-          "68750": {
-            "put": 0,
-            "call": -2.0
-          }
-        },
-        "put_total": 0,
-        "call_total": -4.0,
-        "significance": 4.0,
-        "is_new": false,
-        "deltas": {},
-        "put_total_delta": 0,
-        "call_total_delta": 0.0
       },
       {
         "name": "インタラクティブ証券",
@@ -1359,10 +1213,6 @@
           "68500": {
             "put": 0,
             "call": 1.0
-          },
-          "68750": {
-            "put": 0,
-            "call": 0
           }
         },
         "put_total": -2.0,
@@ -1372,6 +1222,76 @@
         "deltas": {},
         "put_total_delta": 0.0,
         "call_total_delta": 0.0
+      },
+      {
+        "name": "ビーオブエー証券",
+        "category": "us",
+        "category_label": "米系",
+        "customer_type": "長期投資志向",
+        "futures": {
+          "nk225_large": 3061.0,
+          "nk225_mini": -250.0,
+          "topix": 7465.0,
+          "direction": "ロング",
+          "summary": "N225 +3061 / mini -250 / TOPIX +7465",
+          "nk225_large_delta": 0.0
+        },
+        "positions": {
+          "68250": {
+            "put": 0,
+            "call": 0
+          },
+          "68375": {
+            "put": 0,
+            "call": 0
+          },
+          "68500": {
+            "put": 3.0,
+            "call": 0
+          }
+        },
+        "put_total": 3.0,
+        "call_total": 0,
+        "significance": 3.0,
+        "is_new": false,
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 3.0
+      },
+      {
+        "name": "ドイツ証券",
+        "category": "eu",
+        "category_label": "欧系",
+        "customer_type": "ー",
+        "futures": {
+          "nk225_large": 1921.0,
+          "nk225_mini": -4.0,
+          "topix": 2667.0,
+          "direction": "ロング",
+          "summary": "N225 +1921 / mini -4 / TOPIX +2667",
+          "nk225_large_delta": 0.0
+        },
+        "positions": {
+          "68250": {
+            "put": 0,
+            "call": -2.0
+          },
+          "68375": {
+            "put": 0,
+            "call": 0
+          },
+          "68500": {
+            "put": 0,
+            "call": 0
+          }
+        },
+        "put_total": 0,
+        "call_total": -2.0,
+        "significance": 2.0,
+        "is_new": false,
+        "deltas": {},
+        "put_total_delta": 0,
+        "call_total_delta": 2.0
       },
       {
         "name": "楽天証券",
@@ -1398,21 +1318,17 @@
           "68500": {
             "put": 0,
             "call": 1.0
-          },
-          "68750": {
-            "put": 0,
-            "call": -2.0
           }
         },
         "put_total": 0,
-        "call_total": -1.0,
+        "call_total": 1.0,
         "significance": 1.0,
         "is_new": false,
         "deltas": {},
         "put_total_delta": 0,
-        "call_total_delta": 0.0
+        "call_total_delta": 2.0
       }
     ],
-    "prev_date": "20260714"
+    "prev_date": "20260715"
   }
 }
