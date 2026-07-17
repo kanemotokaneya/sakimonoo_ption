@@ -21,11 +21,11 @@
     "atm_weekly_proxy": 68500,
     "atm_oi_center": 55500,
     "atm_warning": null,
-    "nikkei_close": 64435.0,
+    "nikkei_close": 64275.0,
     "vi": null
   },
   "s01": {
-    "nikkei_close": 64435.0,
+    "nikkei_close": 64275.0,
     "vi": null
   },
   "s02": {
@@ -2396,14 +2396,9 @@
           "call_total": 330.0,
           "significance": 584.0,
           "is_new": false,
-          "deltas": {
-            "68750": {
-              "put": 0,
-              "call": 84.0
-            }
-          },
+          "deltas": {},
           "put_total_delta": 0.0,
-          "call_total_delta": 84.0
+          "call_total_delta": 0.0
         },
         {
           "name": "ＪＰモルガン証券",
@@ -2518,14 +2513,9 @@
           "call_total": -38.0,
           "significance": 140.0,
           "is_new": false,
-          "deltas": {
-            "68750": {
-              "put": 0,
-              "call": -17.0
-            }
-          },
+          "deltas": {},
           "put_total_delta": 0.0,
-          "call_total_delta": -17.0
+          "call_total_delta": 0.0
         },
         {
           "name": "ソシエテＧ証券",
@@ -2537,7 +2527,8 @@
             "nk225_mini": 670.0,
             "topix": 12701.0,
             "direction": "ロング",
-            "summary": "N225 +8382 / mini +670 / TOPIX +12701"
+            "summary": "N225 +8382 / mini +670 / TOPIX +12701",
+            "nk225_large_delta": 0.0
           },
           "positions": {
             "68250": {
@@ -2560,7 +2551,10 @@
           "put_total": 0,
           "call_total": -60.0,
           "significance": 60.0,
-          "is_new": true
+          "is_new": false,
+          "deltas": {},
+          "put_total_delta": 0,
+          "call_total_delta": 0.0
         },
         {
           "name": "野村証券",
@@ -2714,14 +2708,9 @@
           "call_total": -3.0,
           "significance": 6.0,
           "is_new": false,
-          "deltas": {
-            "68750": {
-              "put": 0,
-              "call": -3.0
-            }
-          },
+          "deltas": {},
           "put_total_delta": 0.0,
-          "call_total_delta": -3.0
+          "call_total_delta": 0.0
         },
         {
           "name": "ドイツ証券",
@@ -2758,14 +2747,9 @@
           "call_total": -4.0,
           "significance": 4.0,
           "is_new": false,
-          "deltas": {
-            "68750": {
-              "put": 0,
-              "call": -2.0
-            }
-          },
+          "deltas": {},
           "put_total_delta": 0,
-          "call_total_delta": -2.0
+          "call_total_delta": 0.0
         },
         {
           "name": "インタラクティブ証券",
@@ -2841,14 +2825,9 @@
           "call_total": -1.0,
           "significance": 1.0,
           "is_new": false,
-          "deltas": {
-            "68750": {
-              "put": 0,
-              "call": -2.0
-            }
-          },
+          "deltas": {},
           "put_total_delta": 0,
-          "call_total_delta": -2.0
+          "call_total_delta": 0.0
         }
       ],
       "prev_date": "20260716"
@@ -4049,20 +4028,20 @@
     },
     "bollinger": {
       "period": 20,
-      "mean": 68877,
-      "std": 1819,
-      "upper3": 74332,
-      "upper2": 72514,
-      "upper1": 70695,
-      "lower1": 67058,
-      "lower2": 65240,
-      "lower3": 63421,
-      "current_sigma": -2.51,
-      "bandwidth": 10.56
+      "mean": 68869,
+      "std": 1838,
+      "upper3": 74384,
+      "upper2": 72545,
+      "upper1": 70707,
+      "lower1": 67031,
+      "lower2": 65193,
+      "lower3": 63355,
+      "current_sigma": -2.56,
+      "bandwidth": 10.68
     },
     "rsi": {
       "period": 14,
-      "value": 33.6,
+      "value": 33.3,
       "signal": "やや割安"
     }
   },
