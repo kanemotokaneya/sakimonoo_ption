@@ -15,17 +15,17 @@
       "fut_participants": "20260710_indexfut_oi_by_tp.xlsx",
       "stock_vol": "stock_val_1_260402.xls"
     },
-    "atm": 66000,
+    "atm": 64500,
     "ohlc": {},
     "atm_source": "nikkei_close",
     "atm_weekly_proxy": 68500,
     "atm_oi_center": 55500,
     "atm_warning": null,
-    "nikkei_close": 65805.0,
+    "nikkei_close": 64435.0,
     "vi": null
   },
   "s01": {
-    "nikkei_close": 65805.0,
+    "nikkei_close": 64435.0,
     "vi": null
   },
   "s02": {
@@ -523,9 +523,33 @@
     }
   ],
   "s06": {
-    "atm": 66000,
-    "atm_round": 66000,
+    "atm": 64500,
+    "atm_round": 64500,
     "distribution": [
+      {
+        "strike": 59500,
+        "put_oi": 1183,
+        "put_change": 8,
+        "call_oi": 20,
+        "call_change": 0,
+        "is_atm": false
+      },
+      {
+        "strike": 60000,
+        "put_oi": 9427,
+        "put_change": 530,
+        "call_oi": 1014,
+        "call_change": 1,
+        "is_atm": false
+      },
+      {
+        "strike": 60500,
+        "put_oi": 562,
+        "put_change": -3,
+        "call_oi": 920,
+        "call_change": 0,
+        "is_atm": false
+      },
       {
         "strike": 61000,
         "put_oi": 2700,
@@ -588,7 +612,7 @@
         "put_change": 173,
         "call_oi": 11,
         "call_change": 0,
-        "is_atm": false
+        "is_atm": true
       },
       {
         "strike": 65000,
@@ -612,7 +636,7 @@
         "put_change": 249,
         "call_oi": 1829,
         "call_change": 313,
-        "is_atm": true
+        "is_atm": false
       },
       {
         "strike": 66500,
@@ -669,38 +693,38 @@
         "call_oi": 334,
         "call_change": 23,
         "is_atm": false
-      },
-      {
-        "strike": 70000,
-        "put_oi": 7701,
-        "put_change": 0,
-        "call_oi": 4899,
-        "call_change": 384,
-        "is_atm": false
-      },
-      {
-        "strike": 70500,
-        "put_oi": 6,
-        "put_change": 0,
-        "call_oi": 61,
-        "call_change": 3,
-        "is_atm": false
-      },
-      {
-        "strike": 71000,
-        "put_oi": 286,
-        "put_change": 0,
-        "call_oi": 2454,
-        "call_change": 633,
-        "is_atm": false
       }
     ],
     "by_expiry": [
       {
         "expiry": "2608",
         "label": "2026年08月限",
-        "total_oi": 51553,
+        "total_oi": 48012,
         "distribution": [
+          {
+            "strike": 59500,
+            "put_oi": 939,
+            "put_change": 8,
+            "call_oi": 20,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 60000,
+            "put_oi": 4292,
+            "put_change": 301,
+            "call_oi": 228,
+            "call_change": 1,
+            "is_atm": false
+          },
+          {
+            "strike": 60500,
+            "put_oi": 139,
+            "put_change": -3,
+            "call_oi": 120,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 61000,
             "put_oi": 1684,
@@ -763,7 +787,7 @@
             "put_change": 173,
             "call_oi": 11,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 65000,
@@ -787,7 +811,7 @@
             "put_change": -1,
             "call_oi": 129,
             "call_change": 3,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 66500,
@@ -844,30 +868,6 @@
             "call_oi": 147,
             "call_change": 9,
             "is_atm": false
-          },
-          {
-            "strike": 70000,
-            "put_oi": 6125,
-            "put_change": 0,
-            "call_oi": 2227,
-            "call_change": 181,
-            "is_atm": false
-          },
-          {
-            "strike": 70500,
-            "put_oi": 6,
-            "put_change": 0,
-            "call_oi": 36,
-            "call_change": 3,
-            "is_atm": false
-          },
-          {
-            "strike": 71000,
-            "put_oi": 186,
-            "put_change": 0,
-            "call_oi": 699,
-            "call_change": 142,
-            "is_atm": false
           }
         ],
         "top_puts": [
@@ -918,8 +918,32 @@
       {
         "expiry": "2609",
         "label": "2026年09月限",
-        "total_oi": 40565,
+        "total_oi": 40465,
         "distribution": [
+          {
+            "strike": 59500,
+            "put_oi": 239,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 60000,
+            "put_oi": 3321,
+            "put_change": 229,
+            "call_oi": 786,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 60500,
+            "put_oi": 321,
+            "put_change": 0,
+            "call_oi": 700,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 61000,
             "put_oi": 816,
@@ -982,7 +1006,7 @@
             "put_change": 0,
             "call_oi": 0,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 65000,
@@ -1006,7 +1030,7 @@
             "put_change": 250,
             "call_oi": 1700,
             "call_change": 310,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 66500,
@@ -1063,30 +1087,6 @@
             "call_oi": 186,
             "call_change": 14,
             "is_atm": false
-          },
-          {
-            "strike": 70000,
-            "put_oi": 1475,
-            "put_change": 0,
-            "call_oi": 2112,
-            "call_change": 203,
-            "is_atm": false
-          },
-          {
-            "strike": 70500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 25,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 71000,
-            "put_oi": 100,
-            "put_change": 0,
-            "call_oi": 1755,
-            "call_change": 491,
-            "is_atm": false
           }
         ],
         "top_puts": [
@@ -1137,8 +1137,32 @@
       {
         "expiry": "2610",
         "label": "2026年10月限",
-        "total_oi": 3929,
+        "total_oi": 5289,
         "distribution": [
+          {
+            "strike": 59500,
+            "put_oi": 5,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 60000,
+            "put_oi": 1814,
+            "put_change": 0,
+            "call_oi": 0,
+            "call_change": 0,
+            "is_atm": false
+          },
+          {
+            "strike": 60500,
+            "put_oi": 102,
+            "put_change": 0,
+            "call_oi": 100,
+            "call_change": 0,
+            "is_atm": false
+          },
           {
             "strike": 61000,
             "put_oi": 200,
@@ -1201,7 +1225,7 @@
             "put_change": 0,
             "call_oi": 0,
             "call_change": 0,
-            "is_atm": false
+            "is_atm": true
           },
           {
             "strike": 65000,
@@ -1225,7 +1249,7 @@
             "put_change": 0,
             "call_oi": 0,
             "call_change": 0,
-            "is_atm": true
+            "is_atm": false
           },
           {
             "strike": 66500,
@@ -1280,30 +1304,6 @@
             "put_oi": 75,
             "put_change": 25,
             "call_oi": 1,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 70000,
-            "put_oi": 101,
-            "put_change": 0,
-            "call_oi": 560,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 70500,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 0,
-            "call_change": 0,
-            "is_atm": false
-          },
-          {
-            "strike": 71000,
-            "put_oi": 0,
-            "put_change": 0,
-            "call_oi": 0,
             "call_change": 0,
             "is_atm": false
           }
@@ -2352,12 +2352,13 @@
     "source": "live",
     "data_date": "20260716",
     "strike_matrix": {
-      "atm": 66000,
-      "atm_round": 66000,
+      "atm": 64500,
+      "atm_round": 68500,
       "strikes": [
         68250,
         68375,
-        68500
+        68500,
+        68750
       ],
       "participants": [
         {
@@ -2385,15 +2386,24 @@
             "68500": {
               "put": -223.0,
               "call": -2.0
+            },
+            "68750": {
+              "put": 0,
+              "call": 84.0
             }
           },
           "put_total": -254.0,
-          "call_total": 246.0,
-          "significance": 500.0,
+          "call_total": 330.0,
+          "significance": 584.0,
           "is_new": false,
-          "deltas": {},
+          "deltas": {
+            "68750": {
+              "put": 0,
+              "call": 84.0
+            }
+          },
           "put_total_delta": 0.0,
-          "call_total_delta": -84.0
+          "call_total_delta": 84.0
         },
         {
           "name": "ＪＰモルガン証券",
@@ -2419,6 +2429,10 @@
             },
             "68500": {
               "put": 200.0,
+              "call": 0
+            },
+            "68750": {
+              "put": 0,
               "call": 0
             }
           },
@@ -2453,6 +2467,10 @@
               "call": 0
             },
             "68500": {
+              "put": 0,
+              "call": 0
+            },
+            "68750": {
               "put": 0,
               "call": 0
             }
@@ -2490,15 +2508,59 @@
             "68500": {
               "put": 3.0,
               "call": -1.0
+            },
+            "68750": {
+              "put": 0,
+              "call": -17.0
             }
           },
           "put_total": -102.0,
-          "call_total": -21.0,
-          "significance": 123.0,
+          "call_total": -38.0,
+          "significance": 140.0,
           "is_new": false,
-          "deltas": {},
+          "deltas": {
+            "68750": {
+              "put": 0,
+              "call": -17.0
+            }
+          },
           "put_total_delta": 0.0,
-          "call_total_delta": 17.0
+          "call_total_delta": -17.0
+        },
+        {
+          "name": "ソシエテＧ証券",
+          "category": "eu",
+          "category_label": "欧系",
+          "customer_type": "アービトラージ（裁定取引）",
+          "futures": {
+            "nk225_large": 8382.0,
+            "nk225_mini": 670.0,
+            "topix": 12701.0,
+            "direction": "ロング",
+            "summary": "N225 +8382 / mini +670 / TOPIX +12701"
+          },
+          "positions": {
+            "68250": {
+              "put": 0,
+              "call": 0
+            },
+            "68375": {
+              "put": 0,
+              "call": 0
+            },
+            "68500": {
+              "put": 0,
+              "call": 0
+            },
+            "68750": {
+              "put": 0,
+              "call": -60.0
+            }
+          },
+          "put_total": 0,
+          "call_total": -60.0,
+          "significance": 60.0,
+          "is_new": true
         },
         {
           "name": "野村証券",
@@ -2524,6 +2586,10 @@
             },
             "68500": {
               "put": 25.0,
+              "call": 0
+            },
+            "68750": {
+              "put": 0,
               "call": 0
             }
           },
@@ -2560,6 +2626,10 @@
             "68500": {
               "put": -8.0,
               "call": 1.0
+            },
+            "68750": {
+              "put": 0,
+              "call": 0
             }
           },
           "put_total": -8.0,
@@ -2595,6 +2665,10 @@
             "68500": {
               "put": 0,
               "call": 0
+            },
+            "68750": {
+              "put": 0,
+              "call": 0
             }
           },
           "put_total": 7.0,
@@ -2604,41 +2678,6 @@
           "deltas": {},
           "put_total_delta": 0.0,
           "call_total_delta": 0
-        },
-        {
-          "name": "インタラクティブ証券",
-          "category": "hf",
-          "category_label": "HF代理",
-          "customer_type": "ー",
-          "futures": {
-            "nk225_large": -138.0,
-            "nk225_mini": 2.0,
-            "topix": 178.0,
-            "direction": "ショート",
-            "summary": "N225 -138 / mini +2 / TOPIX +178",
-            "nk225_large_delta": 0.0
-          },
-          "positions": {
-            "68250": {
-              "put": 0,
-              "call": 0
-            },
-            "68375": {
-              "put": -2.0,
-              "call": 0
-            },
-            "68500": {
-              "put": 0,
-              "call": 1.0
-            }
-          },
-          "put_total": -2.0,
-          "call_total": 1.0,
-          "significance": 3.0,
-          "is_new": false,
-          "deltas": {},
-          "put_total_delta": 0.0,
-          "call_total_delta": 0.0
         },
         {
           "name": "ビーオブエー証券",
@@ -2665,15 +2704,24 @@
             "68500": {
               "put": 3.0,
               "call": 0
+            },
+            "68750": {
+              "put": 0,
+              "call": -3.0
             }
           },
           "put_total": 3.0,
-          "call_total": 0,
-          "significance": 3.0,
+          "call_total": -3.0,
+          "significance": 6.0,
           "is_new": false,
-          "deltas": {},
+          "deltas": {
+            "68750": {
+              "put": 0,
+              "call": -3.0
+            }
+          },
           "put_total_delta": 0.0,
-          "call_total_delta": 3.0
+          "call_total_delta": -3.0
         },
         {
           "name": "ドイツ証券",
@@ -2700,15 +2748,63 @@
             "68500": {
               "put": 0,
               "call": 0
+            },
+            "68750": {
+              "put": 0,
+              "call": -2.0
             }
           },
           "put_total": 0,
-          "call_total": -2.0,
-          "significance": 2.0,
+          "call_total": -4.0,
+          "significance": 4.0,
+          "is_new": false,
+          "deltas": {
+            "68750": {
+              "put": 0,
+              "call": -2.0
+            }
+          },
+          "put_total_delta": 0,
+          "call_total_delta": -2.0
+        },
+        {
+          "name": "インタラクティブ証券",
+          "category": "hf",
+          "category_label": "HF代理",
+          "customer_type": "ー",
+          "futures": {
+            "nk225_large": -138.0,
+            "nk225_mini": 2.0,
+            "topix": 178.0,
+            "direction": "ショート",
+            "summary": "N225 -138 / mini +2 / TOPIX +178",
+            "nk225_large_delta": 0.0
+          },
+          "positions": {
+            "68250": {
+              "put": 0,
+              "call": 0
+            },
+            "68375": {
+              "put": -2.0,
+              "call": 0
+            },
+            "68500": {
+              "put": 0,
+              "call": 1.0
+            },
+            "68750": {
+              "put": 0,
+              "call": 0
+            }
+          },
+          "put_total": -2.0,
+          "call_total": 1.0,
+          "significance": 3.0,
           "is_new": false,
           "deltas": {},
-          "put_total_delta": 0,
-          "call_total_delta": 2.0
+          "put_total_delta": 0.0,
+          "call_total_delta": 0.0
         },
         {
           "name": "楽天証券",
@@ -2735,18 +2831,27 @@
             "68500": {
               "put": 0,
               "call": 1.0
+            },
+            "68750": {
+              "put": 0,
+              "call": -2.0
             }
           },
           "put_total": 0,
-          "call_total": 1.0,
+          "call_total": -1.0,
           "significance": 1.0,
           "is_new": false,
-          "deltas": {},
+          "deltas": {
+            "68750": {
+              "put": 0,
+              "call": -2.0
+            }
+          },
           "put_total_delta": 0,
-          "call_total_delta": 2.0
+          "call_total_delta": -2.0
         }
       ],
-      "prev_date": "20260715"
+      "prev_date": "20260716"
     }
   },
   "s10": {
@@ -3872,17 +3977,17 @@
     "pcr_volume": 1.87,
     "pcr_oi": 2.11,
     "pcr_signal": "強い弱気（逆張り買いシグナル）",
-    "max_pain": 67500,
-    "max_pain_total": 80709500,
+    "max_pain": 66000,
+    "max_pain_total": 66224000,
     "max_pain_diff": 1500,
     "basis": null,
     "basis_signal": null,
     "walls_reinforced": [
       {
-        "strike": 70000,
-        "type": "C",
-        "oi": 4899,
-        "change": 384
+        "strike": 60000,
+        "type": "P",
+        "oi": 9427,
+        "change": 530
       },
       {
         "strike": 66000,
@@ -3914,50 +4019,50 @@
   },
   "technicals": {
     "pivot": {
-      "date": "2026-07-14",
-      "high": 67800.18,
-      "low": 66268.6,
-      "close": 67743.5,
-      "pp": 67271,
-      "r1": 68273.4,
-      "r2": 68802.57999999999,
-      "r3": 69804.97999999998,
-      "s1": 66741.82,
-      "s2": 65739.42000000001,
-      "s3": 65210.24000000002
+      "date": "2026-07-16",
+      "high": 68069.82,
+      "low": 66499.49,
+      "close": 66835.54,
+      "pp": 67135,
+      "r1": 67770.51,
+      "r2": 68705.33,
+      "r3": 69340.84,
+      "s1": 66200.18,
+      "s2": 65564.67,
+      "s3": 64629.84999999999
     },
     "fibonacci": {
       "trend": "downtrend",
       "high": 72832,
-      "low": 66269,
+      "low": 64105,
       "period": 20,
       "levels": {
-        "0%": 66269,
-        "23.6%": 67817,
-        "38.2%": 68776,
-        "50%": 69550,
-        "61.8%": 70325,
-        "78.6%": 71427,
+        "0%": 64105,
+        "23.6%": 66164,
+        "38.2%": 67438,
+        "50%": 68468,
+        "61.8%": 69498,
+        "78.6%": 70964,
         "100%": 72832
       },
       "label": "戻り売り水準（下降トレンド中の反発）"
     },
     "bollinger": {
       "period": 20,
-      "mean": 69434,
-      "std": 1506,
-      "upper3": 73953,
-      "upper2": 72447,
-      "upper1": 70940,
-      "lower1": 67928,
-      "lower2": 66422,
-      "lower3": 64915,
-      "current_sigma": -0.45,
-      "bandwidth": 8.68
+      "mean": 68877,
+      "std": 1819,
+      "upper3": 74332,
+      "upper2": 72514,
+      "upper1": 70695,
+      "lower1": 67058,
+      "lower2": 65240,
+      "lower3": 63421,
+      "current_sigma": -2.51,
+      "bandwidth": 10.56
     },
     "rsi": {
       "period": 14,
-      "value": 37.4,
+      "value": 33.6,
       "signal": "やや割安"
     }
   },
