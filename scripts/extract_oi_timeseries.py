@@ -309,17 +309,18 @@ def extract_oi_timeseries(data_dir, max_days=20, top_strikes=8, nearest_expiry_o
 
         # Determine which expiries to consider
         if nearest_expiry_only and latest_opt:
-            # Pick the expiry with the largest total OI (= the "near major" expiry).
-            # Using total OI is more robust than just smallest YYMM because the
-            # absolutely-nearest may be a fading weekly with little OI.
-            expiry_scores = []
+            # Front month = the NEAREST expiry (smallest YYMM) that still has
+            # meaningful OI. (Using largest-total-OI backfires post-SQ because a
+            # later quarterly can carry more deep-OTM OI than the front month.)
+            cand = []
             for ek, strikes in latest_opt.items():
                 total = 0
                 for s, v in strikes.items():
                     total += v.get('put_oi', 0) + v.get('call_oi', 0)
-                expiry_scores.append((total, ek))
-            expiry_scores.sort(reverse=True)
-            target_expiries = [expiry_scores[0][1]] if expiry_scores else []
+                if total >= 5000:  # skip fading/expired weeklies
+                    cand.append((ek, total))
+            cand.sort(key=lambda x: x[0])  # smallest YYMM = nearest expiry first
+            target_expiries = [cand[0][0]] if cand else []
         else:
             target_expiries = list(latest_opt.keys())
 
