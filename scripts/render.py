@@ -294,6 +294,16 @@ def build_markdown(data):
 # HTML Dashboard Builder
 # ============================================================
 
+FLOW_VERDICT_CSS = r"""
+.fv-intro{font-size:11.5px;color:var(--sub);line-height:1.6;margin:2px 2px 8px}
+.fv-tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;white-space:nowrap}
+.fv-buy{background:rgba(34,197,94,.16);color:#86efac}
+.fv-sell{background:rgba(248,113,113,.16);color:#fca5a5}
+.fv-na{background:rgba(139,147,167,.15);color:var(--sub)}
+.fv-sub{font-size:10px;color:var(--sub);font-family:'DM Mono',monospace;margin-top:2px}
+.fv-note{font-size:11px;color:var(--sub);line-height:1.55;margin:10px 2px 2px}
+"""
+
 DASHBOARD_CSS = r"""
 :root{
   --bg:#06060f;--panel:#0c0c1d;--card:#111128;--border:#1e1e3a;
@@ -1551,7 +1561,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''), FLOW_VERDICT_CSS)
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1630,7 +1640,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
             ('opval', '💰', 'OP取引代金', _preview_opval(s03), _detail_opval_js(s03), DB),
             ('oichg', '📊', 'OP建玉増減', _preview_oichg(s04), _detail_oichg_js(s04), DB),
             ('op_oi_timeseries', '📉', 'OP建玉推移', _preview_op_oi_timeseries(oi_ts), _detail_op_oi_timeseries_js(oi_ts), DB),
-            ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05), DB),
+            ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05, greeks), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
             ('ivtrend', '📈', 'IV推移', _preview_ivtrend(ivts), _detail_ivtrend_js(ivts), DB),
             ('greeks', '🧮', '相場の地合い（GEX）', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
@@ -1884,10 +1894,44 @@ def _detail_oichg_js(s04):
     js += "return h;"
     return js
 
-def _detail_important_js(s05):
+def _flow_verdict(oi_chg, rel_iv_chg):
+    """Infer whether a strike was BOUGHT or SOLD from OI change + relative IV change.
+
+    OI tells us contracts were opened/closed; the IV move tells us which side
+    pushed. Buying pressure lifts the option's own IV relative to ATM; writing
+    supplies it and depresses IV. Uses iv_chg_rel (strike IV move minus ATM move)
+    so a market-wide vol shift doesn't masquerade as directional flow.
+    Returns (label, css_class, short_note) or None when the signal is too weak.
+    """
+    if oi_chg is None or rel_iv_chg is None:
+        return None
+    TH = 0.003  # 0.3pt of relative IV move
+    if oi_chg > 0:
+        if rel_iv_chg > TH:
+            return ('買われた', 'fv-buy', '新規の買い建て（ヘッジ／狙い）')
+        if rel_iv_chg < -TH:
+            return ('売られた', 'fv-sell', '新規の売り建て（受け皿／プレミアム収受）')
+        return ('判定弱い', 'fv-na', 'IVがほぼ動かず方向を絞れない')
+    if oi_chg < 0:
+        if rel_iv_chg < -TH:
+            return ('買い方が手仕舞い', 'fv-sell', '既存の買い建てを売却')
+        if rel_iv_chg > TH:
+            return ('売り方が買い戻し', 'fv-buy', '既存の売り建てを買い戻し')
+        return ('判定弱い', 'fv-na', 'IVがほぼ動かず方向を絞れない')
+    return None
+
+
+def _detail_important_js(s05, greeks=None):
     if not s05:
         return "var h='<div>該当なし</div>';return h;"
     from collections import OrderedDict
+    # index relative-IV change by (expiry, strike) from greeks.json
+    ivmap = {}
+    for e in (greeks or {}).get('expiries', []):
+        ex = e.get('expiry', '')
+        ex4 = ex[2:] if len(ex) == 6 else ex
+        for r in e.get('per_strike', []):
+            ivmap[(ex4, int(r['strike']))] = (r.get('iv_chg_rel'), r.get('iv_chg'))
     groups = OrderedDict()
     for c in s05:
         exp = c.get('expiry', '?')
@@ -1899,18 +1943,32 @@ def _detail_important_js(s05):
             return '20%s年%s月限' % (exp[:2], exp[2:])
         return exp
     js = "var h='';"
+    js += ("h+='<div class=\"fv-intro\">建玉の増減に、その行使価格の<b>相対IV変化</b>"
+           "（そのストライクのIV変化−ATMの変化）を突き合わせ、<b>買われたのか売られたのか</b>を推定しています。"
+           "買い需要はIVを押し上げ、売り（書き）はIVを押し下げます。</div>';")
     for exp, items in groups.items():
         label = expiry_label(exp)
         js += "h+='<div style=\"margin-top:10px;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--accent)\">%s</div>';" % _js_str(label)
-        js += "h+='<table><tr><th>タイプ</th><th>行使価格</th><th>建玉</th><th>前日比</th></tr>';"
+        js += "h+='<table><tr><th>タイプ</th><th>行使価格</th><th>建玉</th><th>前日比</th><th>推定</th></tr>';"
         for c in items:
             chg_cls = 'positive' if c['change'] > 0 else 'negative'
             type_color = 'var(--put)' if c['type'] == 'P' else 'var(--call)'
+            rel, abs_iv = ivmap.get((c.get('expiry'), int(c['strike'])), (None, None))
+            v = _flow_verdict(c['change'], rel)
             js += "h+='<tr><td style=\"color:%s;font-weight:600\">%s</td>';" % (type_color, c['type'])
             js += "h+='<td style=\"font-family:DM Mono\">%s</td>';" % _js_str(fnum(c['strike']))
             js += "h+='<td style=\"font-family:DM Mono\">%s</td>';" % _js_str(fnum(c.get('oi')))
-            js += "h+='<td class=\"%s\" style=\"font-family:DM Mono\">%s</td></tr>';" % (chg_cls, _js_str(fnum(c['change'], plus=True)))
+            js += "h+='<td class=\"%s\" style=\"font-family:DM Mono\">%s</td>';" % (chg_cls, _js_str(fnum(c['change'], plus=True)))
+            if v:
+                iv_txt = ('相対IV %+.1fpt' % (rel * 100)) if rel is not None else ''
+                js += "h+='<td><span class=\"fv-tag %s\">%s</span><div class=\"fv-sub\">%s</div></td></tr>';" % (
+                    v[1], _js_str(v[0]), _js_str(iv_txt))
+            else:
+                js += "h+='<td><span class=\"fv-tag fv-na\">—</span></td></tr>';"
         js += "h+='</table>';"
+    js += ("h+='<div class=\"fv-note\">推定であり断定ではありません。"
+           "IVがほとんど動かない場合や、期近で時間価値の減少が大きい場合は精度が落ちます。"
+           "大口の立会外クロスがあった日は「大口オプションクロス（日次）」も併せて確認してください。</div>';")
     js += "return h;"
     return js
 
