@@ -1914,9 +1914,9 @@ def _flow_verdict(oi_chg, rel_iv_chg):
         return ('判定弱い', 'fv-na', 'IVがほぼ動かず方向を絞れない')
     if oi_chg < 0:
         if rel_iv_chg < -TH:
-            return ('買い方が手仕舞い', 'fv-sell', '既存の買い建てを売却')
+            return ('買い建ての決済', 'fv-sell', '買っていた側が売って決済（手仕舞い）')
         if rel_iv_chg > TH:
-            return ('売り方が買い戻し', 'fv-buy', '既存の売り建てを買い戻し')
+            return ('売り建ての決済', 'fv-buy', '売っていた側が買い戻して決済')
         return ('判定弱い', 'fv-na', 'IVがほぼ動かず方向を絞れない')
     return None
 
