@@ -1204,10 +1204,10 @@
     }
   ],
   "source": "live",
-  "data_date": "20260722",
+  "data_date": "20260723",
   "strike_matrix": {
-    "atm": 66000,
-    "atm_round": 66000,
+    "atm": 65500,
+    "atm_round": 65500,
     "strikes": [
       63875,
       64000,
@@ -1255,14 +1255,9 @@
         "call_total": -401.0,
         "significance": 1147.0,
         "is_new": false,
-        "deltas": {
-          "63875": {
-            "put": 3.0,
-            "call": 10.0
-          }
-        },
-        "put_total_delta": 3.0,
-        "call_total_delta": 10.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "ＢＮＰパリバ証券",
@@ -1303,13 +1298,8 @@
         "call_total": -1.0,
         "significance": 1050.0,
         "is_new": false,
-        "deltas": {
-          "63875": {
-            "put": -37.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": -37.0,
+        "deltas": {},
+        "put_total_delta": 0.0,
         "call_total_delta": 0.0
       },
       {
@@ -1394,14 +1384,9 @@
         "call_total": -55.0,
         "significance": 644.0,
         "is_new": false,
-        "deltas": {
-          "63875": {
-            "put": 10.0,
-            "call": -10.0
-          }
-        },
-        "put_total_delta": 10.0,
-        "call_total_delta": -10.0
+        "deltas": {},
+        "put_total_delta": 0.0,
+        "call_total_delta": 0.0
       },
       {
         "name": "シティグループ証券",
@@ -1571,13 +1556,8 @@
         "call_total": 0,
         "significance": 180.0,
         "is_new": false,
-        "deltas": {
-          "63875": {
-            "put": -13.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": -13.0,
+        "deltas": {},
+        "put_total_delta": 0.0,
         "call_total_delta": 0
       },
       {
@@ -1705,13 +1685,8 @@
         "call_total": 2.0,
         "significance": 47.0,
         "is_new": false,
-        "deltas": {
-          "63875": {
-            "put": 37.0,
-            "call": 0
-          }
-        },
-        "put_total_delta": 37.0,
+        "deltas": {},
+        "put_total_delta": 0.0,
         "call_total_delta": 0.0
       },
       {
@@ -2102,6 +2077,6 @@
         "call_total_delta": 0
       }
     ],
-    "prev_date": "20260721"
+    "prev_date": "20260722"
   }
 }
