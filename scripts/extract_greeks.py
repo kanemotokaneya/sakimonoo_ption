@@ -272,6 +272,35 @@ def _regime_timeline(history, keep=10):
 # ----------------------------------------------------------------------------
 # Core build
 # ----------------------------------------------------------------------------
+def _mny_rel_chg(K, iv_now, spot_now, spot_was, atm_now, atm_was, iv_was_e):
+    """Change in a strike's IV premium over ATM, measured at CONSTANT moneyness.
+
+    Fixed-strike relative IV is contaminated when spot moves: on a down day a
+    downside put's strike becomes relatively closer to the money, so its skew
+    premium shrinks even with zero trading. Here we instead ask: at today's
+    moneyness (K/spot_now), what premium did that same moneyness carry
+    yesterday? The difference is the part attributable to actual flow.
+    Returns None when any input is missing or the prior smile is too sparse.
+    """
+    if None in (iv_now, spot_now, spot_was, atm_now, atm_was) or not iv_was_e:
+        return None
+    if spot_now <= 0 or spot_was <= 0:
+        return None
+    k_equiv = (K / spot_now) * spot_was          # same moneyness, yesterday
+    ks = sorted(iv_was_e)
+    if not ks or k_equiv < ks[0] or k_equiv > ks[-1]:
+        return None                               # outside prior smile: no basis
+    # linear interpolation of yesterday's smile at the equivalent strike
+    lo = max([x for x in ks if x <= k_equiv])
+    hi = min([x for x in ks if x >= k_equiv])
+    if hi == lo:
+        iv_prev_equiv = iv_was_e[lo]
+    else:
+        w = (k_equiv - lo) / (hi - lo)
+        iv_prev_equiv = iv_was_e[lo] * (1 - w) + iv_was_e[hi] * w
+    return (iv_now - atm_now) - (iv_prev_equiv - atm_was)
+
+
 def build_greeks(data_dir, max_expiries=3):
     today = _today_from_dir(data_dir)
     tps = _find(data_dir, r'ose\d{8}tp.*\.csv')
@@ -295,11 +324,14 @@ def build_greeks(data_dir, max_expiries=3):
 
     iv_prior_map = {}
     iv_prior_atm = {}
+    spot_was = None
     if tp_prior:
         for e in build(parse_tp_csv(tp_prior)):
             iv_prior_map[e['expiry']] = {int(p['strike']): p['iv']
                                          for p in e['smile'] if p.get('iv')}
             iv_prior_atm[e['expiry']] = e.get('atm_iv')
+            if spot_was is None and e.get('underlying'):
+                spot_was = e['underlying']
 
     # --- Robust prior: fall back to the accumulated snapshot history when the
     # raw previous-day files are not in data/, so B/B2 keep working even if the
@@ -318,6 +350,8 @@ def build_greeks(data_dir, max_expiries=3):
                 iv_prior_map = {ec: {int(k): v for k, v in s.items()}
                                 for ec, s in ph['iv'].items()}
                 iv_prior_atm = dict(ph.get('atm_iv', {}))
+            if spot_was is None:
+                spot_was = ph.get('spot')
             prior_src = 'history:' + pdays[-1]
 
     prior_ok = bool(oi_was) and bool(iv_prior_map)
@@ -375,6 +409,13 @@ def build_greeks(data_dir, max_expiries=3):
             iv_chg = (sig - iv_was_e[K]) if (K in iv_was_e) else None
             # relative IV change = strike IV change minus market-wide ATM change
             iv_chg_rel = (iv_chg - atm_iv_chg) if (iv_chg is not None and atm_iv_chg is not None) else None
+            # moneyness-adjusted version: compare the skew SPREAD at constant
+            # moneyness instead of at a fixed strike. When spot moves a lot, a
+            # fixed strike slides along the skew curve (a downside put becomes
+            # relatively closer to ATM on a down day), which shrinks its IV
+            # premium mechanically and would otherwise read as "sold".
+            iv_chg_rel_mny = _mny_rel_chg(K, sig, spot, spot_was, atm_now,
+                                          atm_was, iv_was_e)
 
             gc = greeks(spot, K, T, sig, 'C')
             gp = greeks(spot, K, T, sig, 'P')
@@ -417,6 +458,7 @@ def build_greeks(data_dir, max_expiries=3):
                 'put_oi_chg': (int(poi_chg) if poi_chg is not None else None),
                 'iv_chg': (round(iv_chg, 5) if iv_chg is not None else None),
                 'iv_chg_rel': (round(iv_chg_rel, 5) if iv_chg_rel is not None else None),
+                'iv_chg_rel_mny': (round(iv_chg_rel_mny, 5) if iv_chg_rel_mny is not None else None),
                 'call': {k: round(v, 6) for k, v in gc.items()},
                 'put': {k: round(v, 6) for k, v in gp.items()},
             })

@@ -1931,7 +1931,11 @@ def _detail_important_js(s05, greeks=None):
         ex = e.get('expiry', '')
         ex4 = ex[2:] if len(ex) == 6 else ex
         for r in e.get('per_strike', []):
-            ivmap[(ex4, int(r['strike']))] = (r.get('iv_chg_rel'), r.get('iv_chg'))
+            # prefer the moneyness-adjusted measure; it is not distorted when
+            # spot moves a lot. Fall back to fixed-strike relative IV.
+            mny = r.get('iv_chg_rel_mny')
+            val = mny if mny is not None else r.get('iv_chg_rel')
+            ivmap[(ex4, int(r['strike']))] = (val, (mny is not None))
     groups = OrderedDict()
     for c in s05:
         exp = c.get('expiry', '?')
@@ -1943,9 +1947,10 @@ def _detail_important_js(s05, greeks=None):
             return '20%s年%s月限' % (exp[:2], exp[2:])
         return exp
     js = "var h='';"
-    js += ("h+='<div class=\"fv-intro\">建玉の増減に、その行使価格の<b>相対IV変化</b>"
-           "（そのストライクのIV変化−ATMの変化）を突き合わせ、<b>買われたのか売られたのか</b>を推定しています。"
-           "買い需要はIVを押し上げ、売り（書き）はIVを押し下げます。</div>';")
+    js += ("h+='<div class=\"fv-intro\">建玉の増減に、その行使価格の<b>相対IV変化</b>を突き合わせ、"
+           "<b>買われたのか売られたのか</b>を推定しています。買い需要はIVを押し上げ、売り（書き）は押し下げます。"
+           "相場が大きく動いた日でも歪まないよう、IVは<b>現値からの距離（moneyness）を揃えて</b>比較しています"
+           "（前日の同じ距離の水準と比べる方式）。</div>';")
     for exp, items in groups.items():
         label = expiry_label(exp)
         js += "h+='<div style=\"margin-top:10px;margin-bottom:4px;font-size:12px;font-weight:600;color:var(--accent)\">%s</div>';" % _js_str(label)
@@ -1953,14 +1958,15 @@ def _detail_important_js(s05, greeks=None):
         for c in items:
             chg_cls = 'positive' if c['change'] > 0 else 'negative'
             type_color = 'var(--put)' if c['type'] == 'P' else 'var(--call)'
-            rel, abs_iv = ivmap.get((c.get('expiry'), int(c['strike'])), (None, None))
+            rel, is_mny = ivmap.get((c.get('expiry'), int(c['strike'])), (None, False))
             v = _flow_verdict(c['change'], rel)
             js += "h+='<tr><td style=\"color:%s;font-weight:600\">%s</td>';" % (type_color, c['type'])
             js += "h+='<td style=\"font-family:DM Mono\">%s</td>';" % _js_str(fnum(c['strike']))
             js += "h+='<td style=\"font-family:DM Mono\">%s</td>';" % _js_str(fnum(c.get('oi')))
             js += "h+='<td class=\"%s\" style=\"font-family:DM Mono\">%s</td>';" % (chg_cls, _js_str(fnum(c['change'], plus=True)))
             if v:
-                iv_txt = ('相対IV %+.1fpt' % (rel * 100)) if rel is not None else ''
+                iv_txt = (('相対IV %+.1fpt%s' % (rel * 100, '' if is_mny else '（簡易）'))
+                          if rel is not None else '')
                 js += "h+='<td><span class=\"fv-tag %s\">%s</span><div class=\"fv-sub\">%s</div></td></tr>';" % (
                     v[1], _js_str(v[0]), _js_str(iv_txt))
             else:
@@ -1968,6 +1974,8 @@ def _detail_important_js(s05, greeks=None):
         js += "h+='</table>';"
     js += ("h+='<div class=\"fv-note\">推定であり断定ではありません。"
            "IVがほとんど動かない場合や、期近で時間価値の減少が大きい場合は精度が落ちます。"
+           "「（簡易）」表示は前日データが不足し、現値距離を揃えずに比較した値で、"
+           "相場が大きく動いた日はズレやすい点にご注意ください。"
            "大口の立会外クロスがあった日は「大口オプションクロス（日次）」も併せて確認してください。</div>';")
     js += "return h;"
     return js
