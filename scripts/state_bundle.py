@@ -25,6 +25,10 @@ STATE_FILES = [
     'jnet_history.json',
     'iv_timeseries.json',
     'oi_timeseries.json',
+    'weekly_trend.json',
+    'opt_weekly.json',
+    'positions.json',
+    'broker_history.json',
 ]
 
 

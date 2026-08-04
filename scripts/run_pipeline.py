@@ -237,6 +237,18 @@ def main():
     result = subprocess.run(pos_cmd, capture_output=True, text=True)
     print(result.stdout)
 
+    # Step 2.99: accumulate weekly per-broker nets into broker_history.json
+    # (persistent across weeks; powers the 大口動向 card). Runs only when
+    # weekly files are present, otherwise leaves the existing history intact.
+    bh_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_broker_history.py'),
+              '--data-dir', datadir,
+              '--out', os.path.join(datadir, 'broker_history.json')]
+    result = subprocess.run(bh_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_broker_history.py failed (大口動向 card may be stale)', file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
+
     # Step 3: Render outputs
     print('\n=== Step 3: Rendering outputs ===')
     render_cmd = [sys.executable, os.path.join(scripts_dir, 'render.py'),
