@@ -48,15 +48,17 @@ def bw_data_script(hist):
 
 BW_CARD_CSS = r"""
 .bw-intro{font-size:11.5px;color:var(--sub);line-height:1.6;margin:2px 2px 10px}
-.bw-sec{font-size:12px;font-weight:700;color:var(--accent);margin:12px 2px 6px}
-.bw-row{border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin:7px 0;background:#141822}
-.bw-name{font-family:Outfit;font-weight:700;font-size:13px}
+.bw-row{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:8px 0;background:#141822}
+.bw-name{font-family:Outfit;font-weight:700;font-size:13.5px;margin-bottom:8px}
 .bw-cat{font-size:10px;color:var(--sub);font-weight:400;margin-left:6px}
-.bw-line{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:11px}
-.bw-tag{min-width:34px;color:var(--sub);font-weight:600}
-.bw-nums{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:-.3px}
+.bw-metrics{display:flex;gap:10px}
+.bw-metric{flex:1;min-width:0}
+.bw-mlabel{font-size:10px;color:var(--sub);margin-bottom:3px}
+.bw-spark{background:#0f131b;border-radius:5px;padding:2px 3px}
+.bw-mval{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;margin-top:3px;white-space:nowrap}
+.bw-wow{font-size:9.5px;margin-left:2px;opacity:.85}
 .bw-pos{color:#86efac}.bw-neg{color:#fca5a5}.bw-ze{color:var(--sub)}
-.bw-read{font-size:10.5px;color:#cbd5e1;line-height:1.45;margin-top:6px;border-top:1px solid rgba(38,44,58,.6);padding-top:5px}
+.bw-read{font-size:10.5px;color:#cbd5e1;line-height:1.45;margin-top:8px;border-top:1px solid rgba(38,44,58,.6);padding-top:6px}
 .bw-note{font-size:11px;color:var(--sub);line-height:1.55;margin:10px 2px 2px}
 """
 
@@ -98,26 +100,72 @@ function bwReadOpt(r){
   if(cl) out.push(cl);
   return out.join('／');
 }
+function bwSpark(arr, w, hgt){
+  // mini bar chart centered on zero. positive=green up, negative=red down.
+  w = w||150; hgt = hgt||26;
+  var vals = arr.map(function(x){return (x===null||x===undefined)?null:x;});
+  var mx = 1;
+  vals.forEach(function(v){ if(v!==null) mx=Math.max(mx, Math.abs(v)); });
+  var n = vals.length, bw = w/n, mid = hgt/2;
+  var bars='';
+  for(var i=0;i<n;i++){
+    var v=vals[i];
+    if(v===null){ continue; }
+    var hh = Math.max(1, Math.abs(v)/mx*(mid-1));
+    var x = i*bw+0.5, bwid=Math.max(1.5,bw-1.5);
+    var y = v>=0 ? (mid-hh) : mid;
+    var col = v>0?'#4ade80':(v<0?'#f87171':'#5b6472');
+    bars += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bwid.toFixed(1)+'" height="'+hh.toFixed(1)+'" fill="'+col+'" rx="0.5"/>';
+  }
+  return '<svg width="'+w+'" height="'+hgt+'" viewBox="0 0 '+w+' '+hgt+'" style="display:block">'
+    +'<line x1="0" y1="'+mid+'" x2="'+w+'" y2="'+mid+'" stroke="#2a3140" stroke-width="0.5"/>'+bars+'</svg>';
+}
+function bwLast(arr){
+  var v=arr.filter(function(x){return x!==null&&x!==undefined;});
+  return v.length? v[v.length-1] : null;
+}
+function bwPrev(arr){
+  var v=arr.filter(function(x){return x!==null&&x!==undefined;});
+  return v.length>1? v[v.length-2] : null;
+}
+function bwChip(arr, label){
+  var last=bwLast(arr), prev=bwPrev(arr);
+  if(last===null) return '';
+  var cls=last>0?'bw-pos':(last<0?'bw-neg':'bw-ze');
+  var s=(last>0?'+':'')+Math.round(last).toLocaleString();
+  var wow='';
+  if(prev!==null){
+    var d=last-prev;
+    if(Math.abs(d)>=Math.max(200,Math.abs(prev)*0.1)){
+      wow='<span class="bw-wow '+(d>0?'bw-pos':'bw-neg')+'">'+(d>0?'▲':'▼')+Math.abs(Math.round(d)).toLocaleString()+'</span>';
+    }
+  }
+  return '<div class="bw-metric"><div class="bw-mlabel">'+label+'</div>'
+    +'<div class="bw-spark">'+bwSpark(arr)+'</div>'
+    +'<div class="bw-mval '+cls+'">'+s+' '+wow+'</div></div>';
+}
 function bwBuild(){
   var D=window.BW_DATA||{}; if(!D.rows) return '<div>データなし</div>';
   var dates=D.dates||[];
-  var h='<div class="bw-intro">主要大口の<b>週次ネット建玉</b>（売買区分あり＝確定値）の推移。'
-    +'＋＝買い持ち／−＝売り持ち。先物は方向観、オプションは壁・受け皿を映す。期間: '+dates[0]+'〜'+dates[dates.length-1]+'（'+dates.length+'週）。</div>';
-  h+='<div class="bw-hdr bw-nums" style="margin:2px 2px 0;color:var(--sub);font-size:10px">週: '+dates.join('  ')+'</div>';
+  var h='<div class="bw-intro">主要大口の<b>週次ネット建玉</b>（売買区分あり＝確定値）の推移を、直近'+dates.length+'週のミニ棒グラフで表示。'
+    +'<span class="bw-pos">緑＝買い持ち</span>／<span class="bw-neg">赤＝売り持ち</span>。先物は方向観、オプション（P/C）は壁・受け皿を映す。'
+    +'右端が最新（'+dates[dates.length-1]+'）、▲▼は前週差。</div>';
   var rows=D.rows.slice(0,10);
   for(var i=0;i<rows.length;i++){
     var r=rows[i];
     h+='<div class="bw-row">';
     h+='<div class="bw-name">'+r.broker.replace('ＪＰモルガン','JPモルガン')+'<span class="bw-cat">'+(r.cat||'')+'</span></div>';
-    h+='<div class="bw-line"><span class="bw-tag">先物</span><span class="bw-nums">'+r.fut.map(bwFmt).join(' ')+'</span></div>';
-    h+='<div class="bw-line"><span class="bw-tag">P</span><span class="bw-nums">'+r.put.map(bwFmt).join(' ')+'</span></div>';
-    h+='<div class="bw-line"><span class="bw-tag">C</span><span class="bw-nums">'+r.call.map(bwFmt).join(' ')+'</span></div>';
+    h+='<div class="bw-metrics">';
+    h+=bwChip(r.fut,'先物');
+    h+=bwChip(r.put,'プット');
+    h+=bwChip(r.call,'コール');
+    h+='</div>';
     var read=[bwReadFut(r), bwReadOpt(r)].filter(function(x){return x;}).join(' ');
     if(read) h+='<div class="bw-read">↳ '+read+'</div>';
     h+='</div>';
   }
   h+='<div class="bw-note">週次建玉は売買区分のある確報値。過去の傾向であり将来を保証しない。'
-    +'「先物で方向を出す社（GS・HSBC・CTA）」と「オプションで壁を作る社（ABN・BNP・JPM）」を、両方の数字で追える。</div>';
+    +'「先物で方向を出す社（GS・HSBC・CTA）」と「オプションで壁を作る社（ABN・BNP・JPM）」を両面で追える。</div>';
   return h;
 }
 """
