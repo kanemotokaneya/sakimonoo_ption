@@ -29,12 +29,14 @@ try:
     import render_positions as _ps
     import render_opcross as _oc
     import render_broker_watch as _bw
+    import render_flow_map as _fm
 except Exception:
     _rj = None
     _ow = None
     _ps = None
     _oc = None
     _bw = None
+    _fm = None
 import sys
 import copy
 
@@ -1563,7 +1565,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''), FLOW_VERDICT_CSS, (_bw.BW_CARD_CSS if _bw else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''), FLOW_VERDICT_CSS, (_bw.BW_CARD_CSS if _bw else ''), (_fm.FM_CARD_CSS if _fm else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1643,6 +1645,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
             ('oichg', '📊', 'OP建玉増減', _preview_oichg(s04), _detail_oichg_js(s04), DB),
             ('op_oi_timeseries', '📉', 'OP建玉推移', _preview_op_oi_timeseries(oi_ts), _detail_op_oi_timeseries_js(oi_ts), DB),
             ('important', '⚡', 'OP重要建玉変化', _preview_important(s05), _detail_important_js(s05, greeks), DB),
+            ('flow_map', '🗺', '売買推定マップ（価格軸）',
+             (_fm.preview_flow_map(greeks, data.get('indicators')) if _fm and greeks else '<span class="mm-label">データ待ち</span>'),
+             (_fm.FM_CARD_JS + "return fmBuild();" if _fm and greeks else "return '<div class=\\'insight\\'>データなし</div>';"), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
             ('ivtrend', '📈', 'IV推移', _preview_ivtrend(ivts), _detail_ivtrend_js(ivts), DB),
             ('greeks', '🧮', '相場の地合い（GEX）', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
@@ -1706,6 +1711,8 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
         h += _oc.OPCROSS_CARD_JS
     if _bw and broker_hist:
         h += _bw.bw_data_script(broker_hist)
+    if _fm and greeks:
+        h += _fm.fm_data_script(greeks, data.get('indicators'))
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
