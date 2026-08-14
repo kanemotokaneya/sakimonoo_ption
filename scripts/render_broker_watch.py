@@ -19,11 +19,17 @@ def _short(n):
 def bw_data_script(hist):
     dates = sorted(hist.keys())
     # union of brokers, ranked by footprint (|fut| + 20*|put|+|call|)
+    # Rank by footprint, but score futures and options on separate scales so a
+    # futures-only house (GS, HSBC) is not pushed out by option-heavy ones.
+    # A broker that is large in EITHER arena should surface.
     foot = {}
     for d in dates:
         for b, v in hist[d].items():
-            f = abs(v.get('fut', 0) or 0) + 20 * (abs(v.get('put', 0) or 0)
-                                                  + abs(v.get('call', 0) or 0))
+            fut = abs(v.get('fut', 0) or 0)
+            opt = abs(v.get('put', 0) or 0) + abs(v.get('call', 0) or 0)
+            # normalise: 10,000 futures contracts ≈ 500 option contracts in
+            # terms of "this broker matters", then take the stronger side.
+            f = max(fut / 500.0, opt / 50.0)
             foot[b] = max(foot.get(b, 0), f)
     order = [b for b, _ in sorted(foot.items(), key=lambda x: -x[1])]
 
@@ -150,7 +156,7 @@ function bwBuild(){
   var h='<div class="bw-intro">主要大口の<b>週次ネット建玉</b>（売買区分あり＝確定値）の推移を、直近'+dates.length+'週のミニ棒グラフで表示。'
     +'<span class="bw-pos">緑＝買い持ち</span>／<span class="bw-neg">赤＝売り持ち</span>。先物は方向観、オプション（P/C）は壁・受け皿を映す。'
     +'右端が最新（'+dates[dates.length-1]+'）、▲▼は前週差。</div>';
-  var rows=D.rows.slice(0,10);
+  var rows=D.rows.slice(0,14);
   for(var i=0;i<rows.length;i++){
     var r=rows[i];
     h+='<div class="bw-row">';
