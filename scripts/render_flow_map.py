@@ -144,9 +144,9 @@ function fmPreview(){
 
 
 def preview_flow_map(greeks, indicators=None):
-    """Text preview: the single biggest bought put and call today."""
+    """Text preview (raw HTML): the single biggest bought put and call today."""
     if not greeks or not greeks.get('expiries'):
-        return "var h='<div>データなし</div>';return h;"
+        return '<span class="mm-label">データなし</span>'
     e = greeks['expiries'][0]
     bp = bc = None
     for r in e.get('per_strike', []):
@@ -160,15 +160,14 @@ def preview_flow_map(greeks, indicators=None):
         if cchg >= 100 and _verdict(cchg, rel) == 'buy':
             if bc is None or cchg > bc[1]:
                 bc = (r['strike'], cchg)
-    parts = []
+    tags = []
     if bp:
-        parts.append('P%s <b>+%d</b> 買' % (format(bp[0], ','), bp[1]))
+        tags.append('<span class="tag tag-put">P%s +%d 買</span>' % (format(bp[0], ','), bp[1]))
     if bc:
-        parts.append('C%s <b>+%d</b> 買' % (format(bc[0], ','), bc[1]))
-    if not parts:
-        parts.append('大きな新規買いなし')
-    js = "var h='';h+='<div style=\"font-size:12px;line-height:1.7\">本日の最大買い: %s</div>';" % ' ／ '.join(parts)
-    return js
+        tags.append('<span class="tag tag-call">C%s +%d 買</span>' % (format(bc[0], ','), bc[1]))
+    if not tags:
+        return '<span class="mm-label">本日は大きな新規買いなし</span>'
+    return '<span class="mm-label">本日の最大買い</span>' + ''.join(tags)
 
 
 if __name__ == '__main__':
