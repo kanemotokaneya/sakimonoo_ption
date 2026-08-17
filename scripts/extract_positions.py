@@ -93,14 +93,25 @@ def build(data_dir):
         broker = f.get('broker') or o.get('broker') or k
         np_, nc_ = round(o.get('put', 0)), round(o.get('call', 0))
         # answer-check verdict from weekly net sign
-        def _verdict(flow, net):
+        def _verdict(flow, net, has_net):
+            """Compare a broker's week-to-date option flow against its weekly net.
+
+            The weekly participant table only covers strikes near the current
+            price, so a big block struck far away never shows up in `net`.
+            Judging a 1,200-lot block by a 60-lot net would be meaningless, so
+            require the net to be large enough to plausibly explain the flow.
+            """
             if flow < 100:
                 return ''
+            if not has_net:
+                return '判定材料なし（週次建玉に不掲載）'
+            if abs(net) < max(100, flow * 0.15):
+                return '判定材料なし（週次建玉の規模が小さく対応づけ不可）'
             if net < 0:
-                return '書き手(売り持ち)側'
+                return '売った側（売り建て）と推定'
             if net > 0:
-                return '買い手(買い持ち)側'
-            return '中立'
+                return '買った側（買い建て）と推定'
+            return '判定材料なし（ネットほぼ0）'
         rows.append({
             'broker': broker,
             'cat': f.get('cat') or o.get('cat') or '',
@@ -110,8 +121,8 @@ def build(data_dir):
             'day_opt_lots': round(do.get('lots', 0)),
             'day_opt_top': do.get('top', ''),
             'wk_p': round(wf['p']), 'wk_c': round(wf['c']),
-            'verdict_p': _verdict(wf['p'], np_),
-            'verdict_c': _verdict(wf['c'], nc_),
+            'verdict_p': _verdict(wf['p'], np_, k in opt),
+            'verdict_c': _verdict(wf['c'], nc_, k in opt),
         })
     rows.sort(key=lambda r: -(abs(r['fut']) + 20 * (abs(r['put']) + abs(r['call']))
                               + abs(r['day_fut']) + 20 * abs(r['day_opt_lots'])))

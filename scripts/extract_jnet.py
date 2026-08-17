@@ -45,11 +45,16 @@ def _classify(name):
 
 
 def _parse_opt_name(prod):
-    """'NIKKEI 225 OOP C2607-70500' -> ('C', 70500). Returns (None,None) if n/a."""
-    m = re.search(r'([CP])\d{4}-(\d+)', str(prod or ''))
+    """'NIKKEI 225 OOP C2609-70500' -> ('C', '2609', 70500).
+
+    The expiry code matters: the same strike in different expiries is a
+    different contract, and merging them would invent crosses that never
+    happened.
+    """
+    m = re.search(r'([CP])(\d{4})-(\d+)', str(prod or ''))
     if not m:
-        return None, None
-    return m.group(1), int(m.group(2))
+        return None, None, None
+    return m.group(1), m.group(2), int(m.group(3))
 
 
 def _broker_opt_pc(path):
@@ -61,7 +66,7 @@ def _broker_opt_pc(path):
     for r in ws.iter_rows(values_only=True):
         if not r or str(r[0]).strip() != 'NK225E':
             continue
-        side, _ = _parse_opt_name(r[2] if len(r) > 2 else None)
+        side, _, _ = _parse_opt_name(r[2] if len(r) > 2 else None)
         broker = str(r[5]).strip() if len(r) > 5 and r[5] else None
         vol = r[7] if len(r) > 7 and isinstance(r[7], (int, float)) else None
         if side and broker and vol:
@@ -70,28 +75,32 @@ def _broker_opt_pc(path):
 
 
 def parse_option_crosses(path, min_vol=100, keep=8):
-    """Detect notable J-NET option cross blocks by strike.
+    """Detect notable J-NET option blocks, grouped by (expiry, side, strike).
 
     A "cross" shows up as two brokers with large, near-equal volume at the same
-    strike (e.g. みずほ600 / ＡＢＮ600). We surface these dynamically — whoever
-    the counterparties are that day — and flag the domestic<->overseas blocks,
-    which is the 'today's Mizuho'-type move worth watching.
+    contract (e.g. みずほ600 / ＡＢＮ600). We surface these dynamically — whoever
+    the counterparties are that day — and flag the domestic<->overseas blocks.
+
+    Note on `size`: J-NET volume is reported per participant, and a matched
+    cross is the same contracts counted on both sides. We therefore report the
+    larger leg as the block size (not the sum), which is the number of
+    contracts that actually changed hands.
     """
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     ws = wb['手口上位一覧'] if '手口上位一覧' in wb.sheetnames else wb.worksheets[0]
-    groups = {}   # (side, strike) -> list[(broker, vol)]
+    groups = {}   # (expiry, side, strike) -> list[(broker, vol)]
     for r in ws.iter_rows(values_only=True):
         if not r or str(r[0]).strip() != 'NK225E':
             continue
-        side, strike = _parse_opt_name(r[2] if len(r) > 2 else None)
+        side, expiry, strike = _parse_opt_name(r[2] if len(r) > 2 else None)
         if side is None:
             continue
         broker = str(r[5]).strip() if len(r) > 5 and r[5] else None
         vol = r[7] if len(r) > 7 and isinstance(r[7], (int, float)) else None
         if broker and vol:
-            groups.setdefault((side, strike), []).append((broker, float(vol)))
+            groups.setdefault((expiry, side, strike), []).append((broker, float(vol)))
     crosses = []
-    for (side, strike), legs in groups.items():
+    for (expiry, side, strike), legs in groups.items():
         legs.sort(key=lambda x: -x[1])
         top = legs[0][1]
         if top < min_vol:
@@ -104,7 +113,8 @@ def parse_option_crosses(path, min_vol=100, keep=8):
         cats = {l['cat'] for l in named}
         dom_vs_ovs = ('domestic' in cats) and bool(cats & {'us', 'eu', 'hf'})
         crosses.append({
-            'side': side, 'strike': strike, 'size': round(top),
+            'side': side, 'strike': strike, 'expiry': expiry,
+            'size': round(top), 'total': round(sum(v for _, v in legs)),
             'is_cross': matched, 'domestic_vs_overseas': dom_vs_ovs,
             'legs': named,
         })
