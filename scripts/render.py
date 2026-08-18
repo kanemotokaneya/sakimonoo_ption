@@ -30,6 +30,7 @@ try:
     import render_opcross as _oc
     import render_broker_watch as _bw
     import render_flow_map as _fm
+    import render_strike_breakdown as _sb
 except Exception:
     _rj = None
     _ow = None
@@ -37,6 +38,7 @@ except Exception:
     _oc = None
     _bw = None
     _fm = None
+    _sb = None
 import sys
 import copy
 
@@ -1544,7 +1546,7 @@ def _detail_ivtrend_js(ivts):
 
 
 
-def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None, optw=None, positions=None, broker_hist=None):
+def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=None, jnet=None, optw=None, positions=None, broker_hist=None, venue_flow=None):
     meta = data['metadata']
     s01 = data.get('s01', {})
     s02 = data.get('s02', {})
@@ -1565,7 +1567,7 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
     h += '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
     h += '<title>JPX Market Analysis %s</title>\n' % esc(meta.get('date_formatted', ''))
     h += '<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n'
-    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''), FLOW_VERDICT_CSS, (_bw.BW_CARD_CSS if _bw else ''), (_fm.FM_CARD_CSS if _fm else ''))
+    h += '<style>\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n</style>\n' % (DASHBOARD_CSS, OI_CHART_CSS, WEEKLY_TREND_CSS, IV_CARD_CSS, IV_TREND_CSS, (_rg.GREEKS_CARD_CSS if _rg else ''), (_rj.JNET_CARD_CSS if _rj else ''), (_ow.OPTW_CARD_CSS if _ow else ''), (_ps.POS_CARD_CSS if _ps else ''), (_oc.OPCROSS_CARD_CSS if _oc else ''), FLOW_VERDICT_CSS, (_bw.BW_CARD_CSS if _bw else ''), (_fm.FM_CARD_CSS if _fm else ''), (_sb.SB_CARD_CSS if _sb else ''))
     h += '</head>\n<body>\n'
 
     h += '<div class="topbar">\n  <span class="logo">JPX Dashboard</span>\n  <nav>\n'
@@ -1648,6 +1650,9 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
             ('flow_map', '🗺', '売買推定マップ（価格軸）',
              (_fm.preview_flow_map(greeks, data.get('indicators')) if _fm and greeks else '<span class="mm-label">データ待ち</span>'),
              (_fm.FM_CARD_JS + "return fmBuild();" if _fm and greeks else "return '<div class=\\'insight\\'>データなし</div>';"), DB),
+            ('strike_breakdown', '🔬', '価格帯の内訳（建玉×手口×IV）',
+             (_sb.preview_strike_breakdown(greeks, venue_flow) if _sb else '<span class="mm-label">データ待ち</span>'),
+             (_sb.SB_CARD_JS + "return sbBuild();" if (_sb and greeks) else "return '<div class=\\'insight\\'>データなし</div>';"), DB),
             ('dist', '🦋', 'OP建玉分布', _preview_dist(s06), _detail_dist_js(s06, ind), DB),
             ('ivtrend', '📈', 'IV推移', _preview_ivtrend(ivts), _detail_ivtrend_js(ivts), DB),
             ('greeks', '🧮', '相場の地合い（GEX）', (_rg.preview_greeks(greeks) if _rg else ''), (_rg.detail_greeks_js(greeks) if _rg else ''), DB),
@@ -1713,6 +1718,8 @@ def build_dashboard_html(data, oi_ts=None, wt=None, iv=None, ivts=None, greeks=N
         h += _bw.bw_data_script(broker_hist)
     if _fm and greeks:
         h += _fm.fm_data_script(greeks, data.get('indicators'))
+    if _sb and greeks:
+        h += _sb.sb_data_script(greeks, venue_flow, data.get('indicators'))
     for card_id, _, _, _, detail_js in cards:
         h += 'function b_%s(){' % card_id
         h += detail_js
@@ -2775,6 +2782,18 @@ def run(args):
                 print('[render.py] Loaded positions.json: %d participants' % len(positions.get('rows', [])))
         except Exception as e:
             print('[render.py] positions.json load error: %s' % e)
+    venue_flow = None
+    _vfpath = os.path.join(data_dir, 'venue_flow.json')
+    if os.path.exists(_vfpath):
+        try:
+            with open(_vfpath, encoding='utf-8') as f:
+                venue_flow = json.load(f)
+            if venue_flow:
+                print('[render.py] Loaded venue_flow: %d contracts'
+                      % len(venue_flow.get('rows', [])))
+        except Exception as e:
+            print('[render.py] venue_flow.json load error: %s' % e)
+
     broker_hist = None
     _bhpath = os.path.join(data_dir, 'broker_history.json')
     if os.path.exists(_bhpath):
@@ -2808,7 +2827,7 @@ def run(args):
         f.write(build_markdown(data))
     print('[render.py] Markdown: %s (%.1f KB)' % (md_path, os.path.getsize(md_path) / 1024))
     html_path = os.path.join(outdir, 'index.html')
-    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet, optw=optw, positions=positions, broker_hist=broker_hist)
+    html = build_dashboard_html(data, oi_ts=oi_ts, wt=wt, iv=iv, ivts=ivts, greeks=greeks, jnet=jnet, optw=optw, positions=positions, broker_hist=broker_hist, venue_flow=venue_flow)
     with open(html_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print('[render.py] Dashboard: %s (%.1f KB)' % (html_path, os.path.getsize(html_path) / 1024))

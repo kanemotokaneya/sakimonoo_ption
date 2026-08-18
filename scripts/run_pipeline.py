@@ -237,6 +237,17 @@ def main():
     result = subprocess.run(pos_cmd, capture_output=True, text=True)
     print(result.stdout)
 
+    # Step 2.985: aggregate participant volume across all four session files
+    # (day/night x auction/J-NET). Optional — older days only have the day
+    # J-NET file, in which case this simply reports fewer venues.
+    vf_cmd = [sys.executable, os.path.join(scripts_dir, 'extract_venue_flow.py'),
+              '--data-dir', datadir,
+              '--out', os.path.join(datadir, 'venue_flow.json')]
+    result = subprocess.run(vf_cmd, capture_output=True, text=True)
+    print(result.stdout)
+    if result.returncode != 0:
+        print('[WARN] extract_venue_flow.py failed (価格帯の内訳 card may be stale)', file=sys.stderr)
+
     # Step 2.99: accumulate weekly per-broker nets into broker_history.json
     # (persistent across weeks; powers the 大口動向 card). Runs only when
     # weekly files are present, otherwise leaves the existing history intact.
