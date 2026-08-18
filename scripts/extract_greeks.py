@@ -182,10 +182,15 @@ def _save_history(path, history, keep=10):
         print('[extract_greeks] WARNING: could not write history: %s' % e)
 
 
-def _snapshot(oi_now, iv_expiries, spot=None, pct=0.12):
+def _snapshot(oi_now, iv_expiries, spot=None, pct=0.18):
     """Compact per-day snapshot: OI (YYMM-keyed) + IV/ATM (YYYYMM-keyed).
     Kept small: only the analysed front expiries, strikes within ±pct of spot,
-    integer OI and rounded IV. This keeps greeks_history.json lean."""
+    integer OI and rounded IV. This keeps greeks_history.json lean.
+
+    The window is deliberately wider than the one used for display: a strike
+    must be present in YESTERDAY's snapshot for today's OI change to be
+    computable, and on a 3% move a narrow window drops exactly the strikes
+    that just became interesting."""
     def near(k):
         return spot is None or abs(int(k) - spot) <= spot * pct
     snap = {'oi': {}, 'iv': {}, 'atm_iv': {}}
@@ -404,8 +409,14 @@ def build_greeks(data_dir, max_expiries=3):
             poi = (oi_e.get(K, {}) or {}).get('put_oi', 0.0)
             coi_w = (oi_e_was.get(K, {}) or {}).get('call_oi', 0.0)
             poi_w = (oi_e_was.get(K, {}) or {}).get('put_oi', 0.0)
-            coi_chg = coi - coi_w if oi_e_was else None
-            poi_chg = poi - poi_w if oi_e_was else None
+            # A strike that was outside yesterday's window (spot moved a lot)
+            # has no prior record. Subtracting a missing value from today's OI
+            # would report the entire open interest as if it were built today —
+            # badly overstating the flow on exactly the days that matter most.
+            # Mark it unknown instead.
+            had_prior_K = K in oi_e_was
+            coi_chg = (coi - coi_w) if (oi_e_was and had_prior_K) else None
+            poi_chg = (poi - poi_w) if (oi_e_was and had_prior_K) else None
             iv_chg = (sig - iv_was_e[K]) if (K in iv_was_e) else None
             # relative IV change = strike IV change minus market-wide ATM change
             iv_chg_rel = (iv_chg - atm_iv_chg) if (iv_chg is not None and atm_iv_chg is not None) else None
